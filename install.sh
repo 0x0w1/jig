@@ -52,6 +52,13 @@ Project scope also installs:
 
 Project scope also syncs these GitHub labels when gh is available:
   patch, minor, major, enhancement, fix, chore
+
+Target-specific project installs:
+  codex: .agents/skills/* plus AGENTS.md
+  claude-code: .claude/skills/* plus CLAUDE.md
+  cursor: .cursor/rules/*.mdc
+  gemini-cli: GEMINI.md
+  opencode: AGENTS.md
 EOF
 }
 
@@ -363,21 +370,29 @@ verify_github_labels() {
 
 install_claude_code() {
   if [ "$SCOPE" = "project" ]; then
-    base="./.claude/skills/github-release-setup"
+    memory_destination="./CLAUDE.md"
+    skill_base="./.claude/skills"
   else
-    base="$HOME/.claude/skills/github-release-setup"
+    memory_destination="$HOME/.claude/CLAUDE.md"
+    skill_base="$HOME/.claude/skills"
   fi
-  copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/skills/github-release-setup/SKILL.md" "$base/SKILL.md"
-  copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/skills/github-release-setup/files/drafter-config.yaml" "$base/files/drafter-config.yaml"
-  copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/skills/github-release-setup/files/drafter.yaml" "$base/files/drafter.yaml"
+  install_managed_block "$REPO_RAW_URL/dist/claude-code/CLAUDE.md" "$memory_destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
+  copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/.claude/skills/github-sync/SKILL.md" "$skill_base/github-sync/SKILL.md"
+  copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/.claude/skills/github-release/SKILL.md" "$skill_base/github-release/SKILL.md"
+  copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/.claude/skills/develop-task-flow/SKILL.md" "$skill_base/develop-task-flow/SKILL.md"
 }
 
 install_codex() {
   if [ "$SCOPE" = "project" ]; then
     destination="./AGENTS.md"
+    skill_base="./.agents/skills"
   else
     destination="$HOME/.codex/AGENTS.md"
+    skill_base="$HOME/.agents/skills"
   fi
+  copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/github-sync/SKILL.md" "$skill_base/github-sync/SKILL.md"
+  copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/github-release/SKILL.md" "$skill_base/github-release/SKILL.md"
+  copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/develop-task-flow/SKILL.md" "$skill_base/develop-task-flow/SKILL.md"
   install_managed_block "$REPO_RAW_URL/dist/codex/AGENTS.md" "$destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
 }
 
@@ -385,7 +400,9 @@ install_cursor() {
   if [ "$SCOPE" = "global" ]; then
     error "The cursor target currently supports project scope only. Use --scope project."
   fi
-  copy_file_with_backup "$REPO_RAW_URL/dist/cursor/.cursor/rules/github-release-setup.mdc" "./.cursor/rules/github-release-setup.mdc"
+  copy_file_with_backup "$REPO_RAW_URL/dist/cursor/.cursor/rules/github-sync.mdc" "./.cursor/rules/github-sync.mdc"
+  copy_file_with_backup "$REPO_RAW_URL/dist/cursor/.cursor/rules/github-release.mdc" "./.cursor/rules/github-release.mdc"
+  copy_file_with_backup "$REPO_RAW_URL/dist/cursor/.cursor/rules/develop-task-flow.mdc" "./.cursor/rules/develop-task-flow.mdc"
 }
 
 install_gemini_cli() {

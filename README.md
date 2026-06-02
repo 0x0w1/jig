@@ -130,46 +130,72 @@ project scope:
 
 ```text
 ./AGENTS.md
+.agents/
+  skills/
+    github-sync/
+      SKILL.md
+    github-release/
+      SKILL.md
+    develop-task-flow/
+      SKILL.md
 ```
 
 global scope:
 
 ```text
 ~/.codex/AGENTS.md
+~/.agents/skills/
+  github-sync/
+    SKILL.md
+  github-release/
+    SKILL.md
+  develop-task-flow/
+    SKILL.md
 ```
 
-Codex는 `AGENTS.md`에 SPAI managed block을 삽입하거나 교체합니다.
+Codex는 repo/user skill 위치에 세 개의 `SKILL.md`를 설치하고, `AGENTS.md`에는 SPAI managed block을 삽입하거나 교체합니다.
 
 ### Claude Code
 
 project scope:
 
 ```text
-.claude/skills/github-release-setup/
-  SKILL.md
-  files/
-    drafter-config.yaml
-    drafter.yaml
+./CLAUDE.md
+.claude/
+  skills/
+    github-sync/
+      SKILL.md
+    github-release/
+      SKILL.md
+    develop-task-flow/
+      SKILL.md
 ```
 
 global scope:
 
 ```text
-~/.claude/skills/github-release-setup/
-  SKILL.md
-  files/
-    drafter-config.yaml
-    drafter.yaml
+~/.claude/CLAUDE.md
+~/.claude/skills/
+  github-sync/
+    SKILL.md
+  github-release/
+    SKILL.md
+  develop-task-flow/
+    SKILL.md
 ```
 
-Claude Code는 스킬 디렉터리에도 drafter YAML을 bundled files로 함께 설치합니다. 실제 Repository 설정 파일은 공통 project 파일로 `.github/`에 설치됩니다.
+Claude Code는 세 개의 project/user skill을 `.claude/skills/<skill>/SKILL.md` 구조로 설치하고, `CLAUDE.md`에는 SPAI managed block을 삽입하거나 교체합니다. 실제 Repository 설정 파일은 공통 project 파일로 `.github/`에 설치됩니다.
 
 ### Cursor
 
 project scope:
 
 ```text
-.cursor/rules/github-release-setup.mdc
+.cursor/
+  rules/
+    github-sync.mdc
+    github-release.mdc
+    develop-task-flow.mdc
 ```
 
 Cursor global scope는 현재 지원하지 않습니다.
@@ -206,9 +232,13 @@ Codex와 OpenCode는 project scope에서 모두 `AGENTS.md`를 사용합니다. 
 
 ## 제공되는 스킬
 
-현재 제공되는 스킬은 `GitHub Release Setup Skill`입니다.
+현재 제공되는 절차형 스킬/룰은 세 개입니다.
 
-이 스킬은 대상 Repository에 GitHub Release Drafter, 표준 라벨, `main`/`develop` 브랜치 보호, 릴리스 브랜치 정책을 안전하게 적용하도록 Agent에게 절차를 제공합니다.
+- `github-sync`: Release Drafter 파일, 표준 라벨, `main`/`develop` 브랜치, 브랜치 보호를 동기화합니다. 릴리스 생성에는 사용하지 않습니다.
+- `github-release`: `origin/develop`에서 `release/vX.Y.Z`를 만들고 `main` 릴리스 PR을 통해 Release Drafter 게시를 진행합니다.
+- `develop-task-flow`: 일반 개발 작업을 `origin/develop`에서 feature/fix/chore 브랜치로 시작하고 테스트, PR, develop 머지까지 진행합니다.
+
+SPAI는 각 Agent 환경의 권장 instruction surface에 맞춰 위 세 절차를 설치합니다.
 
 ## 스킬이 설정하는 GitHub Repository 정책
 
@@ -247,7 +277,7 @@ Codex와 OpenCode는 project scope에서 모두 `AGENTS.md`를 사용합니다. 
 sh scripts/build-dist.sh
 ```
 
-`dist/`는 `skills/github-release-setup/prompt.md`와 `skills/github-release-setup/files/`에서 재생성됩니다.
+`dist/`는 `skills/github-sync`, `skills/github-release`, `skills/develop-task-flow`, 그리고 `skills/github-release-setup/files/`에서 재생성됩니다.
 
 ## 개발자용: dist 검증
 
