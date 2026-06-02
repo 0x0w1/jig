@@ -8,6 +8,7 @@ FORCE=0
 REPO_RAW_URL="${REPO_RAW_URL:-https://raw.githubusercontent.com/0x0w1/spai/main}"
 INSTALLED_FILES=""
 SYNCED_LABELS=""
+VERIFIED_LABELS=""
 
 print_help() {
   cat <<'EOF'
@@ -17,8 +18,8 @@ Usage:
   sh install.sh [--target <target>] [--scope <scope>] [--dry-run] [--force]
 
 Targets:
-  claude-code
   codex
+  claude-code
   cursor
   gemini-cli
   opencode
@@ -33,11 +34,11 @@ Defaults:
   --scope project
 
 Examples:
-  curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-    | sh -s -- --target claude-code --scope project
-
   wget -qO- https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
     | sh -s -- --target codex --scope project
+
+  curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
+    | sh -s -- --target claude-code --scope project
 
   curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
     | sh -s -- --target all --scope project
@@ -55,16 +56,25 @@ EOF
 }
 
 log() {
-  echo "spai: $*"
+  printf 'SPAI [info] %s\n' "$*"
 }
 
 warn() {
-  echo "spai: warning: $*" >&2
+  printf 'SPAI [warn] %s\n' "$*" >&2
 }
 
 error() {
-  echo "spai: error: $*" >&2
+  printf 'SPAI [error] %s\n' "$*" >&2
   exit 1
+}
+
+print_list() {
+  list_title="$1"
+  list_items="$2"
+
+  [ -n "$list_items" ] || return 0
+  printf '\nSPAI [summary] %s\n' "$list_title"
+  printf '%s\n' "$list_items" | sed '/^$/d; s/^/  - /'
 }
 
 need_downloader() {
@@ -74,7 +84,7 @@ need_downloader() {
   if command -v wget >/dev/null 2>&1; then
     return 0
   fi
-  error "curl 또는 wget이 필요합니다."
+  error "curl or wget is required."
 }
 
 download_file() {
@@ -87,7 +97,7 @@ download_file() {
   elif command -v wget >/dev/null 2>&1; then
     wget -qO "$download_destination" "$download_url"
   else
-    error "download failed: curl 또는 wget이 없습니다."
+    error "download failed: curl or wget is not available."
   fi
 }
 
@@ -101,12 +111,17 @@ record_label() {
 $1"
 }
 
+record_verified_label() {
+  VERIFIED_LABELS="${VERIFIED_LABELS}
+$1"
+}
+
 copy_file_with_backup() {
   copy_source_url="$1"
   copy_destination="$2"
 
   if [ "$DRY_RUN" -eq 1 ]; then
-    log "[dry-run] copy $copy_source_url -> $copy_destination"
+    log "[dry-run] Would copy: $copy_source_url -> $copy_destination"
     return 0
   fi
 
@@ -122,7 +137,7 @@ copy_file_with_backup() {
   fi
 
   if cmp -s "$copy_tmp" "$copy_destination"; then
-    log "skip unchanged: $copy_destination"
+    log "Skipped unchanged file: $copy_destination"
     rm -f "$copy_tmp"
     return 0
   fi
@@ -157,7 +172,7 @@ install_managed_block() {
   managed_end_marker="$4"
 
   if [ "$DRY_RUN" -eq 1 ]; then
-    log "[dry-run] managed block $managed_source_url -> $managed_destination"
+    log "[dry-run] Would install managed block: $managed_source_url -> $managed_destination"
     return 0
   fi
 
@@ -202,7 +217,7 @@ install_managed_block() {
   fi
 
   if cmp -s "$managed_new_tmp" "$managed_destination"; then
-    log "skip unchanged: $managed_destination"
+    log "Skipped unchanged managed block: $managed_destination"
     rm -f "$managed_source_tmp" "$managed_block_tmp" "$managed_new_tmp"
     return 0
   fi
@@ -227,13 +242,25 @@ ensure_github_label() {
   label_color="$2"
   label_description="$3"
 
-  if gh label edit "$label_name" --color "$label_color" --description "$label_description" >/dev/null 2>&1; then
-    record_label "$label_name"
+  if github_label_exists "$label_name"; then
+    gh label edit "$label_name" --color "$label_color" --description "$label_description" >/dev/null
+    log "GitHub label updated: $label_name"
+    record_label "$label_name (updated)"
     return 0
   fi
 
   gh label create "$label_name" --color "$label_color" --description "$label_description" >/dev/null
-  record_label "$label_name"
+  log "GitHub label created: $label_name"
+  record_label "$label_name (created)"
+}
+
+github_label_exists() {
+  label_name="$1"
+
+  gh label list --limit 1000 | awk -F '\t' -v name="$label_name" '
+    $1 == name { found = 1 }
+    END { exit found ? 0 : 1 }
+  '
 }
 
 sync_github_labels() {
@@ -242,24 +269,40 @@ sync_github_labels() {
   fi
 
   if [ "$DRY_RUN" -eq 1 ]; then
-    log "[dry-run] sync GitHub labels: patch, minor, major, enhancement, fix, chore"
+    log "[dry-run] Would check GitHub CLI setup"
+    log "[dry-run] Would check git repository"
+    log "[dry-run] Would sync GitHub labels: patch, minor, major, enhancement, fix, chore"
+    log "[dry-run] Would verify GitHub labels: patch, minor, major, enhancement, fix, chore"
     return 0
   fi
 
   if ! command -v gh >/dev/null 2>&1; then
-    warn "gh가 없어 GitHub 라벨 동기화를 건너뜁니다."
+    warn "GitHub CLI check failed: gh is not installed. Skipping GitHub label sync."
     return 0
   fi
 
   if ! gh auth status >/dev/null 2>&1; then
-    warn "gh 인증을 확인할 수 없어 GitHub 라벨 동기화를 건너뜁니다."
+    warn "GitHub CLI check failed: gh authentication is not available. Skipping GitHub label sync."
+    return 0
+  fi
+  log "GitHub CLI check passed"
+
+  if ! command -v git >/dev/null 2>&1; then
+    log "Git repository check passed: git is not installed, so GitHub label sync was skipped."
     return 0
   fi
 
-  if ! gh repo view >/dev/null 2>&1; then
-    warn "현재 디렉터리의 GitHub repository를 확인할 수 없어 라벨 동기화를 건너뜁니다."
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    log "Git repository check passed: no .git repository found, so GitHub label sync was skipped."
     return 0
   fi
+  log "Git repository check passed"
+
+  if ! gh repo view >/dev/null 2>&1; then
+    warn "GitHub repository check failed: current directory is not connected to a GitHub repository. Skipping GitHub label sync."
+    return 0
+  fi
+  log "GitHub repository check passed"
 
   ensure_github_label "patch" "0E8A16" "하위 호환 버그 수정 또는 내부 변경"
   ensure_github_label "minor" "1D76DB" "하위 호환 신규 기능"
@@ -267,6 +310,55 @@ sync_github_labels() {
   ensure_github_label "enhancement" "A2EEEF" "사용자에게 보이는 신규 기능 또는 개선"
   ensure_github_label "fix" "FBCA04" "버그, 회귀(regression), 또는 보안 수정"
   ensure_github_label "chore" "CFD3D7" "의존성, 툴링, 리팩터링, 문서"
+
+  verify_github_labels
+}
+
+verify_label_in_file() {
+  verify_file="$1"
+  verify_name="$2"
+  verify_color="#$3"
+
+  awk -F '\t' -v name="$verify_name" -v color="$verify_color" '
+    $1 == name {
+      found = 1
+      actual = toupper($3)
+      expected = toupper(color)
+    }
+    END {
+      if (!found) {
+        exit 1
+      }
+      if (actual != expected) {
+        exit 2
+      }
+    }
+  ' "$verify_file"
+}
+
+verify_github_label() {
+  verify_file="$1"
+  verify_name="$2"
+  verify_color="$3"
+
+  if ! verify_label_in_file "$verify_file" "$verify_name" "$verify_color"; then
+    error "GitHub label verification failed: $verify_name"
+  fi
+  record_verified_label "$verify_name"
+}
+
+verify_github_labels() {
+  labels_tmp=$(mktemp)
+  gh label list --limit 1000 > "$labels_tmp"
+
+  verify_github_label "$labels_tmp" "patch" "0E8A16"
+  verify_github_label "$labels_tmp" "minor" "1D76DB"
+  verify_github_label "$labels_tmp" "major" "B60205"
+  verify_github_label "$labels_tmp" "enhancement" "A2EEEF"
+  verify_github_label "$labels_tmp" "fix" "FBCA04"
+  verify_github_label "$labels_tmp" "chore" "CFD3D7"
+
+  rm -f "$labels_tmp"
 }
 
 install_claude_code() {
@@ -291,7 +383,7 @@ install_codex() {
 
 install_cursor() {
   if [ "$SCOPE" = "global" ]; then
-    error "Cursor target은 현재 project scope 설치만 지원합니다. --scope project를 사용하세요."
+    error "The cursor target currently supports project scope only. Use --scope project."
   fi
   copy_file_with_backup "$REPO_RAW_URL/dist/cursor/.cursor/rules/github-release-setup.mdc" "./.cursor/rules/github-release-setup.mdc"
 }
@@ -368,10 +460,10 @@ main() {
   need_downloader
 
   if [ "$TARGET" = "all" ]; then
-    install_target claude-code
     install_target codex
+    install_target claude-code
     if [ "$SCOPE" = "global" ]; then
-      warn "Cursor target은 현재 project scope 설치만 지원하므로 건너뜁니다."
+      warn "Skipping cursor: the cursor target currently supports project scope only."
     else
       install_target cursor
     fi
@@ -384,18 +476,17 @@ main() {
   install_project_github_files
   sync_github_labels
 
-  log "installation complete"
+  log "Installation complete"
   if [ "$DRY_RUN" -eq 1 ]; then
-    log "dry-run only; no files were modified"
+    log "Dry run only; no files were modified."
   elif [ -n "$INSTALLED_FILES" ]; then
-    printf '%s\n' "Installed files:$INSTALLED_FILES"
+    print_list "Installed files" "$INSTALLED_FILES"
   else
-    log "no file changes"
+    log "No file changes"
   fi
 
-  if [ "$DRY_RUN" -ne 1 ] && [ -n "$SYNCED_LABELS" ]; then
-    printf '%s\n' "Synced labels:$SYNCED_LABELS"
-  fi
+  [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub labels" "$SYNCED_LABELS"
+  [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub labels" "$VERIFIED_LABELS"
 }
 
 main "$@"
