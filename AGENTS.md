@@ -42,8 +42,11 @@ Use these repo-scoped Codex skills:
 - Release requests must use `vX.Y.Z`.
 - Create `release/vX.Y.Z` from `origin/develop`.
 - Open the release PR with base `main`.
+- Treat release PRs as version upgrades, not chores.
+- Title release PRs as `<patch|minor|major>: release vX.Y.Z`.
 - Use a merge commit for `release/*` into `main`; do not require linear history on `main`.
 - Apply one version label: `patch`, `minor`, or `major`.
+- Do not apply `chore`, `enhancement`, or `fix` to release PRs.
 - Let release-drafter publish the release and tag after `main` receives the release merge.
 
 ## Develop Back-Merge Rules
