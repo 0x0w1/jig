@@ -1,3 +1,10 @@
+---
+description: Configure GitHub repository release setup with Release Drafter, labels, branch protection, and safe workflow rules.
+globs:
+  - "**/*"
+alwaysApply: false
+---
+
 # GitHub Release Setup Skill
 
 ## Role
