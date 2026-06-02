@@ -4,11 +4,11 @@
 
 SPAI는 Scaffolded Procedures for AI Agents의 약자입니다.
 
-SPAI는 Claude Code, Codex, Cursor, Gemini CLI, OpenCode 등 여러 AI Agent 환경에서 사용할 수 있는 절차형 스킬을 배포하기 위한 오픈소스 프로젝트입니다.
+SPAI는 Codex, Claude Code, Cursor, Gemini CLI, OpenCode 등 여러 AI Agent 환경에서 사용할 수 있는 절차형 스킬을 배포하기 위한 오픈소스 프로젝트입니다.
 
 이 프로젝트는 `curl` 또는 `wget`을 통해 각 Agent 환경에 맞는 스킬/규칙 파일을 설치할 수 있도록 구성되어 있습니다.
 
-> 이 설치 스크립트는 AI Agent용 스킬/규칙 파일만 설치합니다. GitHub 라벨, 브랜치 보호, 릴리스, 태그, PR 병합은 직접 수행하지 않습니다. 실제 Repository 설정 변경은 설치된 스킬을 Agent가 실행할 때 사용자의 확인과 권한 범위 안에서 수행됩니다.
+> 이 설치 스크립트는 AI Agent용 스킬/규칙 파일과 Release Drafter YAML 파일을 설치하고, `gh`를 사용할 수 있으면 표준 6개 GitHub 라벨을 생성하거나 업데이트합니다. 라벨 삭제, 브랜치 보호, 릴리스, 태그, PR 병합은 직접 수행하지 않습니다. 그 외 Repository 설정 변경은 설치된 스킬을 Agent가 실행할 때 사용자의 확인과 권한 범위 안에서 수행됩니다.
 
 ## SPAI의 의미
 
@@ -18,26 +18,26 @@ SPAI는 Claude Code, Codex, Cursor, Gemini CLI, OpenCode 등 여러 AI Agent 환
 
 ## 지원 대상
 
-- Claude Code
 - Codex
+- Claude Code
 - Cursor
 - Gemini CLI
 - OpenCode
 
 ## 설치 방법
 
+### Codex
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
+  | sh -s -- --target codex --scope project
+```
+
 ### Claude Code
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
   | sh -s -- --target claude-code --scope project
-```
-
-### Codex
-
-```bash
-wget -qO- https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-  | sh -s -- --target codex --scope project
 ```
 
 ### Cursor
@@ -100,6 +100,44 @@ REPO_RAW_URL="https://raw.githubusercontent.com/my-org/spai/main" sh install.sh
 
 ## 설치되는 파일 구조
 
+### 공통 project 파일
+
+project scope 설치 시 target과 관계없이 다음 파일도 설치됩니다.
+
+```text
+.github/
+  drafter-config.yaml
+  workflows/
+    drafter.yaml
+```
+
+project scope 설치 시 `gh`를 사용할 수 있으면 다음 표준 라벨도 생성하거나 업데이트합니다.
+
+```text
+patch
+minor
+major
+enhancement
+fix
+chore
+```
+
+### Codex
+
+project scope:
+
+```text
+./AGENTS.md
+```
+
+global scope:
+
+```text
+~/.codex/AGENTS.md
+```
+
+Codex는 `AGENTS.md`에 SPAI managed block을 삽입하거나 교체합니다.
+
 ### Claude Code
 
 project scope:
@@ -122,21 +160,7 @@ global scope:
     drafter.yaml
 ```
 
-### Codex
-
-project scope:
-
-```text
-./AGENTS.md
-```
-
-global scope:
-
-```text
-~/.codex/AGENTS.md
-```
-
-Codex는 `AGENTS.md`에 SPAI managed block을 삽입하거나 교체합니다.
+Claude Code는 스킬 디렉터리에도 drafter YAML을 bundled files로 함께 설치합니다. 실제 Repository 설정 파일은 공통 project 파일로 `.github/`에 설치됩니다.
 
 ### Cursor
 
@@ -213,7 +237,7 @@ Codex와 OpenCode는 project scope에서 모두 `AGENTS.md`를 사용합니다. 
 - 설정 중에 릴리스나 태그를 생성하지 않습니다.
 - 설정 중에 PR을 병합하지 않습니다.
 - 사용자의 관련 없는 working tree 변경 사항을 수정하거나 되돌리지 않습니다.
-- `install.sh`는 GitHub Repository 설정을 직접 변경하지 않습니다.
+- `install.sh`는 표준 6개 라벨 생성/업데이트 외의 GitHub Repository 설정을 직접 변경하지 않습니다.
 
 ## 개발자용: dist 재생성
 
@@ -236,6 +260,9 @@ sh scripts/validate-dist.sh
 - 설치 스크립트는 자동화 친화적으로 동작하며 interactive prompt를 사용하지 않습니다.
 - 기존 파일을 변경해야 할 때는 `.bak` 백업을 생성합니다.
 - `--dry-run`을 사용하면 실제 파일 시스템을 수정하지 않고 예정 작업만 출력합니다.
+- project scope 설치 시 `.github/drafter-config.yaml`과 `.github/workflows/drafter.yaml`도 설치됩니다.
+- project scope 설치 시 `gh` 인증과 repository 확인이 가능하면 표준 6개 라벨을 생성하거나 업데이트합니다.
+- 표준 6개 외의 기존 라벨은 삭제하지 않습니다.
 - `content` 라벨은 표준 라벨이 아니며, 신규 기능 또는 개선 사항은 `enhancement`로 처리합니다.
 - Release Drafter 실행 결과는 대상 Repository의 GitHub Actions 권한과 branch protection 설정에 영향을 받습니다.
 

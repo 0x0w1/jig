@@ -7,6 +7,7 @@ DRY_RUN=0
 FORCE=0
 REPO_RAW_URL="${REPO_RAW_URL:-https://raw.githubusercontent.com/0x0w1/spai/main}"
 INSTALLED_FILES=""
+SYNCED_LABELS=""
 
 print_help() {
   cat <<'EOF'
@@ -43,6 +44,13 @@ Examples:
 
 Environment:
   REPO_RAW_URL=https://raw.githubusercontent.com/my-org/spai/main sh install.sh
+
+Project scope also installs:
+  .github/drafter-config.yaml
+  .github/workflows/drafter.yaml
+
+Project scope also syncs these GitHub labels when gh is available:
+  patch, minor, major, enhancement, fix, chore
 EOF
 }
 
@@ -85,6 +93,11 @@ download_file() {
 
 record_installed() {
   INSTALLED_FILES="${INSTALLED_FILES}
+$1"
+}
+
+record_label() {
+  SYNCED_LABELS="${SYNCED_LABELS}
 $1"
 }
 
@@ -200,6 +213,62 @@ install_managed_block() {
   rm -f "$managed_source_tmp" "$managed_block_tmp" "$managed_new_tmp"
 }
 
+install_project_github_files() {
+  if [ "$SCOPE" != "project" ]; then
+    return 0
+  fi
+
+  copy_file_with_backup "$REPO_RAW_URL/dist/github/drafter-config.yaml" "./.github/drafter-config.yaml"
+  copy_file_with_backup "$REPO_RAW_URL/dist/github/workflows/drafter.yaml" "./.github/workflows/drafter.yaml"
+}
+
+ensure_github_label() {
+  label_name="$1"
+  label_color="$2"
+  label_description="$3"
+
+  if gh label edit "$label_name" --color "$label_color" --description "$label_description" >/dev/null 2>&1; then
+    record_label "$label_name"
+    return 0
+  fi
+
+  gh label create "$label_name" --color "$label_color" --description "$label_description" >/dev/null
+  record_label "$label_name"
+}
+
+sync_github_labels() {
+  if [ "$SCOPE" != "project" ]; then
+    return 0
+  fi
+
+  if [ "$DRY_RUN" -eq 1 ]; then
+    log "[dry-run] sync GitHub labels: patch, minor, major, enhancement, fix, chore"
+    return 0
+  fi
+
+  if ! command -v gh >/dev/null 2>&1; then
+    warn "gh가 없어 GitHub 라벨 동기화를 건너뜁니다."
+    return 0
+  fi
+
+  if ! gh auth status >/dev/null 2>&1; then
+    warn "gh 인증을 확인할 수 없어 GitHub 라벨 동기화를 건너뜁니다."
+    return 0
+  fi
+
+  if ! gh repo view >/dev/null 2>&1; then
+    warn "현재 디렉터리의 GitHub repository를 확인할 수 없어 라벨 동기화를 건너뜁니다."
+    return 0
+  fi
+
+  ensure_github_label "patch" "0E8A16" "하위 호환 버그 수정 또는 내부 변경"
+  ensure_github_label "minor" "1D76DB" "하위 호환 신규 기능"
+  ensure_github_label "major" "B60205" "호환성을 깨는(breaking) 변경"
+  ensure_github_label "enhancement" "A2EEEF" "사용자에게 보이는 신규 기능 또는 개선"
+  ensure_github_label "fix" "FBCA04" "버그, 회귀(regression), 또는 보안 수정"
+  ensure_github_label "chore" "CFD3D7" "의존성, 툴링, 리팩터링, 문서"
+}
+
 install_claude_code() {
   if [ "$SCOPE" = "project" ]; then
     base="./.claude/skills/github-release-setup"
@@ -312,6 +381,9 @@ main() {
     install_target "$TARGET"
   fi
 
+  install_project_github_files
+  sync_github_labels
+
   log "installation complete"
   if [ "$DRY_RUN" -eq 1 ]; then
     log "dry-run only; no files were modified"
@@ -319,6 +391,10 @@ main() {
     printf '%s\n' "Installed files:$INSTALLED_FILES"
   else
     log "no file changes"
+  fi
+
+  if [ "$DRY_RUN" -ne 1 ] && [ -n "$SYNCED_LABELS" ]; then
+    printf '%s\n' "Synced labels:$SYNCED_LABELS"
   fi
 }
 

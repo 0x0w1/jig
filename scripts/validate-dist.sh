@@ -19,6 +19,8 @@ require_text() {
 require_file dist/claude-code/skills/github-release-setup/SKILL.md
 require_file dist/claude-code/skills/github-release-setup/files/drafter-config.yaml
 require_file dist/claude-code/skills/github-release-setup/files/drafter.yaml
+require_file dist/github/drafter-config.yaml
+require_file dist/github/workflows/drafter.yaml
 require_file dist/codex/AGENTS.md
 require_file dist/cursor/.cursor/rules/github-release-setup.mdc
 require_file dist/gemini-cli/GEMINI.md

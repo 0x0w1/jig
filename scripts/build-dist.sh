@@ -12,11 +12,15 @@ fi
 rm -rf dist
 
 mkdir -p \
+  dist/github/workflows \
   dist/claude-code/skills/github-release-setup/files \
   dist/codex \
   dist/cursor/.cursor/rules \
   dist/gemini-cli \
   dist/opencode
+
+cp "$SKILL_FILES/drafter-config.yaml" dist/github/drafter-config.yaml
+cp "$SKILL_FILES/drafter.yaml" dist/github/workflows/drafter.yaml
 
 cat > dist/claude-code/skills/github-release-setup/SKILL.md <<'EOF'
 ---
