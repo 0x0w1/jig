@@ -59,6 +59,13 @@ for skill in $SKILLS; do
   require_text dist/opencode/AGENTS.md "$skill"
 done
 
+require_text "dist/claude-code/.claude/skills/develop-task-flow/SKILL.md" "Documentation Rules"
+require_text "dist/codex/.agents/skills/develop-task-flow/SKILL.md" "Documentation Rules"
+require_text "dist/cursor/.cursor/rules/develop-task-flow.mdc" "Documentation Rules"
+require_text dist/codex/AGENTS.md "Documentation Rules"
+require_text dist/gemini-cli/GEMINI.md "Documentation Rules"
+require_text dist/opencode/AGENTS.md "Documentation Rules"
+
 require_text dist/codex/AGENTS.md "Scaffolded Procedures for AI Agents"
 require_text dist/gemini-cli/GEMINI.md "Scaffolded Procedures for AI Agents"
 require_text dist/opencode/AGENTS.md "Scaffolded Procedures for AI Agents"
