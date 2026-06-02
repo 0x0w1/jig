@@ -1,0 +1,42 @@
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+commitish: main
+categories:
+  - title: "🚀 Content"
+    labels:
+      - "enhancement"
+  - title: "🐛 Fixes"
+    labels:
+      - "fix"
+  - title: "🧰 Chore"
+    labels:
+      - "chore"
+change-template: "- $TITLE (#$NUMBER)"
+change-title-escapes: '\<*_&'
+version-resolver:
+  major:
+    labels:
+      - "major"
+  minor:
+    labels:
+      - "minor"
+  patch:
+    labels:
+      - "patch"
+  default: patch
+autolabeler:
+  - label: "enhancement"
+    title:
+      - "/^content:/i"
+      - "/^feat:/i"
+      - "/^feature:/i"
+  - label: "fix"
+    title:
+      - "/^fix:/i"
+  - label: "chore"
+    title:
+      - "/^chore:/i"
+template: |
+  ## Changes
+
+  $CHANGES
