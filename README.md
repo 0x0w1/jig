@@ -122,6 +122,8 @@ fix
 chore
 ```
 
+라벨 동기화 전에 installer는 GitHub CLI 설정을 확인합니다. `.git` repository가 없으면 라벨 동기화는 건너뛰고 통과 로그를 출력합니다.
+
 ### Codex
 
 project scope:
@@ -261,7 +263,8 @@ sh scripts/validate-dist.sh
 - 기존 파일을 변경해야 할 때는 `.bak` 백업을 생성합니다.
 - `--dry-run`을 사용하면 실제 파일 시스템을 수정하지 않고 예정 작업만 출력합니다.
 - project scope 설치 시 `.github/drafter-config.yaml`과 `.github/workflows/drafter.yaml`도 설치됩니다.
-- project scope 설치 시 `gh` 인증과 repository 확인이 가능하면 표준 6개 라벨을 생성하거나 업데이트합니다.
+- project scope 설치 시 `gh` 인증, git repository, GitHub repository 확인이 가능하면 표준 6개 라벨을 생성하거나 업데이트하고 검증합니다.
+- `.git` repository가 없으면 GitHub 라벨 동기화를 건너뛰고 통과 로그를 출력합니다.
 - 표준 6개 외의 기존 라벨은 삭제하지 않습니다.
 - `content` 라벨은 표준 라벨이 아니며, 신규 기능 또는 개선 사항은 `enhancement`로 처리합니다.
 - Release Drafter 실행 결과는 대상 Repository의 GitHub Actions 권한과 branch protection 설정에 영향을 받습니다.
