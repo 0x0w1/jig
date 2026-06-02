@@ -1,0 +1,28 @@
+id: github-release-setup
+name: GitHub Release Setup
+version: 0.1.0
+description: Configure a GitHub repository with protected main/develop branches, standardized labels, Release Drafter, and safe sync/release procedures.
+targets:
+  - claude-code
+  - codex
+  - cursor
+  - gemini-cli
+  - opencode
+triggers:
+  - github release setup
+  - repository release setup
+  - sync github labels
+  - setup release drafter
+  - configure branch protection
+  - setup main develop release flow
+files:
+  - files/drafter-config.yaml
+  - files/drafter.yaml
+safety:
+  - Do not force push.
+  - Do not delete branches.
+  - Do not delete labels without explicit confirmation.
+  - Do not overwrite files with different content without explicit confirmation.
+  - Do not create or install AI skill directories while configuring the target repository.
+  - Do not create releases or tags during setup.
+  - Do not merge pull requests during setup.
