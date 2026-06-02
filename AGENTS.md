@@ -3,7 +3,7 @@
 Use these repo-scoped Codex skills:
 
 - Repository setup/sync: `github-sync` from `.agents/skills/github-sync/SKILL.md`.
-- Release and release back-merge: `github-release` from `.agents/skills/github-release/SKILL.md`.
+- Release: `github-release` from `.agents/skills/github-release/SKILL.md`.
 - Ordinary implementation tasks targeting `develop`: `develop-task-flow` from `.agents/skills/develop-task-flow/SKILL.md`.
 
 ## Repository Model
@@ -13,7 +13,6 @@ Use these repo-scoped Codex skills:
 - Release branches target `main`: `release/vX.Y.Z`.
 - Standard labels are exactly `patch`, `minor`, `major`, `enhancement`, `fix`, `chore`.
 - Release publication is handled by release-drafter on `main`.
-- Released `main` changes return to `develop` through a back-merge PR.
 
 ## Safety Rules
 
@@ -25,7 +24,7 @@ Use these repo-scoped Codex skills:
 - Do not create `.codex`, `.claude/skills`, or unrequested AI skill directories inside this repository.
 - Do not manually create release tags or GitHub releases when release-drafter is configured.
 - For ordinary implementation tasks, create a `feature/*`, `fix/*`, or `chore/*` branch from `origin/develop`, run tests, open a PR to `develop`, and merge it automatically only when checks pass, the PR is mergeable, and branch protection allows it.
-- For release PRs and release back-merge PRs, do not merge unless the user explicitly asks for merge execution and checks/protection allow it.
+- For release PRs, do not merge unless the user explicitly asks for merge execution and checks/protection allow it.
 - Preserve unrelated user changes.
 
 ## Develop Task Rules
@@ -49,21 +48,12 @@ Use these repo-scoped Codex skills:
 - Do not apply `chore`, `enhancement`, or `fix` to release PRs.
 - Let release-drafter publish the release and tag after `main` receives the release merge.
 
-## Develop Back-Merge Rules
-
-- Do not push directly to `develop`.
-- If `origin/develop` does not contain `origin/main`, create a back-merge branch from `origin/develop`.
-- Merge `origin/main` into that branch with `--no-ff`.
-- Open a PR with base `develop`.
-- If conflicts occur, report conflicted files before continuing.
-
 ## Reporting
 
-When doing release or back-merge work, report:
+When doing release work, report:
 
 - Current repo and branch
 - Created or reused branches
 - Created, existing, merged, or pending PRs
 - Release/tag status
-- Back-merge status
 - Blocked commands and reasons
