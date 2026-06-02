@@ -1,0 +1,61 @@
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+commitish: main
+categories:
+  - title: "⬆️ Version Updates"
+    labels:
+      - "patch"
+      - "minor"
+      - "major"
+  - title: "🚀 Enhancement"
+    labels:
+      - "enhancement"
+  - title: "🐛 Fixes"
+    labels:
+      - "fix"
+  - title: "🧰 Chore"
+    labels:
+      - "chore"
+change-template: "- $TITLE (#$NUMBER)"
+change-title-escapes: '\<*_&'
+version-resolver:
+  major:
+    labels:
+      - "major"
+  minor:
+    labels:
+      - "minor"
+  patch:
+    labels:
+      - "patch"
+  default: patch
+autolabeler:
+  - label: "patch"
+    title:
+      - "/^patch:/i"
+  - label: "minor"
+    title:
+      - "/^minor:/i"
+  - label: "major"
+    title:
+      - "/^major:/i"
+  - label: "enhancement"
+    title:
+      - "/^feat:/i"
+      - "/^feature:/i"
+      - "/^enhancement:/i"
+  - label: "fix"
+    title:
+      - "/^fix:/i"
+      - "/^bugfix:/i"
+  - label: "chore"
+    title:
+      - "/^chore:/i"
+      - "/^docs:/i"
+      - "/^refactor:/i"
+      - "/^test:/i"
+      - "/^ci:/i"
+template: |
+  ## Changes
+
+  $CHANGES

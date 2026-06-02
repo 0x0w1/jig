@@ -1,3 +1,9 @@
+# SPAI
+
+Scaffolded Procedures for AI Agents
+
+<!-- spai:start github-release-setup -->
+
 # GitHub Release Setup Skill
 
 ## Role
@@ -397,3 +403,5 @@ gh label list
 ```
 
 보고서는 간결하게 작성하되, 사용자가 다음에 무엇을 해야 하는지 명확히 알 수 있어야 합니다.
+
+<!-- spai:end github-release-setup -->
