@@ -1,0 +1,78 @@
+---
+name: github-release
+description: Use when releasing this repository with a concrete vX.Y.Z version, creating release/vX.Y.Z from develop, opening or merging a release PR to main, relying on release-drafter publication, or handling main-to-develop back-merge after release.
+---
+
+# GitHub Release
+
+Use this repository skill for release execution and release back-merge work.
+
+## Release Model
+
+- Release branches target `main`: `release/vX.Y.Z`.
+- Release branches are created from `origin/develop`.
+- `release/*` merges to `main` with a merge commit.
+- Release-drafter publishes the release and tag after `main` receives the release merge.
+- Released `main` changes return to `develop` through a back-merge PR.
+
+## Safety Rules
+
+- Do not force push.
+- Do not delete branches.
+- Do not manually create release tags or GitHub releases when release-drafter is configured.
+- Do not merge PRs unless the user explicitly requested merge execution and branch protection/checks allow it.
+- Do not push directly to `main` or `develop`.
+- Preserve unrelated user changes.
+
+## Release Procedure
+
+Use this when the user asks to release a concrete version such as `v0.1.0`.
+
+1. Validate the version string is exactly `vX.Y.Z`.
+2. Inspect state:
+   - `git status --short --branch`
+   - `git fetch origin --prune`
+   - local and remote `main` and `develop`
+   - existing `release/vX.Y.Z` branch
+   - open release PRs
+   - existing tag or release for the version
+3. Stop and report if the worktree has unrelated user changes that would be touched.
+4. Confirm release-drafter files exist:
+   - `.github/drafter-config.yaml`
+   - `.github/workflows/drafter.yaml`
+5. Create `release/vX.Y.Z` from `origin/develop`, unless it already exists.
+6. Push `release/vX.Y.Z` without force.
+7. Open or reuse a PR with base `main` and head `release/vX.Y.Z`.
+8. Apply exactly one version label:
+   - patch release: `patch`
+   - minor release: `minor`
+   - major release: `major`
+9. Do not manually create a tag or release.
+10. Merge the release PR only if the user explicitly asked for merge execution and checks/protection allow it. Use a merge commit.
+11. After `main` updates, expect the workflow to publish the release and open a back-merge PR into `develop`.
+
+## Release Back-Merge Procedure
+
+Use this when the user asks to merge released `main` changes back into `develop`, or when the automatic workflow did not create the PR.
+
+1. Inspect state and fetch remotes.
+2. If `origin/develop` already contains `origin/main`, report that no back-merge is needed.
+3. Create a branch from `origin/develop` named `chore/back-merge-main-to-develop-<slug>`.
+4. Merge `origin/main` into that branch with `--no-ff`.
+5. If conflicts occur, report conflicted files and stop unless the user asked you to resolve them.
+6. Push the back-merge branch without force.
+7. Open or reuse a PR with base `develop` and head back-merge branch.
+8. Do not merge the PR unless explicitly requested and branch protection/checks allow it.
+
+## Final Report
+
+Keep reports short and include:
+
+- Current repo and branch
+- Release branch status
+- Release PR status
+- Version label status
+- Release/tag status
+- Back-merge PR status
+- Commands that could not run and why
+- User next actions, if any
