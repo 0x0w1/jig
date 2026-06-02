@@ -1,0 +1,79 @@
+---
+name: github-sync
+description: "Use when synchronizing this repository's GitHub setup: release-drafter files, main/develop branch existence, standard labels, and branch protection. Do not use for creating a release."
+---
+
+# GitHub Sync
+
+Use this repository skill only for setup and synchronization of GitHub repository settings.
+
+## Scope
+
+- Managed files:
+  - `.github/drafter-config.yaml`
+  - `.github/workflows/drafter.yaml`
+- Branches: `main`, `develop`.
+- Standard labels: `patch`, `minor`, `major`, `enhancement`, `fix`, `chore`.
+- Branch protection for `main` and `develop`.
+
+## Phase Rules
+
+For broad sync work, split into phases:
+
+1. Inspect repository, working tree, remotes, and `gh` access.
+2. Apply or verify managed files.
+3. Verify or create `develop` from `main`.
+4. Sync labels.
+5. Apply branch protection.
+6. Validate and report.
+
+If a phase is blocked by permission, missing auth, unsupported repository plan, or required confirmation, complete safe earlier phases and report the remaining work.
+
+## Safety Rules
+
+- Do not force push.
+- Do not delete branches.
+- Do not delete labels without explicit confirmation.
+- Do not overwrite files with different content without explicit confirmation. After confirmation, preserve the previous file as `*.bak`.
+- Do not create `.codex`, `.claude/skills`, or unrequested AI skill directories inside this repository.
+- Keep repository skills under `.agents/skills`.
+- Do not create releases or tags during sync.
+- Do not merge PRs during sync.
+- Do not rename the default branch or change the remote default branch without explicit confirmation.
+- Preserve unrelated user changes.
+
+## Procedure
+
+1. Confirm the current directory is a git repository.
+2. Check `git status --short --branch`.
+3. Run `gh repo view` and `gh auth status`. If GitHub CLI is unavailable, unauthenticated, or lacks permission, apply local files only and report remaining GitHub steps.
+4. Ensure `.github/workflows` exists.
+5. Apply the managed files. If an existing managed file differs, ask before overwriting and save a `*.bak` after confirmation.
+6. Confirm `main` exists locally and remotely when possible.
+7. Confirm `develop` exists locally and remotely when possible. If missing, create it from `main` and push without force.
+8. Ensure these labels exist with exact values:
+
+| Label | Color | Description |
+|---|---|---|
+| `patch` | `0E8A16` | 하위 호환 버그 수정 또는 내부 변경 |
+| `minor` | `1D76DB` | 하위 호환 신규 기능 |
+| `major` | `B60205` | 호환성을 깨는(breaking) 변경 |
+| `enhancement` | `A2EEEF` | 사용자에게 보이는 신규 기능 또는 개선 |
+| `fix` | `FBCA04` | 버그, 회귀(regression), 또는 보안 수정 |
+| `chore` | `CFD3D7` | 의존성, 툴링, 리팩터링, 문서 |
+
+9. Before deleting labels outside the standard six, show the exact deletion list and ask for confirmation.
+10. Protect `main`: PR required, no linear-history requirement, force-push disabled, deletion disabled, conversation resolution required. Require `update_release_draft` only after the workflow is already present on `main`.
+11. Protect `develop`: PR required, force-push disabled, deletion disabled, conversation resolution required.
+
+## Final Report
+
+Keep reports short and include:
+
+- Applied files
+- Skipped or backed up files
+- Branches created or already present
+- Labels created, updated, skipped, or waiting for confirmation
+- Branch protection status
+- Commands that could not run and why
+- User next actions, if any
