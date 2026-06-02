@@ -18,6 +18,7 @@ Use this repository skill only for setup and synchronization of GitHub repositor
 - Branches: `main`, `develop`.
 - Standard labels: `patch`, `minor`, `major`, `enhancement`, `fix`, `chore`.
 - Branch protection for `main` and `develop`.
+- Repository general setting: Automatically delete head branches.
 
 ## Phase Rules
 
@@ -27,8 +28,9 @@ For broad sync work, split into phases:
 2. Apply or verify managed files.
 3. Verify or create `develop` from `main`.
 4. Sync labels.
-5. Apply branch protection.
-6. Validate and report.
+5. Sync repository general settings.
+6. Apply branch protection.
+7. Validate and report.
 
 If a phase is blocked by permission, missing auth, unsupported repository plan, or required confirmation, complete safe earlier phases and report the remaining work.
 
@@ -42,6 +44,7 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
 - Keep repository skills under `.agents/skills`.
 - Do not create releases or tags during sync.
 - Do not merge PRs during sync.
+- Do not manually delete branches while enabling automatic head branch deletion.
 - Do not rename the default branch or change the remote default branch without explicit confirmation.
 - Preserve unrelated user changes.
 
@@ -66,8 +69,9 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
 | `chore` | `CFD3D7` | 의존성, 툴링, 리팩터링, 문서 |
 
 9. Before deleting labels outside the standard six, show the exact deletion list and ask for confirmation.
-10. Protect `main`: PR required, no linear-history requirement, force-push disabled, deletion disabled, conversation resolution required. Require `update_release_draft` only after the workflow is already present on `main`.
-11. Protect `develop`: PR required, force-push disabled, deletion disabled, conversation resolution required.
+10. Enable the repository General setting `Automatically delete head branches` when GitHub CLI permissions allow it.
+11. Protect `main`: PR required, no linear-history requirement, force-push disabled, deletion disabled, conversation resolution required. Require `update_release_draft` only after the workflow is already present on `main`.
+12. Protect `develop`: PR required, force-push disabled, deletion disabled, conversation resolution required.
 
 ## Final Report
 
@@ -77,6 +81,7 @@ Keep reports short and include:
 - Skipped or backed up files
 - Branches created or already present
 - Labels created, updated, skipped, or waiting for confirmation
+- Repository general setting status
 - Branch protection status
 - Commands that could not run and why
 - User next actions, if any

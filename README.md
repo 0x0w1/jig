@@ -1,5 +1,9 @@
 # SPAI
 
+## 문서
+
+- [GitHub Repository Settings](docs/github-repository-settings.md): `install.sh`가 project scope에서 적용하는 라벨, branch protection, General 설정입니다.
+
 ## 개요
 
 SPAI는 Scaffolded Procedures for AI Agents의 약자입니다.
@@ -8,7 +12,7 @@ SPAI는 Codex, Claude Code, Cursor, Gemini CLI, OpenCode 등 여러 AI Agent 환
 
 이 프로젝트는 `curl` 또는 `wget`을 통해 각 Agent 환경에 맞는 스킬/규칙 파일을 설치할 수 있도록 구성되어 있습니다.
 
-> 이 설치 스크립트는 AI Agent용 스킬/규칙 파일과 Release Drafter YAML 파일을 설치하고, `gh`를 사용할 수 있으면 표준 6개 GitHub 라벨을 생성하거나 업데이트합니다. 라벨 삭제, 브랜치 보호, 릴리스, 태그, PR 병합은 직접 수행하지 않습니다. 그 외 Repository 설정 변경은 설치된 스킬을 Agent가 실행할 때 사용자의 확인과 권한 범위 안에서 수행됩니다.
+> 이 설치 스크립트는 AI Agent용 스킬/규칙 파일과 Release Drafter YAML 파일을 설치하고, `gh`를 사용할 수 있으면 표준 6개 GitHub 라벨, `main`/`develop` branch protection, General의 Automatically delete head branches 설정을 동기화합니다. 라벨 삭제, 브랜치 수동 삭제, 릴리스, 태그, PR 생성/병합은 직접 수행하지 않습니다.
 
 ## SPAI의 의미
 
@@ -123,6 +127,29 @@ chore
 ```
 
 라벨 동기화 전에 installer는 GitHub CLI 설정을 확인합니다. `.git` repository가 없으면 라벨 동기화는 건너뛰고 통과 로그를 출력합니다.
+
+project scope 설치 시 `gh`를 사용할 수 있으면 GitHub Repository 설정도 동기화합니다.
+
+```text
+General:
+  Automatically delete head branches: enabled
+
+Branch protection:
+  main:
+    pull request required
+    linear history not required
+    force push disabled
+    branch deletion disabled
+    conversation resolution required
+    update_release_draft required when available
+  develop:
+    pull request required
+    force push disabled
+    branch deletion disabled
+    conversation resolution required
+```
+
+자세한 적용/건너뛰기 조건은 [GitHub Repository Settings](docs/github-repository-settings.md)를 참고하세요.
 
 ### Codex
 
@@ -259,6 +286,7 @@ SPAI는 각 Agent 환경의 권장 instruction surface에 맞춰 위 세 절차�
 - Release Drafter 기반 릴리스 노트 및 태그 게시 설정
 - 릴리스 PR은 `patch`, `minor`, `major` 버전 업그레이드로 처리
 - Release Drafter 버전 계산을 위해 실제 변경 PR에도 `patch`, `minor`, `major` 중 하나의 version 라벨을 적용
+- General의 Automatically delete head branches 설정
 
 ## Safety Rules
 
@@ -269,7 +297,8 @@ SPAI는 각 Agent 환경의 권장 instruction surface에 맞춰 위 세 절차�
 - 설정 중에 릴리스나 태그를 생성하지 않습니다.
 - 설정 중에 PR을 병합하지 않습니다.
 - 사용자의 관련 없는 working tree 변경 사항을 수정하거나 되돌리지 않습니다.
-- `install.sh`는 표준 6개 라벨 생성/업데이트 외의 GitHub Repository 설정을 직접 변경하지 않습니다.
+- `install.sh`는 표준 6개 라벨, General의 Automatically delete head branches, `main`/`develop` branch protection 외의 GitHub Repository 설정을 직접 변경하지 않습니다.
+- `install.sh`는 브랜치를 수동으로 삭제하지 않습니다.
 
 ## 개발자용: dist 재생성
 
@@ -293,8 +322,8 @@ sh scripts/validate-dist.sh
 - 기존 파일을 변경해야 할 때는 `.bak` 백업을 생성합니다.
 - `--dry-run`을 사용하면 실제 파일 시스템을 수정하지 않고 예정 작업만 출력합니다.
 - project scope 설치 시 `.github/drafter-config.yaml`과 `.github/workflows/drafter.yaml`도 설치됩니다.
-- project scope 설치 시 `gh` 인증, git repository, GitHub repository 확인이 가능하면 표준 6개 라벨을 생성하거나 업데이트하고 검증합니다.
-- `.git` repository가 없으면 GitHub 라벨 동기화를 건너뛰고 통과 로그를 출력합니다.
+- project scope 설치 시 `gh` 인증, git repository, GitHub repository 확인이 가능하면 표준 6개 라벨, branch protection, Automatically delete head branches 설정을 동기화하고 가능한 범위에서 검증합니다.
+- `.git` repository가 없으면 GitHub Repository 설정 동기화를 건너뛰고 통과 로그를 출력합니다.
 - 표준 6개 외의 기존 라벨은 삭제하지 않습니다.
 - `content` 라벨은 표준 라벨이 아니며, 신규 기능 또는 개선 사항은 `enhancement`로 처리합니다.
 - Release Drafter 실행 결과는 대상 Repository의 GitHub Actions 권한과 branch protection 설정에 영향을 받습니다.

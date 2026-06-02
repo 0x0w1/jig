@@ -28,6 +28,7 @@ Use this repository skill only for setup and synchronization of GitHub repositor
 - Branches: `main`, `develop`.
 - Standard labels: `patch`, `minor`, `major`, `enhancement`, `fix`, `chore`.
 - Branch protection for `main` and `develop`.
+- Repository general setting: Automatically delete head branches.
 
 ## Phase Rules
 
@@ -37,8 +38,9 @@ For broad sync work, split into phases:
 2. Apply or verify managed files.
 3. Verify or create `develop` from `main`.
 4. Sync labels.
-5. Apply branch protection.
-6. Validate and report.
+5. Sync repository general settings.
+6. Apply branch protection.
+7. Validate and report.
 
 If a phase is blocked by permission, missing auth, unsupported repository plan, or required confirmation, complete safe earlier phases and report the remaining work.
 
@@ -52,6 +54,7 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
 - Keep repository skills under `.agents/skills`.
 - Do not create releases or tags during sync.
 - Do not merge PRs during sync.
+- Do not manually delete branches while enabling automatic head branch deletion.
 - Do not rename the default branch or change the remote default branch without explicit confirmation.
 - Preserve unrelated user changes.
 
@@ -76,8 +79,9 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
 | `chore` | `CFD3D7` | 의존성, 툴링, 리팩터링, 문서 |
 
 9. Before deleting labels outside the standard six, show the exact deletion list and ask for confirmation.
-10. Protect `main`: PR required, no linear-history requirement, force-push disabled, deletion disabled, conversation resolution required. Require `update_release_draft` only after the workflow is already present on `main`.
-11. Protect `develop`: PR required, force-push disabled, deletion disabled, conversation resolution required.
+10. Enable the repository General setting `Automatically delete head branches` when GitHub CLI permissions allow it.
+11. Protect `main`: PR required, no linear-history requirement, force-push disabled, deletion disabled, conversation resolution required. Require `update_release_draft` only after the workflow is already present on `main`.
+12. Protect `develop`: PR required, force-push disabled, deletion disabled, conversation resolution required.
 
 ## Final Report
 
@@ -87,6 +91,7 @@ Keep reports short and include:
 - Skipped or backed up files
 - Branches created or already present
 - Labels created, updated, skipped, or waiting for confirmation
+- Repository general setting status
 - Branch protection status
 - Commands that could not run and why
 - User next actions, if any
@@ -186,6 +191,13 @@ If the task is large, split it into phases:
 6. Merge to `develop` only when safe and allowed.
 7. Report results and any remaining action.
 
+## Documentation Rules
+
+- If a change affects installation behavior, user-facing workflows, supported targets, repository policy, CLI output, or public project usage, update `README.md` in the same task.
+- If the change is broad or would make `README.md` too dense, create or update a focused Markdown file under top-level `docs/` and add a link near the top of `README.md`.
+- If top-level `docs/` already exists, reuse it instead of creating another documentation directory.
+- During validation, check that the README/docs update explains the new behavior clearly.
+
 ## Safety Rules
 
 - Do not force push.
@@ -215,22 +227,23 @@ If the task is large, split it into phases:
    - Always run the most relevant focused test command if one exists.
    - Run the broad project test command when practical.
    - If no tests exist, run syntax/config validation appropriate to changed files and report the gap.
-7. Commit only the task changes with a conventional message matching the branch type.
-8. Push the branch without force.
-9. Open or reuse a PR with base `develop` and head `<prefix>/<slug>`.
-10. Apply one work label when possible:
+7. Apply the Documentation Rules before committing.
+8. Commit only the task changes with a conventional message matching the branch type.
+9. Push the branch without force.
+10. Open or reuse a PR with base `develop` and head `<prefix>/<slug>`.
+11. Apply one work label when possible:
    - `enhancement` for feature branches.
    - `fix` for fix branches.
    - `chore` for chore branches.
-11. Merge the PR into `develop` automatically only if all conditions are true:
+12. Merge the PR into `develop` automatically only if all conditions are true:
    - The user request asked for this automatic develop flow or `AGENTS.md` requires it.
    - The PR is the one created or reused for the current task.
    - The local and remote branch contain only current-task changes.
    - Required tests and checks pass.
    - The PR is mergeable.
    - Branch protection allows the merge.
-12. Use `gh pr merge --merge` for the develop PR when the merge is allowed. Do not squash unless the user explicitly asks.
-13. If merge is blocked, leave the PR open and report the exact blocker.
+13. Use `gh pr merge --merge` for the develop PR when the merge is allowed. Do not squash unless the user explicitly asks.
+14. If merge is blocked, leave the PR open and report the exact blocker.
 
 ## Final Report
 
@@ -239,6 +252,7 @@ Keep reports short and include:
 - Branch created or reused
 - Files changed
 - Tests run and result
+- README/docs update status
 - PR created, reused, merged, or blocked
 - Labels applied
 - Commands that could not run and why

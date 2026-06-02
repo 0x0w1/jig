@@ -9,6 +9,9 @@ REPO_RAW_URL="${REPO_RAW_URL:-https://raw.githubusercontent.com/0x0w1/spai/main}
 INSTALLED_FILES=""
 SYNCED_LABELS=""
 VERIFIED_LABELS=""
+SYNCED_REPOSITORY_SETTINGS=""
+SYNCED_BRANCH_PROTECTIONS=""
+VERIFIED_BRANCH_PROTECTIONS=""
 
 print_help() {
   cat <<'EOF'
@@ -52,6 +55,10 @@ Project scope also installs:
 
 Project scope also syncs these GitHub labels when gh is available:
   patch, minor, major, enhancement, fix, chore
+
+Project scope also syncs GitHub repository settings when gh is available:
+  general: Automatically delete head branches
+  branches: main and develop protection rules
 
 Target-specific project installs:
   codex: .agents/skills/* plus AGENTS.md
@@ -120,6 +127,21 @@ $1"
 
 record_verified_label() {
   VERIFIED_LABELS="${VERIFIED_LABELS}
+$1"
+}
+
+record_repository_setting() {
+  SYNCED_REPOSITORY_SETTINGS="${SYNCED_REPOSITORY_SETTINGS}
+$1"
+}
+
+record_branch_protection() {
+  SYNCED_BRANCH_PROTECTIONS="${SYNCED_BRANCH_PROTECTIONS}
+$1"
+}
+
+record_verified_branch_protection() {
+  VERIFIED_BRANCH_PROTECTIONS="${VERIFIED_BRANCH_PROTECTIONS}
 $1"
 }
 
@@ -244,6 +266,44 @@ install_project_github_files() {
   copy_file_with_backup "$REPO_RAW_URL/dist/github/workflows/drafter.yaml" "./.github/workflows/drafter.yaml"
 }
 
+project_github_context_ready() {
+  context_action="$1"
+
+  if ! command -v gh >/dev/null 2>&1; then
+    warn "GitHub CLI check failed: gh is not installed. Skipping $context_action."
+    return 1
+  fi
+
+  if ! gh auth status >/dev/null 2>&1; then
+    warn "GitHub CLI check failed: gh authentication is not available. Skipping $context_action."
+    return 1
+  fi
+  log "GitHub CLI check passed"
+
+  if ! command -v git >/dev/null 2>&1; then
+    log "Git repository check passed: git is not installed, so $context_action was skipped."
+    return 1
+  fi
+
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    log "Git repository check passed: no .git repository found, so $context_action was skipped."
+    return 1
+  fi
+  log "Git repository check passed"
+
+  if ! gh repo view >/dev/null 2>&1; then
+    warn "GitHub repository check failed: current directory is not connected to a GitHub repository. Skipping $context_action."
+    return 1
+  fi
+  log "GitHub repository check passed"
+
+  return 0
+}
+
+github_repo_slug() {
+  gh repo view --json nameWithOwner --jq .nameWithOwner
+}
+
 ensure_github_label() {
   label_name="$1"
   label_color="$2"
@@ -283,33 +343,9 @@ sync_github_labels() {
     return 0
   fi
 
-  if ! command -v gh >/dev/null 2>&1; then
-    warn "GitHub CLI check failed: gh is not installed. Skipping GitHub label sync."
+  if ! project_github_context_ready "GitHub label sync"; then
     return 0
   fi
-
-  if ! gh auth status >/dev/null 2>&1; then
-    warn "GitHub CLI check failed: gh authentication is not available. Skipping GitHub label sync."
-    return 0
-  fi
-  log "GitHub CLI check passed"
-
-  if ! command -v git >/dev/null 2>&1; then
-    log "Git repository check passed: git is not installed, so GitHub label sync was skipped."
-    return 0
-  fi
-
-  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    log "Git repository check passed: no .git repository found, so GitHub label sync was skipped."
-    return 0
-  fi
-  log "Git repository check passed"
-
-  if ! gh repo view >/dev/null 2>&1; then
-    warn "GitHub repository check failed: current directory is not connected to a GitHub repository. Skipping GitHub label sync."
-    return 0
-  fi
-  log "GitHub repository check passed"
 
   ensure_github_label "patch" "0E8A16" "하위 호환 버그 수정 또는 내부 변경"
   ensure_github_label "minor" "1D76DB" "하위 호환 신규 기능"
@@ -366,6 +402,168 @@ verify_github_labels() {
   verify_github_label "$labels_tmp" "chore" "CFD3D7"
 
   rm -f "$labels_tmp"
+}
+
+github_branch_exists() {
+  repo_slug="$1"
+  branch_name="$2"
+  gh api "repos/$repo_slug/branches/$branch_name" >/dev/null 2>&1
+}
+
+release_drafter_check_available() {
+  repo_slug="$1"
+  main_sha=$(gh api "repos/$repo_slug/branches/main" --jq .commit.sha 2>/dev/null || true)
+  [ -n "$main_sha" ] || return 1
+
+  gh api "repos/$repo_slug/commits/$main_sha/check-runs?per_page=100" --jq '.check_runs[].name' 2>/dev/null |
+    grep -Fx "update_release_draft" >/dev/null 2>&1
+}
+
+write_branch_protection_payload() {
+  protection_branch="$1"
+  protection_repo="$2"
+  protection_payload="$3"
+
+  if [ "$protection_branch" = "main" ] && release_drafter_check_available "$protection_repo"; then
+    cat > "$protection_payload" <<'EOF'
+{
+  "required_status_checks": {
+    "strict": false,
+    "contexts": [
+      "update_release_draft"
+    ]
+  },
+  "enforce_admins": false,
+  "required_pull_request_reviews": {
+    "dismiss_stale_reviews": false,
+    "require_code_owner_reviews": false,
+    "required_approving_review_count": 0,
+    "require_last_push_approval": false
+  },
+  "restrictions": null,
+  "required_linear_history": false,
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "block_creations": false,
+  "required_conversation_resolution": true,
+  "lock_branch": false,
+  "allow_fork_syncing": false
+}
+EOF
+    return 0
+  fi
+
+  cat > "$protection_payload" <<'EOF'
+{
+  "required_status_checks": null,
+  "enforce_admins": false,
+  "required_pull_request_reviews": {
+    "dismiss_stale_reviews": false,
+    "require_code_owner_reviews": false,
+    "required_approving_review_count": 0,
+    "require_last_push_approval": false
+  },
+  "restrictions": null,
+  "required_linear_history": false,
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "block_creations": false,
+  "required_conversation_resolution": true,
+  "lock_branch": false,
+  "allow_fork_syncing": false
+}
+EOF
+}
+
+sync_repository_general_settings() {
+  repo_slug="$1"
+
+  if gh api -X PATCH "repos/$repo_slug" -F delete_branch_on_merge=true >/dev/null 2>&1; then
+    log "GitHub repository setting enabled: Automatically delete head branches"
+    record_repository_setting "Automatically delete head branches (enabled)"
+  else
+    warn "GitHub repository setting failed: Automatically delete head branches. Check repository admin permission."
+    return 0
+  fi
+
+  delete_branch_on_merge=$(gh api "repos/$repo_slug" --jq .delete_branch_on_merge 2>/dev/null || printf 'unknown')
+  if [ "$delete_branch_on_merge" = "true" ]; then
+    record_repository_setting "Automatically delete head branches (verified)"
+  else
+    warn "GitHub repository setting verification failed: Automatically delete head branches"
+  fi
+}
+
+sync_branch_protection() {
+  repo_slug="$1"
+  protection_branch="$2"
+
+  if ! github_branch_exists "$repo_slug" "$protection_branch"; then
+    warn "GitHub branch protection skipped: $protection_branch does not exist on GitHub."
+    return 0
+  fi
+
+  protection_payload=$(mktemp)
+  write_branch_protection_payload "$protection_branch" "$repo_slug" "$protection_payload"
+
+  if gh api -X PUT "repos/$repo_slug/branches/$protection_branch/protection" --input "$protection_payload" >/dev/null 2>&1; then
+    log "GitHub branch protection synced: $protection_branch"
+    if [ "$protection_branch" = "main" ] && grep -F "update_release_draft" "$protection_payload" >/dev/null 2>&1; then
+      record_branch_protection "$protection_branch (PR required, no force push, no deletion, conversations required, update_release_draft required)"
+    else
+      record_branch_protection "$protection_branch (PR required, no force push, no deletion, conversations required)"
+    fi
+  else
+    warn "GitHub branch protection failed: $protection_branch. Check repository plan and admin permission."
+    rm -f "$protection_payload"
+    return 0
+  fi
+
+  rm -f "$protection_payload"
+  verify_branch_protection "$repo_slug" "$protection_branch"
+}
+
+verify_branch_protection() {
+  repo_slug="$1"
+  protection_branch="$2"
+
+  pr_required=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .required_pull_request_reviews == null then "false" else "true" end' 2>/dev/null || printf 'false')
+  allow_force_pushes=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .allow_force_pushes.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
+  allow_deletions=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .allow_deletions.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
+  conversation_required=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .required_conversation_resolution.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
+
+  if [ "$pr_required" = "true" ] &&
+    [ "$allow_force_pushes" = "false" ] &&
+    [ "$allow_deletions" = "false" ] &&
+    [ "$conversation_required" = "true" ]; then
+    record_verified_branch_protection "$protection_branch"
+    return 0
+  fi
+
+  warn "GitHub branch protection verification failed: $protection_branch"
+}
+
+sync_github_repository_settings() {
+  if [ "$SCOPE" != "project" ]; then
+    return 0
+  fi
+
+  if [ "$DRY_RUN" -eq 1 ]; then
+    log "[dry-run] Would enable GitHub repository setting: Automatically delete head branches"
+    log "[dry-run] Would sync GitHub branch protection: main"
+    log "[dry-run] Would sync GitHub branch protection: develop"
+    log "[dry-run] Would verify GitHub branch protection: main, develop"
+    return 0
+  fi
+
+  if ! project_github_context_ready "GitHub repository settings sync"; then
+    return 0
+  fi
+
+  repo_slug=$(github_repo_slug)
+  sync_repository_general_settings "$repo_slug"
+  sync_branch_protection "$repo_slug" "main"
+  sync_branch_protection "$repo_slug" "develop"
 }
 
 install_claude_code() {
@@ -492,6 +690,7 @@ main() {
 
   install_project_github_files
   sync_github_labels
+  sync_github_repository_settings
 
   log "Installation complete"
   if [ "$DRY_RUN" -eq 1 ]; then
@@ -504,6 +703,9 @@ main() {
 
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub labels" "$SYNCED_LABELS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub labels" "$VERIFIED_LABELS"
+  [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub repository settings" "$SYNCED_REPOSITORY_SETTINGS"
+  [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub branch protections" "$SYNCED_BRANCH_PROTECTIONS"
+  [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub branch protections" "$VERIFIED_BRANCH_PROTECTIONS"
 }
 
 main "$@"

@@ -31,6 +31,13 @@ If the task is large, split it into phases:
 6. Merge to `develop` only when safe and allowed.
 7. Report results and any remaining action.
 
+## Documentation Rules
+
+- If a change affects installation behavior, user-facing workflows, supported targets, repository policy, CLI output, or public project usage, update `README.md` in the same task.
+- If the change is broad or would make `README.md` too dense, create or update a focused Markdown file under top-level `docs/` and add a link near the top of `README.md`.
+- If top-level `docs/` already exists, reuse it instead of creating another documentation directory.
+- During validation, check that the README/docs update explains the new behavior clearly.
+
 ## Safety Rules
 
 - Do not force push.
@@ -60,22 +67,23 @@ If the task is large, split it into phases:
    - Always run the most relevant focused test command if one exists.
    - Run the broad project test command when practical.
    - If no tests exist, run syntax/config validation appropriate to changed files and report the gap.
-7. Commit only the task changes with a conventional message matching the branch type.
-8. Push the branch without force.
-9. Open or reuse a PR with base `develop` and head `<prefix>/<slug>`.
-10. Apply one work label when possible:
+7. Apply the Documentation Rules before committing.
+8. Commit only the task changes with a conventional message matching the branch type.
+9. Push the branch without force.
+10. Open or reuse a PR with base `develop` and head `<prefix>/<slug>`.
+11. Apply one work label when possible:
    - `enhancement` for feature branches.
    - `fix` for fix branches.
    - `chore` for chore branches.
-11. Merge the PR into `develop` automatically only if all conditions are true:
+12. Merge the PR into `develop` automatically only if all conditions are true:
    - The user request asked for this automatic develop flow or `AGENTS.md` requires it.
    - The PR is the one created or reused for the current task.
    - The local and remote branch contain only current-task changes.
    - Required tests and checks pass.
    - The PR is mergeable.
    - Branch protection allows the merge.
-12. Use `gh pr merge --merge` for the develop PR when the merge is allowed. Do not squash unless the user explicitly asks.
-13. If merge is blocked, leave the PR open and report the exact blocker.
+13. Use `gh pr merge --merge` for the develop PR when the merge is allowed. Do not squash unless the user explicitly asks.
+14. If merge is blocked, leave the PR open and report the exact blocker.
 
 ## Final Report
 
@@ -84,6 +92,7 @@ Keep reports short and include:
 - Branch created or reused
 - Files changed
 - Tests run and result
+- README/docs update status
 - PR created, reused, merged, or blocked
 - Labels applied
 - Commands that could not run and why
