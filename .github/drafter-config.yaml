@@ -2,6 +2,11 @@ name-template: "v$RESOLVED_VERSION"
 tag-template: "v$RESOLVED_VERSION"
 commitish: main
 categories:
+  - title: "⬆️ Version Updates"
+    labels:
+      - "patch"
+      - "minor"
+      - "major"
   - title: "🚀 Content"
     labels:
       - "enhancement"
@@ -25,6 +30,15 @@ version-resolver:
       - "patch"
   default: patch
 autolabeler:
+  - label: "patch"
+    title:
+      - "/^patch:/i"
+  - label: "minor"
+    title:
+      - "/^minor:/i"
+  - label: "major"
+    title:
+      - "/^major:/i"
   - label: "enhancement"
     title:
       - "/^content:/i"
