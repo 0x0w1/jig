@@ -1,3 +1,7 @@
+---
+description: Configure a GitHub repository with protected main/develop branches, standardized labels, Release Drafter, and safe sync/release procedures.
+---
+
 # GitHub Release Setup Skill
 
 ## Role
