@@ -2,7 +2,7 @@
 
 ## 문서
 
-- [GitHub Repository Settings](docs/github-repository-settings.md): `install.sh`가 project scope에서 적용하는 라벨, branch protection, General 설정입니다.
+- [GitHub Repository Settings](docs/github-repository-settings.md): `install.sh`가 project scope에서 적용하는 라벨 정리, branch protection, General 설정입니다.
 
 ## 개요
 
@@ -12,7 +12,7 @@ SPAI는 Codex, Claude Code, Cursor, Gemini CLI, OpenCode 등 여러 AI Agent 환
 
 이 프로젝트는 `curl` 또는 `wget`을 통해 각 Agent 환경에 맞는 스킬/규칙 파일을 설치할 수 있도록 구성되어 있습니다.
 
-> 이 설치 스크립트는 AI Agent용 스킬/규칙 파일과 Release Drafter YAML 파일을 설치하고, `gh`를 사용할 수 있으면 표준 6개 GitHub 라벨, `main`/`develop` branch protection, General의 Automatically delete head branches 설정을 동기화합니다. 라벨 삭제, 브랜치 수동 삭제, 릴리스, 태그, PR 생성/병합은 직접 수행하지 않습니다.
+> 이 설치 스크립트는 AI Agent용 스킬/규칙 파일과 Release Drafter YAML 파일을 설치하고, `gh`를 사용할 수 있으면 표준 6개 GitHub 라벨만 남도록 라벨을 정리하며, `main`/`develop` branch protection, General의 Automatically delete head branches 설정을 동기화합니다. 표준 6개 외 라벨은 삭제됩니다. 브랜치 수동 삭제, 릴리스, 태그, PR 생성/병합은 직접 수행하지 않습니다.
 
 ## SPAI의 의미
 
@@ -115,7 +115,7 @@ project scope 설치 시 target과 관계없이 다음 파일도 설치됩니다
     drafter.yaml
 ```
 
-project scope 설치 시 `gh`를 사용할 수 있으면 다음 표준 라벨도 생성하거나 업데이트합니다.
+project scope 설치 시 `gh`를 사용할 수 있으면 다음 표준 라벨을 생성하거나 업데이트하고, 이 목록에 없는 기존 라벨은 삭제합니다.
 
 ```text
 patch
@@ -126,7 +126,7 @@ fix
 chore
 ```
 
-라벨 동기화 전에 installer는 GitHub CLI 설정을 확인합니다. `.git` repository가 없으면 라벨 동기화는 건너뛰고 통과 로그를 출력합니다.
+라벨 정리 전에 installer는 GitHub CLI 설정을 확인합니다. `.git` repository가 없으면 라벨 정리는 건너뛰고 통과 로그를 출력합니다.
 
 project scope 설치 시 `gh`를 사용할 수 있으면 GitHub Repository 설정도 동기화합니다.
 
@@ -292,12 +292,12 @@ SPAI는 각 Agent 환경의 권장 instruction surface에 맞춰 위 세 절차�
 
 - force push를 하지 않습니다.
 - 브랜치를 삭제하지 않습니다.
-- 명시적 확인 없이 라벨을 삭제하지 않습니다.
 - 명시적 확인 없이 내용이 다른 파일을 덮어쓰지 않습니다.
 - 설정 중에 릴리스나 태그를 생성하지 않습니다.
 - 설정 중에 PR을 병합하지 않습니다.
 - 사용자의 관련 없는 working tree 변경 사항을 수정하거나 되돌리지 않습니다.
-- `install.sh`는 표준 6개 라벨, General의 Automatically delete head branches, `main`/`develop` branch protection 외의 GitHub Repository 설정을 직접 변경하지 않습니다.
+- 일반 Agent 작업에서는 명시적 확인 없이 라벨을 삭제하지 않습니다. `install.sh --scope project`는 표준 6개 라벨만 남기도록 표준 외 라벨을 삭제하는 설치 동작을 포함합니다.
+- `install.sh`는 표준 6개 라벨 정리, General의 Automatically delete head branches, `main`/`develop` branch protection 외의 GitHub Repository 설정을 직접 변경하지 않습니다.
 - `install.sh`는 브랜치를 수동으로 삭제하지 않습니다.
 
 ## 개발자용: dist 재생성
@@ -322,9 +322,9 @@ sh scripts/validate-dist.sh
 - 기존 파일을 변경해야 할 때는 `.bak` 백업을 생성합니다.
 - `--dry-run`을 사용하면 실제 파일 시스템을 수정하지 않고 예정 작업만 출력합니다.
 - project scope 설치 시 `.github/drafter-config.yaml`과 `.github/workflows/drafter.yaml`도 설치됩니다.
-- project scope 설치 시 `gh` 인증, git repository, GitHub repository 확인이 가능하면 표준 6개 라벨, branch protection, Automatically delete head branches 설정을 동기화하고 가능한 범위에서 검증합니다.
+- project scope 설치 시 `gh` 인증, git repository, GitHub repository 확인이 가능하면 표준 6개 라벨만 남도록 라벨을 정리하고, branch protection, Automatically delete head branches 설정을 동기화하며 가능한 범위에서 검증합니다.
 - `.git` repository가 없으면 GitHub Repository 설정 동기화를 건너뛰고 통과 로그를 출력합니다.
-- 표준 6개 외의 기존 라벨은 삭제하지 않습니다.
+- 표준 6개 외의 기존 라벨은 삭제됩니다.
 - `content` 라벨은 표준 라벨이 아니며, 신규 기능 또는 개선 사항은 `enhancement`로 처리합니다.
 - Release Drafter 실행 결과는 대상 Repository의 GitHub Actions 권한과 branch protection 설정에 영향을 받습니다.
 
