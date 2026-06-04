@@ -6,13 +6,14 @@ SPAI project scope 설치는 `gh`가 설치 및 인증되어 있고 현재 디�
 
 `install.sh --scope project`는 Agent 스킬/룰 파일과 Release Drafter YAML 파일을 먼저 설치한 뒤, 가능한 경우 다음 GitHub 작업을 시도합니다.
 
-- 표준 6개 라벨 생성 또는 업데이트:
+- 표준 6개 라벨 생성 또는 업데이트 후, 표준 외 라벨 삭제:
   - `patch`
   - `minor`
   - `major`
   - `enhancement`
   - `fix`
   - `chore`
+  - 위 6개에 없는 기존 라벨은 삭제됩니다.
 - Repository General 설정 활성화:
   - Automatically delete head branches
 - `main` branch protection 적용:
@@ -45,7 +46,7 @@ installer는 다음 상황에서 GitHub Repository 설정 작업을 건너뛰고
 
 `install.sh`는 다음 작업을 하지 않습니다.
 
-- 표준 6개 외의 라벨을 삭제하지 않습니다.
+- 표준 6개 라벨 자체를 삭제하지 않습니다.
 - 브랜치를 수동으로 삭제하지 않습니다.
 - 릴리스나 태그를 생성하지 않습니다.
 - PR을 생성하거나 병합하지 않습니다.
@@ -63,7 +64,7 @@ Repository plan 또는 권한 제한 때문에 branch protection을 적용할 �
 sh install.sh --target all --scope project --dry-run
 ```
 
-GitHub에 연결된 git repository 안에서 project scope로 실행하면 라벨, repository settings, branch protection을 적용하고 가능한 범위에서 검증합니다.
+GitHub에 연결된 git repository 안에서 project scope로 실행하면 표준 6개 라벨만 남도록 라벨을 정리하고, repository settings, branch protection을 적용한 뒤 가능한 범위에서 검증합니다.
 
 ```bash
 sh install.sh --target all --scope project
