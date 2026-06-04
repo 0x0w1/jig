@@ -8,6 +8,7 @@ FORCE=0
 REPO_RAW_URL="${REPO_RAW_URL:-https://raw.githubusercontent.com/0x0w1/spai/main}"
 INSTALLED_FILES=""
 SYNCED_LABELS=""
+DELETED_LABELS=""
 VERIFIED_LABELS=""
 SYNCED_REPOSITORY_SETTINGS=""
 SYNCED_BRANCH_PROTECTIONS=""
@@ -53,8 +54,9 @@ Project scope also installs:
   .github/drafter-config.yaml
   .github/workflows/drafter.yaml
 
-Project scope also syncs these GitHub labels when gh is available:
+Project scope also keeps exactly these GitHub labels when gh is available:
   patch, minor, major, enhancement, fix, chore
+  It creates or updates these labels and deletes all other labels.
 
 Project scope also syncs GitHub repository settings when gh is available:
   general: Automatically delete head branches
@@ -122,6 +124,11 @@ $1"
 
 record_label() {
   SYNCED_LABELS="${SYNCED_LABELS}
+$1"
+}
+
+record_deleted_label() {
+  DELETED_LABELS="${DELETED_LABELS}
 $1"
 }
 
@@ -330,6 +337,38 @@ github_label_exists() {
   '
 }
 
+is_standard_github_label() {
+  case "$1" in
+    patch|minor|major|enhancement|fix|chore) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+delete_nonstandard_github_labels() {
+  labels_tmp=$(mktemp)
+  label_names_tmp=$(mktemp)
+
+  gh label list --limit 1000 > "$labels_tmp"
+  awk -F '\t' '{ print $1 }' "$labels_tmp" > "$label_names_tmp"
+
+  while IFS= read -r label_name; do
+    [ -n "$label_name" ] || continue
+    if is_standard_github_label "$label_name"; then
+      continue
+    fi
+
+    if gh label delete "$label_name" --yes >/dev/null; then
+      log "GitHub label deleted: $label_name"
+      record_deleted_label "$label_name"
+    else
+      rm -f "$labels_tmp" "$label_names_tmp"
+      error "GitHub label deletion failed: $label_name"
+    fi
+  done < "$label_names_tmp"
+
+  rm -f "$labels_tmp" "$label_names_tmp"
+}
+
 sync_github_labels() {
   if [ "$SCOPE" != "project" ]; then
     return 0
@@ -339,7 +378,8 @@ sync_github_labels() {
     log "[dry-run] Would check GitHub CLI setup"
     log "[dry-run] Would check git repository"
     log "[dry-run] Would sync GitHub labels: patch, minor, major, enhancement, fix, chore"
-    log "[dry-run] Would verify GitHub labels: patch, minor, major, enhancement, fix, chore"
+    log "[dry-run] Would delete GitHub labels outside the standard six"
+    log "[dry-run] Would verify exactly these GitHub labels remain: patch, minor, major, enhancement, fix, chore"
     return 0
   fi
 
@@ -354,6 +394,7 @@ sync_github_labels() {
   ensure_github_label "fix" "FBCA04" "버그, 회귀(regression), 또는 보안 수정"
   ensure_github_label "chore" "CFD3D7" "의존성, 툴링, 리팩터링, 문서"
 
+  delete_nonstandard_github_labels
   verify_github_labels
 }
 
@@ -390,6 +431,23 @@ verify_github_label() {
   record_verified_label "$verify_name"
 }
 
+verify_only_standard_github_labels() {
+  verify_file="$1"
+  verify_names_tmp=$(mktemp)
+
+  awk -F '\t' '{ print $1 }' "$verify_file" > "$verify_names_tmp"
+  while IFS= read -r verify_name; do
+    [ -n "$verify_name" ] || continue
+    if ! is_standard_github_label "$verify_name"; then
+      rm -f "$verify_names_tmp"
+      error "GitHub label verification failed: unexpected label remains: $verify_name"
+    fi
+  done < "$verify_names_tmp"
+
+  rm -f "$verify_names_tmp"
+  record_verified_label "only standard labels remain"
+}
+
 verify_github_labels() {
   labels_tmp=$(mktemp)
   gh label list --limit 1000 > "$labels_tmp"
@@ -400,6 +458,7 @@ verify_github_labels() {
   verify_github_label "$labels_tmp" "enhancement" "A2EEEF"
   verify_github_label "$labels_tmp" "fix" "FBCA04"
   verify_github_label "$labels_tmp" "chore" "CFD3D7"
+  verify_only_standard_github_labels "$labels_tmp"
 
   rm -f "$labels_tmp"
 }
@@ -702,6 +761,7 @@ main() {
   fi
 
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub labels" "$SYNCED_LABELS"
+  [ "$DRY_RUN" -eq 1 ] || print_list "Deleted GitHub labels" "$DELETED_LABELS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub labels" "$VERIFIED_LABELS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub repository settings" "$SYNCED_REPOSITORY_SETTINGS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub branch protections" "$SYNCED_BRANCH_PROTECTIONS"
