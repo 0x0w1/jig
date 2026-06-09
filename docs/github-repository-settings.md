@@ -15,6 +15,9 @@ SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 
   - `--configure-git-user`를 사용하면 `user.name`, `user.email`을 입력 받아 `git config --local`에 저장합니다.
   - `--git-user-name`, `--git-user-email` 또는 `SPAI_GIT_USER_NAME`, `SPAI_GIT_USER_EMAIL`을 사용하면 비대화식으로 저장합니다.
 - Branch protection은 GitHub Rulesets가 아니라 classic branch protection으로 생성합니다.
+- Repository context 확인:
+  - `gh repo view --json visibility,viewerPermission`으로 repository visibility와 현재 `gh` 계정 권한을 확인합니다.
+  - private repository이면 classic branch protection에 GitHub plan 지원과 repository rules 수정 권한이 필요할 수 있음을 warning으로 출력합니다.
 - 표준 6개 라벨 생성 또는 업데이트 후, 표준 외 라벨 삭제:
   - `patch`
   - `minor`
@@ -60,6 +63,14 @@ installer는 다음 상황에서 GitHub Repository 설정 작업을 건너뛰고
 - `gh repo view`가 현재 repository를 해석할 수 없는 경우
 - 인증된 사용자에게 branch 생성, repository 설정 또는 branch protection 수정 권한이 없는 경우
 
+Branch protection 적용이 실패하면 installer는 다음 정보를 warning으로 출력하고 계속 진행합니다.
+
+- 대상 branch
+- repository slug
+- repository visibility
+- 현재 `gh` 계정의 repository permission
+- `gh api`가 반환한 GitHub API 오류
+
 ## Safety Boundaries
 
 `install.sh`는 다음 작업을 하지 않습니다.
@@ -73,7 +84,7 @@ installer는 다음 상황에서 GitHub Repository 설정 작업을 건너뛰고
 - 기본 브랜치를 변경하지 않습니다.
 - Repository visibility 또는 ownership을 변경하지 않습니다.
 
-Repository plan 또는 권한 제한 때문에 branch protection을 적용할 수 없는 경우 installer는 warning을 출력하고 계속 진행합니다.
+Repository plan 또는 권한 제한 때문에 branch protection을 적용할 수 없는 경우 installer는 warning을 출력하고 계속 진행합니다. GitHub protected branches는 public repository에서는 GitHub Free에서도 사용할 수 있지만, private repository에서는 GitHub Pro, Team, Enterprise Cloud, 또는 Enterprise Server 등 protected branches를 지원하는 plan이 필요합니다.
 
 ## 검증
 
