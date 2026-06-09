@@ -11,6 +11,8 @@ SYNCED_LABELS=""
 DELETED_LABELS=""
 VERIFIED_LABELS=""
 SYNCED_REPOSITORY_SETTINGS=""
+SYNCED_BRANCHES=""
+VERIFIED_BRANCHES=""
 SYNCED_BRANCH_PROTECTIONS=""
 VERIFIED_BRANCH_PROTECTIONS=""
 
@@ -60,7 +62,7 @@ Project scope also keeps exactly these GitHub labels when gh is available:
 
 Project scope also syncs GitHub repository settings when gh is available:
   general: Automatically delete head branches
-  branches: main and develop protection rules
+  branches: develop creation plus main and develop protection rules
 
 Target-specific project installs:
   codex: .agents/skills/* plus AGENTS.md
@@ -139,6 +141,16 @@ $1"
 
 record_repository_setting() {
   SYNCED_REPOSITORY_SETTINGS="${SYNCED_REPOSITORY_SETTINGS}
+$1"
+}
+
+record_branch() {
+  SYNCED_BRANCHES="${SYNCED_BRANCHES}
+$1"
+}
+
+record_verified_branch() {
+  VERIFIED_BRANCHES="${VERIFIED_BRANCHES}
 $1"
 }
 
@@ -469,6 +481,48 @@ github_branch_exists() {
   gh api "repos/$repo_slug/branches/$branch_name" >/dev/null 2>&1
 }
 
+github_branch_sha() {
+  repo_slug="$1"
+  branch_name="$2"
+  gh api "repos/$repo_slug/branches/$branch_name" --jq .commit.sha 2>/dev/null || true
+}
+
+ensure_github_branch() {
+  repo_slug="$1"
+  branch_name="$2"
+  source_branch="$3"
+
+  if github_branch_exists "$repo_slug" "$branch_name"; then
+    log "GitHub branch exists: $branch_name"
+    record_verified_branch "$branch_name (exists)"
+    return 0
+  fi
+
+  source_sha=$(github_branch_sha "$repo_slug" "$source_branch")
+  if [ -z "$source_sha" ]; then
+    warn "GitHub branch creation skipped: source branch $source_branch does not exist."
+    return 0
+  fi
+
+  if gh api -X POST "repos/$repo_slug/git/refs" -f ref="refs/heads/$branch_name" -f sha="$source_sha" >/dev/null 2>&1; then
+    log "GitHub branch created: $branch_name from $source_branch"
+    record_branch "$branch_name (created from $source_branch)"
+  elif github_branch_exists "$repo_slug" "$branch_name"; then
+    log "GitHub branch exists: $branch_name"
+    record_verified_branch "$branch_name (exists)"
+    return 0
+  else
+    warn "GitHub branch creation failed: $branch_name from $source_branch. Check repository admin permission."
+    return 0
+  fi
+
+  if github_branch_exists "$repo_slug" "$branch_name"; then
+    record_verified_branch "$branch_name"
+  else
+    warn "GitHub branch verification failed: $branch_name"
+  fi
+}
+
 release_drafter_check_available() {
   repo_slug="$1"
   main_sha=$(gh api "repos/$repo_slug/branches/main" --jq .commit.sha 2>/dev/null || true)
@@ -609,6 +663,7 @@ sync_github_repository_settings() {
 
   if [ "$DRY_RUN" -eq 1 ]; then
     log "[dry-run] Would enable GitHub repository setting: Automatically delete head branches"
+    log "[dry-run] Would ensure GitHub branch exists: develop (created from main if missing)"
     log "[dry-run] Would sync GitHub branch protection: main"
     log "[dry-run] Would sync GitHub branch protection: develop"
     log "[dry-run] Would verify GitHub branch protection: main, develop"
@@ -621,6 +676,7 @@ sync_github_repository_settings() {
 
   repo_slug=$(github_repo_slug)
   sync_repository_general_settings "$repo_slug"
+  ensure_github_branch "$repo_slug" "develop" "main"
   sync_branch_protection "$repo_slug" "main"
   sync_branch_protection "$repo_slug" "develop"
 }
@@ -764,6 +820,8 @@ main() {
   [ "$DRY_RUN" -eq 1 ] || print_list "Deleted GitHub labels" "$DELETED_LABELS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub labels" "$VERIFIED_LABELS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub repository settings" "$SYNCED_REPOSITORY_SETTINGS"
+  [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub branches" "$SYNCED_BRANCHES"
+  [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub branches" "$VERIFIED_BRANCHES"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub branch protections" "$SYNCED_BRANCH_PROTECTIONS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub branch protections" "$VERIFIED_BRANCH_PROTECTIONS"
 }
