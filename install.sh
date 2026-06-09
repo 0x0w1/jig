@@ -7,12 +7,16 @@ DRY_RUN=0
 FORCE=0
 GITHUB_ACCOUNT="${SPAI_GITHUB_ACCOUNT:-}"
 GITHUB_HOST="${SPAI_GITHUB_HOST:-github.com}"
+CONFIGURE_GIT_USER="${SPAI_CONFIGURE_GIT_USER:-0}"
+GIT_USER_NAME="${SPAI_GIT_USER_NAME:-}"
+GIT_USER_EMAIL="${SPAI_GIT_USER_EMAIL:-}"
 REPO_RAW_URL="${REPO_RAW_URL:-https://raw.githubusercontent.com/0x0w1/spai/main}"
 INSTALLED_FILES=""
 SYNCED_LABELS=""
 DELETED_LABELS=""
 VERIFIED_LABELS=""
 VERIFIED_GITHUB_ACCOUNT=""
+SYNCED_GIT_CONFIG=""
 SYNCED_REPOSITORY_SETTINGS=""
 SYNCED_BRANCHES=""
 VERIFIED_BRANCHES=""
@@ -24,7 +28,7 @@ print_help() {
 SPAI - Scaffolded Procedures for AI Agents
 
 Usage:
-  sh install.sh [--target <target>] [--scope <scope>] [--github-account <account>] [--dry-run] [--force]
+  sh install.sh [--target <target>] [--scope <scope>] [--github-account <account>] [--configure-git-user] [--dry-run] [--force]
 
 Targets:
   codex
@@ -56,11 +60,16 @@ Environment:
   REPO_RAW_URL=https://raw.githubusercontent.com/my-org/spai/main SPAI_GITHUB_ACCOUNT=0x0w1 sh install.sh
   SPAI_GITHUB_ACCOUNT=0x0w1 sh install.sh --target all --scope project
   SPAI_GITHUB_HOST=github.example.com SPAI_GITHUB_ACCOUNT=monalisa sh install.sh --target all --scope project
+  SPAI_GIT_USER_NAME="Mona Lisa" SPAI_GIT_USER_EMAIL=monalisa@example.com sh install.sh --target all --scope project --github-account monalisa
 
 GitHub account:
   Project scope requires --github-account <account> or SPAI_GITHUB_ACCOUNT.
   Use --github-host <host> or SPAI_GITHUB_HOST for GitHub Enterprise hosts.
-  The installer switches gh to that account before GitHub label, branch, and repository settings sync.
+  The installer logs in with gh when needed, then switches gh to that account before GitHub label, branch, and repository settings sync.
+
+Local git user:
+  Use --configure-git-user to prompt for local user.name and user.email.
+  Use --git-user-name and --git-user-email, or SPAI_GIT_USER_NAME and SPAI_GIT_USER_EMAIL, to set them non-interactively.
 
 Project scope also installs:
   .github/drafter-config.yaml
@@ -116,6 +125,18 @@ need_downloader() {
   error "curl or wget is required."
 }
 
+prompt_tty() {
+  prompt_message="$1"
+
+  if [ ! -r /dev/tty ] || [ ! -w /dev/tty ]; then
+    error "interactive input requires a terminal. Pass --git-user-name and --git-user-email instead."
+  fi
+
+  printf '%s' "$prompt_message" >/dev/tty
+  IFS= read -r prompt_answer </dev/tty || error "failed to read interactive input."
+  printf '%s\n' "$prompt_answer"
+}
+
 download_file() {
   download_url="$1"
   download_destination="$2"
@@ -152,6 +173,11 @@ $1"
 
 record_verified_github_account() {
   VERIFIED_GITHUB_ACCOUNT="${VERIFIED_GITHUB_ACCOUNT}
+$1"
+}
+
+record_git_config() {
+  SYNCED_GIT_CONFIG="${SYNCED_GIT_CONFIG}
 $1"
 }
 
@@ -301,8 +327,69 @@ install_project_github_files() {
   copy_file_with_backup "$REPO_RAW_URL/dist/github/workflows/drafter.yaml" "./.github/workflows/drafter.yaml"
 }
 
+sync_local_git_user_config() {
+  if [ "$SCOPE" != "project" ]; then
+    return 0
+  fi
+
+  if [ "$CONFIGURE_GIT_USER" != "1" ] && [ -z "$GIT_USER_NAME" ] && [ -z "$GIT_USER_EMAIL" ]; then
+    return 0
+  fi
+
+  if [ "$DRY_RUN" -eq 1 ]; then
+    log "[dry-run] Would configure local git user.name/user.email"
+    return 0
+  fi
+
+  if ! command -v git >/dev/null 2>&1; then
+    error "git is required to configure local user.name/user.email."
+  fi
+
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    error "local git user config requires running inside a git repository."
+  fi
+
+  current_git_user_name=$(git config --local --get user.name 2>/dev/null || true)
+  current_git_user_email=$(git config --local --get user.email 2>/dev/null || true)
+  log "Current local git user.name: ${current_git_user_name:-unset}"
+  log "Current local git user.email: ${current_git_user_email:-unset}"
+
+  if [ -z "$GIT_USER_NAME" ]; then
+    GIT_USER_NAME=$(prompt_tty "Local git user.name: ")
+  fi
+
+  if [ -z "$GIT_USER_EMAIL" ]; then
+    GIT_USER_EMAIL=$(prompt_tty "Local git user.email: ")
+  fi
+
+  [ -n "$GIT_USER_NAME" ] || error "local git user.name is required."
+  [ -n "$GIT_USER_EMAIL" ] || error "local git user.email is required."
+
+  git config --local user.name "$GIT_USER_NAME"
+  git config --local user.email "$GIT_USER_EMAIL"
+  log "Local git user config updated"
+  record_git_config "user.name=$GIT_USER_NAME"
+  record_git_config "user.email=$GIT_USER_EMAIL"
+}
+
 github_active_account() {
   gh auth status --active --hostname "$GITHUB_HOST" --json hosts --jq '.hosts | to_entries[0].value[0].login' 2>/dev/null || true
+}
+
+ensure_github_login() {
+  if gh auth switch --hostname "$GITHUB_HOST" --user "$GITHUB_ACCOUNT" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  warn "GitHub CLI account is not available yet: $GITHUB_ACCOUNT@$GITHUB_HOST"
+  log "Starting GitHub CLI login for $GITHUB_HOST"
+  if ! gh auth login --hostname "$GITHUB_HOST"; then
+    error "GitHub CLI login failed for $GITHUB_HOST."
+  fi
+
+  if ! gh auth switch --hostname "$GITHUB_HOST" --user "$GITHUB_ACCOUNT" >/dev/null 2>&1; then
+    error "GitHub account selection failed after login: $GITHUB_ACCOUNT@$GITHUB_HOST"
+  fi
 }
 
 select_github_account() {
@@ -316,9 +403,7 @@ select_github_account() {
     error "GitHub account is required for $context_action. Pass --github-account <account> or set SPAI_GITHUB_ACCOUNT."
   fi
 
-  if ! gh auth switch --hostname "$GITHUB_HOST" --user "$GITHUB_ACCOUNT" >/dev/null 2>&1; then
-    error "GitHub account selection failed: $GITHUB_ACCOUNT on $GITHUB_HOST. Run: gh auth login --hostname $GITHUB_HOST"
-  fi
+  ensure_github_login
 
   active_account=$(github_active_account)
   if [ "$active_account" != "$GITHUB_ACCOUNT" ]; then
@@ -565,48 +650,8 @@ ensure_github_branch() {
   fi
 }
 
-release_drafter_check_available() {
-  repo_slug="$1"
-  main_sha=$(gh api "repos/$repo_slug/branches/main" --jq .commit.sha 2>/dev/null || true)
-  [ -n "$main_sha" ] || return 1
-
-  gh api "repos/$repo_slug/commits/$main_sha/check-runs?per_page=100" --jq '.check_runs[].name' 2>/dev/null |
-    grep -Fx "update_release_draft" >/dev/null 2>&1
-}
-
 write_branch_protection_payload() {
-  protection_branch="$1"
-  protection_repo="$2"
   protection_payload="$3"
-
-  if [ "$protection_branch" = "main" ] && release_drafter_check_available "$protection_repo"; then
-    cat > "$protection_payload" <<'EOF'
-{
-  "required_status_checks": {
-    "strict": false,
-    "contexts": [
-      "update_release_draft"
-    ]
-  },
-  "enforce_admins": false,
-  "required_pull_request_reviews": {
-    "dismiss_stale_reviews": false,
-    "require_code_owner_reviews": false,
-    "required_approving_review_count": 0,
-    "require_last_push_approval": false
-  },
-  "restrictions": null,
-  "required_linear_history": false,
-  "allow_force_pushes": false,
-  "allow_deletions": false,
-  "block_creations": false,
-  "required_conversation_resolution": true,
-  "lock_branch": false,
-  "allow_fork_syncing": false
-}
-EOF
-    return 0
-  fi
 
   cat > "$protection_payload" <<'EOF'
 {
@@ -662,12 +707,8 @@ sync_branch_protection() {
   write_branch_protection_payload "$protection_branch" "$repo_slug" "$protection_payload"
 
   if gh api -X PUT "repos/$repo_slug/branches/$protection_branch/protection" --input "$protection_payload" >/dev/null 2>&1; then
-    log "GitHub branch protection synced: $protection_branch"
-    if [ "$protection_branch" = "main" ] && grep -F "update_release_draft" "$protection_payload" >/dev/null 2>&1; then
-      record_branch_protection "$protection_branch (PR required, no force push, no deletion, conversations required, update_release_draft required)"
-    else
-      record_branch_protection "$protection_branch (PR required, no force push, no deletion, conversations required)"
-    fi
+    log "GitHub classic branch protection synced: $protection_branch"
+    record_branch_protection "$protection_branch (classic, PR required, status checks off, no force push, no deletion, conversations required)"
   else
     warn "GitHub branch protection failed: $protection_branch. Check repository plan and admin permission."
     rm -f "$protection_payload"
@@ -683,11 +724,13 @@ verify_branch_protection() {
   protection_branch="$2"
 
   pr_required=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .required_pull_request_reviews == null then "false" else "true" end' 2>/dev/null || printf 'false')
+  status_checks_required=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .required_status_checks == null then "false" else "true" end' 2>/dev/null || printf 'unknown')
   allow_force_pushes=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .allow_force_pushes.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
   allow_deletions=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .allow_deletions.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
   conversation_required=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .required_conversation_resolution.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
 
   if [ "$pr_required" = "true" ] &&
+    [ "$status_checks_required" = "false" ] &&
     [ "$allow_force_pushes" = "false" ] &&
     [ "$allow_deletions" = "false" ] &&
     [ "$conversation_required" = "true" ]; then
@@ -707,9 +750,9 @@ sync_github_repository_settings() {
     log "[dry-run] Would use GitHub CLI account: $GITHUB_ACCOUNT@$GITHUB_HOST"
     log "[dry-run] Would enable GitHub repository setting: Automatically delete head branches"
     log "[dry-run] Would ensure GitHub branch exists: develop (created from main if missing)"
-    log "[dry-run] Would sync GitHub branch protection: main"
-    log "[dry-run] Would sync GitHub branch protection: develop"
-    log "[dry-run] Would verify GitHub branch protection: main, develop"
+    log "[dry-run] Would sync GitHub classic branch protection: main"
+    log "[dry-run] Would sync GitHub classic branch protection: develop"
+    log "[dry-run] Would verify GitHub classic branch protection: main, develop"
     return 0
   fi
 
@@ -814,6 +857,21 @@ main() {
         [ "$#" -gt 0 ] || error "--github-host requires a value"
         GITHUB_HOST="$1"
         ;;
+      --configure-git-user)
+        CONFIGURE_GIT_USER=1
+        ;;
+      --git-user-name)
+        shift
+        [ "$#" -gt 0 ] || error "--git-user-name requires a value"
+        GIT_USER_NAME="$1"
+        CONFIGURE_GIT_USER=1
+        ;;
+      --git-user-email)
+        shift
+        [ "$#" -gt 0 ] || error "--git-user-email requires a value"
+        GIT_USER_EMAIL="$1"
+        CONFIGURE_GIT_USER=1
+        ;;
       --dry-run)
         DRY_RUN=1
         ;;
@@ -862,6 +920,7 @@ main() {
   fi
 
   install_project_github_files
+  sync_local_git_user_config
   sync_github_labels
   sync_github_repository_settings
 
@@ -878,6 +937,7 @@ main() {
   [ "$DRY_RUN" -eq 1 ] || print_list "Deleted GitHub labels" "$DELETED_LABELS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub labels" "$VERIFIED_LABELS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub account" "$VERIFIED_GITHUB_ACCOUNT"
+  [ "$DRY_RUN" -eq 1 ] || print_list "Synced local git config" "$SYNCED_GIT_CONFIG"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub repository settings" "$SYNCED_REPOSITORY_SETTINGS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub branches" "$SYNCED_BRANCHES"
   [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub branches" "$VERIFIED_BRANCHES"

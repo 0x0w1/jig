@@ -1,6 +1,6 @@
 # GitHub Repository Settings
 
-SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 `gh` 계정을 사용합니다. `gh`가 설치 및 인증되어 있고 현재 디렉터리가 GitHub repository에 연결된 git repository일 때 일부 GitHub Repository 설정을 동기화할 수 있습니다.
+SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 `gh` 계정을 사용합니다. 해당 계정이 로그인되어 있지 않으면 `gh auth login`을 실행하고, 로그인되어 있으면 active account가 맞는지 검증합니다. `gh`가 설치되어 있고 현재 디렉터리가 GitHub repository에 연결된 git repository일 때 일부 GitHub Repository 설정을 동기화할 수 있습니다.
 
 ## install.sh가 적용하는 항목
 
@@ -8,8 +8,13 @@ SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 
 
 - GitHub CLI 계정 선택:
   - `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 입력 받은 계정을 사용합니다.
+  - 입력 받은 계정이 `gh`에 없으면 `gh auth login`을 실행합니다.
   - GitHub 작업 전에 `gh auth switch --user <account>`를 실행하고 active account를 검증합니다.
   - GitHub Enterprise 호스트는 `--github-host` 또는 `SPAI_GITHUB_HOST`로 지정할 수 있습니다.
+- 로컬 git user 설정:
+  - `--configure-git-user`를 사용하면 `user.name`, `user.email`을 입력 받아 `git config --local`에 저장합니다.
+  - `--git-user-name`, `--git-user-email` 또는 `SPAI_GIT_USER_NAME`, `SPAI_GIT_USER_EMAIL`을 사용하면 비대화식으로 저장합니다.
+- Branch protection은 GitHub Rulesets가 아니라 classic branch protection으로 생성합니다.
 - 표준 6개 라벨 생성 또는 업데이트 후, 표준 외 라벨 삭제:
   - `patch`
   - `minor`
@@ -23,15 +28,16 @@ SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 
 - `develop` 브랜치 보장:
   - GitHub에 `develop` 브랜치가 없으면 `main`의 현재 commit에서 생성합니다.
   - 이미 존재하는 `develop` 브랜치는 변경하지 않습니다.
-- `main` branch protection 적용:
+- `main` classic branch protection 적용:
   - Pull request가 필요합니다.
+  - Required status checks는 사용하지 않습니다.
   - Linear history는 요구하지 않습니다.
   - Force push를 비활성화합니다.
   - Branch deletion을 비활성화합니다.
   - Conversation resolution을 요구합니다.
-  - `update_release_draft` check가 이미 `main`에 존재하면 required check로 설정합니다.
-- `develop` branch protection 적용:
+- `develop` classic branch protection 적용:
   - Pull request가 필요합니다.
+  - Required status checks는 사용하지 않습니다.
   - Force push를 비활성화합니다.
   - Branch deletion을 비활성화합니다.
   - Conversation resolution을 요구합니다.
@@ -40,6 +46,8 @@ SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 
 
 installer는 project scope에서 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`가 없으면 GitHub 작업 계정을 확정할 수 없으므로 즉시 중단합니다.
 
+지정한 GitHub 계정으로 `gh auth login` 또는 `gh auth switch`를 완료하지 못한 경우에도 중단합니다.
+
 ## 건너뛰는 경우
 
 installer는 다음 상황에서 GitHub Repository 설정 작업을 건너뛰고 파일 설치를 계속합니다.
@@ -47,7 +55,6 @@ installer는 다음 상황에서 GitHub Repository 설정 작업을 건너뛰고
 - `--scope global`을 사용한 경우
 - `--dry-run`을 사용한 경우
 - `gh`가 설치되어 있지 않은 경우
-- `gh` 인증이 되어 있지 않은 경우
 - `git`이 설치되어 있지 않은 경우
 - 현재 디렉터리가 git repository가 아닌 경우
 - `gh repo view`가 현재 repository를 해석할 수 없는 경우
