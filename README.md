@@ -134,9 +134,11 @@ project scope 설치 시 `gh`를 사용할 수 있으면 GitHub Repository 설�
 General:
   Automatically delete head branches: enabled
 
-Branch protection:
+Branches:
   develop:
     created from main when missing
+
+Branch protection:
   main:
     pull request required
     linear history not required
