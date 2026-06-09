@@ -101,6 +101,17 @@ warn() {
   printf 'SPAI [warn] %s\n' "$*" >&2
 }
 
+warn_file_lines() {
+  warn_context="$1"
+  warn_file="$2"
+
+  [ -s "$warn_file" ] || return 0
+  while IFS= read -r warn_line; do
+    [ -n "$warn_line" ] || continue
+    warn "$warn_context: $warn_line"
+  done < "$warn_file"
+}
+
 error() {
   printf 'SPAI [error] %s\n' "$*" >&2
   exit 1
@@ -449,6 +460,24 @@ github_repo_slug() {
   gh repo view --json nameWithOwner --jq .nameWithOwner
 }
 
+github_repo_visibility() {
+  repo_visibility=$(gh repo view --json visibility --jq .visibility 2>/dev/null || true)
+  if [ -n "$repo_visibility" ]; then
+    printf '%s\n' "$repo_visibility"
+  else
+    printf 'unknown\n'
+  fi
+}
+
+github_repo_viewer_permission() {
+  repo_viewer_permission=$(gh repo view --json viewerPermission --jq .viewerPermission 2>/dev/null || true)
+  if [ -n "$repo_viewer_permission" ]; then
+    printf '%s\n' "$repo_viewer_permission"
+  else
+    printf 'unknown\n'
+  fi
+}
+
 ensure_github_label() {
   label_name="$1"
   label_color="$2"
@@ -697,6 +726,8 @@ sync_repository_general_settings() {
 sync_branch_protection() {
   repo_slug="$1"
   protection_branch="$2"
+  repo_visibility="${3:-unknown}"
+  repo_viewer_permission="${4:-unknown}"
 
   if ! github_branch_exists "$repo_slug" "$protection_branch"; then
     warn "GitHub branch protection skipped: $protection_branch does not exist on GitHub."
@@ -704,18 +735,24 @@ sync_branch_protection() {
   fi
 
   protection_payload=$(mktemp)
+  protection_error=$(mktemp)
   write_branch_protection_payload "$protection_branch" "$repo_slug" "$protection_payload"
 
-  if gh api -X PUT "repos/$repo_slug/branches/$protection_branch/protection" --input "$protection_payload" >/dev/null 2>&1; then
+  if gh api -X PUT "repos/$repo_slug/branches/$protection_branch/protection" --input "$protection_payload" >/dev/null 2>"$protection_error"; then
     log "GitHub classic branch protection synced: $protection_branch"
     record_branch_protection "$protection_branch (classic, PR required, status checks off, no force push, no deletion, conversations required)"
   else
-    warn "GitHub branch protection failed: $protection_branch. Check repository plan and admin permission."
-    rm -f "$protection_payload"
+    warn "GitHub branch protection failed: $protection_branch (repo=$repo_slug, visibility=$repo_visibility, permission=$repo_viewer_permission)."
+    if [ "$repo_visibility" = "PRIVATE" ]; then
+      warn "Private repositories require a GitHub plan that supports protected branches, plus permission to edit repository rules."
+    fi
+    warn "Check repository plan and admin permission."
+    warn_file_lines "GitHub API error" "$protection_error"
+    rm -f "$protection_payload" "$protection_error"
     return 0
   fi
 
-  rm -f "$protection_payload"
+  rm -f "$protection_payload" "$protection_error"
   verify_branch_protection "$repo_slug" "$protection_branch"
 }
 
@@ -748,6 +785,7 @@ sync_github_repository_settings() {
 
   if [ "$DRY_RUN" -eq 1 ]; then
     log "[dry-run] Would use GitHub CLI account: $GITHUB_ACCOUNT@$GITHUB_HOST"
+    log "[dry-run] Would inspect GitHub repository visibility and viewer permission"
     log "[dry-run] Would enable GitHub repository setting: Automatically delete head branches"
     log "[dry-run] Would ensure GitHub branch exists: develop (created from main if missing)"
     log "[dry-run] Would sync GitHub classic branch protection: main"
@@ -761,10 +799,17 @@ sync_github_repository_settings() {
   fi
 
   repo_slug=$(github_repo_slug)
+  repo_visibility=$(github_repo_visibility)
+  repo_viewer_permission=$(github_repo_viewer_permission)
+  log "GitHub repository context: $repo_slug (visibility=$repo_visibility, permission=$repo_viewer_permission)"
+  if [ "$repo_visibility" = "PRIVATE" ]; then
+    warn "GitHub repository is private: classic branch protection may require GitHub Pro, Team, Enterprise Cloud, or Enterprise Server."
+  fi
+
   sync_repository_general_settings "$repo_slug"
   ensure_github_branch "$repo_slug" "develop" "main"
-  sync_branch_protection "$repo_slug" "main"
-  sync_branch_protection "$repo_slug" "develop"
+  sync_branch_protection "$repo_slug" "main" "$repo_visibility" "$repo_viewer_permission"
+  sync_branch_protection "$repo_slug" "develop" "$repo_visibility" "$repo_viewer_permission"
 }
 
 install_claude_code() {
