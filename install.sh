@@ -565,48 +565,8 @@ ensure_github_branch() {
   fi
 }
 
-release_drafter_check_available() {
-  repo_slug="$1"
-  main_sha=$(gh api "repos/$repo_slug/branches/main" --jq .commit.sha 2>/dev/null || true)
-  [ -n "$main_sha" ] || return 1
-
-  gh api "repos/$repo_slug/commits/$main_sha/check-runs?per_page=100" --jq '.check_runs[].name' 2>/dev/null |
-    grep -Fx "update_release_draft" >/dev/null 2>&1
-}
-
 write_branch_protection_payload() {
-  protection_branch="$1"
-  protection_repo="$2"
   protection_payload="$3"
-
-  if [ "$protection_branch" = "main" ] && release_drafter_check_available "$protection_repo"; then
-    cat > "$protection_payload" <<'EOF'
-{
-  "required_status_checks": {
-    "strict": false,
-    "contexts": [
-      "update_release_draft"
-    ]
-  },
-  "enforce_admins": false,
-  "required_pull_request_reviews": {
-    "dismiss_stale_reviews": false,
-    "require_code_owner_reviews": false,
-    "required_approving_review_count": 0,
-    "require_last_push_approval": false
-  },
-  "restrictions": null,
-  "required_linear_history": false,
-  "allow_force_pushes": false,
-  "allow_deletions": false,
-  "block_creations": false,
-  "required_conversation_resolution": true,
-  "lock_branch": false,
-  "allow_fork_syncing": false
-}
-EOF
-    return 0
-  fi
 
   cat > "$protection_payload" <<'EOF'
 {
@@ -662,12 +622,8 @@ sync_branch_protection() {
   write_branch_protection_payload "$protection_branch" "$repo_slug" "$protection_payload"
 
   if gh api -X PUT "repos/$repo_slug/branches/$protection_branch/protection" --input "$protection_payload" >/dev/null 2>&1; then
-    log "GitHub branch protection synced: $protection_branch"
-    if [ "$protection_branch" = "main" ] && grep -F "update_release_draft" "$protection_payload" >/dev/null 2>&1; then
-      record_branch_protection "$protection_branch (PR required, no force push, no deletion, conversations required, update_release_draft required)"
-    else
-      record_branch_protection "$protection_branch (PR required, no force push, no deletion, conversations required)"
-    fi
+    log "GitHub classic branch protection synced: $protection_branch"
+    record_branch_protection "$protection_branch (classic, PR required, status checks off, no force push, no deletion, conversations required)"
   else
     warn "GitHub branch protection failed: $protection_branch. Check repository plan and admin permission."
     rm -f "$protection_payload"
@@ -683,11 +639,13 @@ verify_branch_protection() {
   protection_branch="$2"
 
   pr_required=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .required_pull_request_reviews == null then "false" else "true" end' 2>/dev/null || printf 'false')
+  status_checks_required=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .required_status_checks == null then "false" else "true" end' 2>/dev/null || printf 'unknown')
   allow_force_pushes=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .allow_force_pushes.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
   allow_deletions=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .allow_deletions.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
   conversation_required=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .required_conversation_resolution.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
 
   if [ "$pr_required" = "true" ] &&
+    [ "$status_checks_required" = "false" ] &&
     [ "$allow_force_pushes" = "false" ] &&
     [ "$allow_deletions" = "false" ] &&
     [ "$conversation_required" = "true" ]; then
@@ -707,9 +665,9 @@ sync_github_repository_settings() {
     log "[dry-run] Would use GitHub CLI account: $GITHUB_ACCOUNT@$GITHUB_HOST"
     log "[dry-run] Would enable GitHub repository setting: Automatically delete head branches"
     log "[dry-run] Would ensure GitHub branch exists: develop (created from main if missing)"
-    log "[dry-run] Would sync GitHub branch protection: main"
-    log "[dry-run] Would sync GitHub branch protection: develop"
-    log "[dry-run] Would verify GitHub branch protection: main, develop"
+    log "[dry-run] Would sync GitHub classic branch protection: main"
+    log "[dry-run] Would sync GitHub classic branch protection: develop"
+    log "[dry-run] Would verify GitHub classic branch protection: main, develop"
     return 0
   fi
 
