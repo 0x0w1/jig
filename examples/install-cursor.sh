@@ -2,4 +2,4 @@
 set -eu
 
 curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-  | sh -s -- --target cursor --scope project
+  | sh -s -- --target cursor --scope project --github-account 0x0w1

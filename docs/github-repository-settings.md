@@ -1,11 +1,15 @@
 # GitHub Repository Settings
 
-SPAI project scope 설치는 `gh`가 설치 및 인증되어 있고 현재 디렉터리가 GitHub repository에 연결된 git repository일 때 일부 GitHub Repository 설정을 동기화할 수 있습니다.
+SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 `gh` 계정을 사용합니다. `gh`가 설치 및 인증되어 있고 현재 디렉터리가 GitHub repository에 연결된 git repository일 때 일부 GitHub Repository 설정을 동기화할 수 있습니다.
 
 ## install.sh가 적용하는 항목
 
-`install.sh --scope project`는 Agent 스킬/룰 파일과 Release Drafter YAML 파일을 먼저 설치한 뒤, 가능한 경우 다음 GitHub 작업을 시도합니다.
+`install.sh --scope project --github-account <account>`는 Agent 스킬/룰 파일과 Release Drafter YAML 파일을 먼저 설치한 뒤, 가능한 경우 다음 GitHub 작업을 시도합니다.
 
+- GitHub CLI 계정 선택:
+  - `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 입력 받은 계정을 사용합니다.
+  - GitHub 작업 전에 `gh auth switch --user <account>`를 실행하고 active account를 검증합니다.
+  - GitHub Enterprise 호스트는 `--github-host` 또는 `SPAI_GITHUB_HOST`로 지정할 수 있습니다.
 - 표준 6개 라벨 생성 또는 업데이트 후, 표준 외 라벨 삭제:
   - `patch`
   - `minor`
@@ -31,6 +35,10 @@ SPAI project scope 설치는 `gh`가 설치 및 인증되어 있고 현재 디�
   - Force push를 비활성화합니다.
   - Branch deletion을 비활성화합니다.
   - Conversation resolution을 요구합니다.
+
+## 중단되는 경우
+
+installer는 project scope에서 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`가 없으면 GitHub 작업 계정을 확정할 수 없으므로 즉시 중단합니다.
 
 ## 건너뛰는 경우
 
@@ -65,11 +73,11 @@ Repository plan 또는 권한 제한 때문에 branch protection을 적용할 �
 파일이나 GitHub 설정을 수정하지 않고 예정 작업만 보려면 dry-run mode를 사용합니다.
 
 ```bash
-sh install.sh --target all --scope project --dry-run
+sh install.sh --target all --scope project --github-account 0x0w1 --dry-run
 ```
 
-GitHub에 연결된 git repository 안에서 project scope로 실행하면 표준 6개 라벨만 남도록 라벨을 정리하고, `develop` 브랜치가 없으면 생성하며, repository settings, branch protection을 적용한 뒤 가능한 범위에서 검증합니다.
+GitHub에 연결된 git repository 안에서 project scope로 실행하면 지정한 `gh` 계정으로 표준 6개 라벨만 남도록 라벨을 정리하고, `develop` 브랜치가 없으면 생성하며, repository settings, branch protection을 적용한 뒤 가능한 범위에서 검증합니다.
 
 ```bash
-sh install.sh --target all --scope project
+sh install.sh --target all --scope project --github-account 0x0w1
 ```
