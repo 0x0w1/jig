@@ -5,11 +5,14 @@ TARGET="all"
 SCOPE="project"
 DRY_RUN=0
 FORCE=0
+GITHUB_ACCOUNT="${SPAI_GITHUB_ACCOUNT:-}"
+GITHUB_HOST="${SPAI_GITHUB_HOST:-github.com}"
 REPO_RAW_URL="${REPO_RAW_URL:-https://raw.githubusercontent.com/0x0w1/spai/main}"
 INSTALLED_FILES=""
 SYNCED_LABELS=""
 DELETED_LABELS=""
 VERIFIED_LABELS=""
+VERIFIED_GITHUB_ACCOUNT=""
 SYNCED_REPOSITORY_SETTINGS=""
 SYNCED_BRANCHES=""
 VERIFIED_BRANCHES=""
@@ -21,7 +24,7 @@ print_help() {
 SPAI - Scaffolded Procedures for AI Agents
 
 Usage:
-  sh install.sh [--target <target>] [--scope <scope>] [--dry-run] [--force]
+  sh install.sh [--target <target>] [--scope <scope>] [--github-account <account>] [--dry-run] [--force]
 
 Targets:
   codex
@@ -41,16 +44,23 @@ Defaults:
 
 Examples:
   wget -qO- https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-    | sh -s -- --target codex --scope project
+    | sh -s -- --target codex --scope project --github-account 0x0w1
 
   curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-    | sh -s -- --target claude-code --scope project
+    | sh -s -- --target claude-code --scope project --github-account 0x0w1
 
   curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-    | sh -s -- --target all --scope project
+    | sh -s -- --target all --scope project --github-account 0x0w1
 
 Environment:
-  REPO_RAW_URL=https://raw.githubusercontent.com/my-org/spai/main sh install.sh
+  REPO_RAW_URL=https://raw.githubusercontent.com/my-org/spai/main SPAI_GITHUB_ACCOUNT=0x0w1 sh install.sh
+  SPAI_GITHUB_ACCOUNT=0x0w1 sh install.sh --target all --scope project
+  SPAI_GITHUB_HOST=github.example.com SPAI_GITHUB_ACCOUNT=monalisa sh install.sh --target all --scope project
+
+GitHub account:
+  Project scope requires --github-account <account> or SPAI_GITHUB_ACCOUNT.
+  Use --github-host <host> or SPAI_GITHUB_HOST for GitHub Enterprise hosts.
+  The installer switches gh to that account before GitHub label, branch, and repository settings sync.
 
 Project scope also installs:
   .github/drafter-config.yaml
@@ -61,6 +71,7 @@ Project scope also keeps exactly these GitHub labels when gh is available:
   It creates or updates these labels and deletes all other labels.
 
 Project scope also syncs GitHub repository settings when gh is available:
+  account: selected by --github-account or SPAI_GITHUB_ACCOUNT
   general: Automatically delete head branches
   branches: develop creation plus main and develop protection rules
 
@@ -136,6 +147,11 @@ $1"
 
 record_verified_label() {
   VERIFIED_LABELS="${VERIFIED_LABELS}
+$1"
+}
+
+record_verified_github_account() {
+  VERIFIED_GITHUB_ACCOUNT="${VERIFIED_GITHUB_ACCOUNT}
 $1"
 }
 
@@ -285,6 +301,34 @@ install_project_github_files() {
   copy_file_with_backup "$REPO_RAW_URL/dist/github/workflows/drafter.yaml" "./.github/workflows/drafter.yaml"
 }
 
+github_active_account() {
+  gh auth status --active --hostname "$GITHUB_HOST" --json hosts --jq '.hosts | to_entries[0].value[0].login' 2>/dev/null || true
+}
+
+select_github_account() {
+  context_action="$1"
+
+  if [ -n "$VERIFIED_GITHUB_ACCOUNT" ]; then
+    return 0
+  fi
+
+  if [ -z "$GITHUB_ACCOUNT" ]; then
+    error "GitHub account is required for $context_action. Pass --github-account <account> or set SPAI_GITHUB_ACCOUNT."
+  fi
+
+  if ! gh auth switch --hostname "$GITHUB_HOST" --user "$GITHUB_ACCOUNT" >/dev/null 2>&1; then
+    error "GitHub account selection failed: $GITHUB_ACCOUNT on $GITHUB_HOST. Run: gh auth login --hostname $GITHUB_HOST"
+  fi
+
+  active_account=$(github_active_account)
+  if [ "$active_account" != "$GITHUB_ACCOUNT" ]; then
+    error "GitHub account verification failed: expected $GITHUB_ACCOUNT on $GITHUB_HOST, got ${active_account:-unknown}."
+  fi
+
+  log "GitHub CLI account selected: $GITHUB_ACCOUNT@$GITHUB_HOST"
+  record_verified_github_account "$GITHUB_ACCOUNT@$GITHUB_HOST"
+}
+
 project_github_context_ready() {
   context_action="$1"
 
@@ -293,10 +337,7 @@ project_github_context_ready() {
     return 1
   fi
 
-  if ! gh auth status >/dev/null 2>&1; then
-    warn "GitHub CLI check failed: gh authentication is not available. Skipping $context_action."
-    return 1
-  fi
+  select_github_account "$context_action"
   log "GitHub CLI check passed"
 
   if ! command -v git >/dev/null 2>&1; then
@@ -387,6 +428,7 @@ sync_github_labels() {
   fi
 
   if [ "$DRY_RUN" -eq 1 ]; then
+    log "[dry-run] Would use GitHub CLI account: $GITHUB_ACCOUNT@$GITHUB_HOST"
     log "[dry-run] Would check GitHub CLI setup"
     log "[dry-run] Would check git repository"
     log "[dry-run] Would sync GitHub labels: patch, minor, major, enhancement, fix, chore"
@@ -662,6 +704,7 @@ sync_github_repository_settings() {
   fi
 
   if [ "$DRY_RUN" -eq 1 ]; then
+    log "[dry-run] Would use GitHub CLI account: $GITHUB_ACCOUNT@$GITHUB_HOST"
     log "[dry-run] Would enable GitHub repository setting: Automatically delete head branches"
     log "[dry-run] Would ensure GitHub branch exists: develop (created from main if missing)"
     log "[dry-run] Would sync GitHub branch protection: main"
@@ -760,6 +803,17 @@ main() {
         [ "$#" -gt 0 ] || error "--scope requires a value"
         SCOPE="$1"
         ;;
+      --github-account|--git-account)
+        github_account_option="$1"
+        shift
+        [ "$#" -gt 0 ] || error "$github_account_option requires a value"
+        GITHUB_ACCOUNT="$1"
+        ;;
+      --github-host)
+        shift
+        [ "$#" -gt 0 ] || error "--github-host requires a value"
+        GITHUB_HOST="$1"
+        ;;
       --dry-run)
         DRY_RUN=1
         ;;
@@ -786,6 +840,10 @@ main() {
     project|global) ;;
     *) error "unsupported scope: $SCOPE" ;;
   esac
+
+  if [ "$SCOPE" = "project" ] && [ -z "$GITHUB_ACCOUNT" ]; then
+    error "project scope requires --github-account <account> or SPAI_GITHUB_ACCOUNT."
+  fi
 
   need_downloader
 
@@ -819,6 +877,7 @@ main() {
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub labels" "$SYNCED_LABELS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Deleted GitHub labels" "$DELETED_LABELS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub labels" "$VERIFIED_LABELS"
+  [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub account" "$VERIFIED_GITHUB_ACCOUNT"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub repository settings" "$SYNCED_REPOSITORY_SETTINGS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub branches" "$SYNCED_BRANCHES"
   [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub branches" "$VERIFIED_BRANCHES"
