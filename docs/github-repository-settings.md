@@ -10,6 +10,7 @@ SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 
   - `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 입력 받은 계정을 사용합니다.
   - GitHub 작업 전에 `gh auth switch --user <account>`를 실행하고 active account를 검증합니다.
   - GitHub Enterprise 호스트는 `--github-host` 또는 `SPAI_GITHUB_HOST`로 지정할 수 있습니다.
+- Branch protection은 GitHub Rulesets가 아니라 classic branch protection으로 생성합니다.
 - 표준 6개 라벨 생성 또는 업데이트 후, 표준 외 라벨 삭제:
   - `patch`
   - `minor`
@@ -23,15 +24,16 @@ SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 
 - `develop` 브랜치 보장:
   - GitHub에 `develop` 브랜치가 없으면 `main`의 현재 commit에서 생성합니다.
   - 이미 존재하는 `develop` 브랜치는 변경하지 않습니다.
-- `main` branch protection 적용:
+- `main` classic branch protection 적용:
   - Pull request가 필요합니다.
+  - Required status checks는 사용하지 않습니다.
   - Linear history는 요구하지 않습니다.
   - Force push를 비활성화합니다.
   - Branch deletion을 비활성화합니다.
   - Conversation resolution을 요구합니다.
-  - `update_release_draft` check가 이미 `main`에 존재하면 required check로 설정합니다.
-- `develop` branch protection 적용:
+- `develop` classic branch protection 적용:
   - Pull request가 필요합니다.
+  - Required status checks는 사용하지 않습니다.
   - Force push를 비활성화합니다.
   - Branch deletion을 비활성화합니다.
   - Conversation resolution을 요구합니다.
