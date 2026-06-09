@@ -12,7 +12,7 @@ SPAI는 Codex, Claude Code, Cursor, Gemini CLI, OpenCode 등 여러 AI Agent 환
 
 이 프로젝트는 `curl` 또는 `wget`을 통해 각 Agent 환경에 맞는 스킬/규칙 파일을 설치할 수 있도록 구성되어 있습니다.
 
-> 이 설치 스크립트는 AI Agent용 스킬/규칙 파일과 Release Drafter YAML 파일을 설치하고, project scope에서는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 `gh` 계정을 사용합니다. `gh`를 사용할 수 있으면 표준 6개 GitHub 라벨만 남도록 라벨을 정리하며, `develop` 브랜치 생성, `main`/`develop` classic branch protection, General의 Automatically delete head branches 설정을 동기화합니다. 표준 6개 외 라벨은 삭제됩니다. 브랜치 수동 삭제, 릴리스, 태그, PR 생성/병합은 직접 수행하지 않습니다.
+> 이 설치 스크립트는 AI Agent용 스킬/규칙 파일과 Release Drafter YAML 파일을 설치하고, project scope에서는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 `gh` 계정을 사용합니다. 해당 `gh` 계정이 로그인되어 있지 않으면 `gh auth login`을 실행하고, 로그인되어 있으면 active account가 맞는지 검증합니다. `gh`를 사용할 수 있으면 표준 6개 GitHub 라벨만 남도록 라벨을 정리하며, `develop` 브랜치 생성, `main`/`develop` classic branch protection, General의 Automatically delete head branches 설정을 동기화합니다. 표준 6개 외 라벨은 삭제됩니다. 브랜치 수동 삭제, 릴리스, 태그, PR 생성/병합은 직접 수행하지 않습니다.
 
 ## SPAI의 의미
 
@@ -126,7 +126,20 @@ fix
 chore
 ```
 
-라벨 정리 전에 installer는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 계정을 `gh auth switch --user`로 선택하고 GitHub CLI 설정을 확인합니다. `.git` repository가 없으면 라벨 정리는 건너뛰고 통과 로그를 출력합니다.
+라벨 정리 전에 installer는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 계정이 `gh`에 로그인되어 있는지 확인합니다. 없으면 `gh auth login`을 실행한 뒤 `gh auth switch --user`로 active account를 맞추고 검증합니다. `.git` repository가 없으면 라벨 정리는 건너뛰고 통과 로그를 출력합니다.
+
+로컬 git 작성자 정보를 바꾸고 싶으면 다음처럼 실행할 수 있습니다.
+
+```bash
+sh install.sh --target all --scope project --github-account 0x0w1 --configure-git-user
+```
+
+비대화식으로 설정하려면 값을 직접 넘깁니다.
+
+```bash
+sh install.sh --target all --scope project --github-account 0x0w1 \
+  --git-user-name "0x0w1" --git-user-email "rootsik1221@gmail.com"
+```
 
 project scope 설치 시 `gh`를 사용할 수 있으면 GitHub Repository 설정도 동기화합니다.
 
@@ -323,12 +336,12 @@ sh scripts/validate-dist.sh
 
 ## 주의사항
 
-- 설치 스크립트는 자동화 친화적으로 동작하며 interactive prompt를 사용하지 않습니다.
+- 설치 스크립트는 기본 설치 중에는 로컬 git user 변경 prompt를 띄우지 않습니다. `gh` 로그인이 필요하거나 `--configure-git-user`를 사용하면 터미널 입력이 필요할 수 있습니다.
 - 기존 파일을 변경해야 할 때는 `.bak` 백업을 생성합니다.
 - `--dry-run`을 사용하면 실제 파일 시스템을 수정하지 않고 예정 작업만 출력합니다.
 - project scope 설치 시 `.github/drafter-config.yaml`과 `.github/workflows/drafter.yaml`도 설치됩니다.
 - project scope 설치는 `--github-account <account>` 또는 `SPAI_GITHUB_ACCOUNT=<account>` 입력이 필요합니다.
-- project scope 설치 시 `gh` 인증, git repository, GitHub repository 확인이 가능하면 지정한 `gh` 계정으로 표준 6개 라벨만 남도록 라벨을 정리하고, `develop` 브랜치 생성, branch protection, Automatically delete head branches 설정을 동기화하며 가능한 범위에서 검증합니다.
+- project scope 설치 시 `gh`, git repository, GitHub repository 확인이 가능하면 지정한 `gh` 계정으로 로그인/선택을 검증하고, 표준 6개 라벨만 남도록 라벨을 정리하고, `develop` 브랜치 생성, branch protection, Automatically delete head branches 설정을 동기화하며 가능한 범위에서 검증합니다.
 - `.git` repository가 없으면 GitHub Repository 설정 동기화를 건너뛰고 통과 로그를 출력합니다.
 - 원격 `develop` 브랜치가 없으면 `main`의 현재 commit에서 `develop`을 만든 뒤 branch protection을 적용합니다.
 - 표준 6개 외의 기존 라벨은 삭제됩니다.
