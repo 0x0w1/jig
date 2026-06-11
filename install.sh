@@ -18,6 +18,7 @@ VERIFIED_LABELS=""
 VERIFIED_GITHUB_ACCOUNT=""
 SYNCED_GIT_CONFIG=""
 SYNCED_REPOSITORY_SETTINGS=""
+SYNCED_GITHUB_ACTIONS_SETTINGS=""
 SYNCED_BRANCHES=""
 VERIFIED_BRANCHES=""
 SYNCED_BRANCH_PROTECTIONS=""
@@ -82,6 +83,7 @@ Project scope also keeps exactly these GitHub labels when gh is available:
 Project scope also syncs GitHub repository settings when gh is available:
   account: selected by --github-account or SPAI_GITHUB_ACCOUNT
   general: Automatically delete head branches
+  actions: Workflow permissions set to read and write
   branches: develop creation plus main and develop protection rules
 
 Target-specific project installs:
@@ -194,6 +196,11 @@ $1"
 
 record_repository_setting() {
   SYNCED_REPOSITORY_SETTINGS="${SYNCED_REPOSITORY_SETTINGS}
+$1"
+}
+
+record_github_actions_setting() {
+  SYNCED_GITHUB_ACTIONS_SETTINGS="${SYNCED_GITHUB_ACTIONS_SETTINGS}
 $1"
 }
 
@@ -723,6 +730,36 @@ sync_repository_general_settings() {
   fi
 }
 
+sync_github_actions_workflow_permissions() {
+  repo_slug="$1"
+
+  current_workflow_permissions=$(gh api "repos/$repo_slug/actions/permissions/workflow" --jq .default_workflow_permissions 2>/dev/null || true)
+  if [ "$current_workflow_permissions" = "write" ]; then
+    log "GitHub Actions workflow permissions already allow read and write"
+    record_github_actions_setting "Workflow permissions read and write (already enabled)"
+    return 0
+  fi
+
+  actions_error=$(mktemp)
+  if gh api -X PATCH "repos/$repo_slug/actions/permissions/workflow" -f default_workflow_permissions=write >/dev/null 2>"$actions_error"; then
+    log "GitHub Actions workflow permissions enabled: read and write"
+    record_github_actions_setting "Workflow permissions read and write (enabled)"
+  else
+    warn "GitHub Actions workflow permissions update failed: read and write. Check repository admin permission."
+    warn_file_lines "GitHub API error" "$actions_error"
+    rm -f "$actions_error"
+    return 0
+  fi
+  rm -f "$actions_error"
+
+  verified_workflow_permissions=$(gh api "repos/$repo_slug/actions/permissions/workflow" --jq .default_workflow_permissions 2>/dev/null || printf 'unknown')
+  if [ "$verified_workflow_permissions" = "write" ]; then
+    record_github_actions_setting "Workflow permissions read and write (verified)"
+  else
+    warn "GitHub Actions workflow permissions verification failed: expected write, got $verified_workflow_permissions"
+  fi
+}
+
 sync_branch_protection() {
   repo_slug="$1"
   protection_branch="$2"
@@ -787,6 +824,8 @@ sync_github_repository_settings() {
     log "[dry-run] Would use GitHub CLI account: $GITHUB_ACCOUNT@$GITHUB_HOST"
     log "[dry-run] Would inspect GitHub repository visibility and viewer permission"
     log "[dry-run] Would enable GitHub repository setting: Automatically delete head branches"
+    log "[dry-run] Would set GitHub Actions workflow permissions: read and write"
+    log "[dry-run] Would verify GitHub Actions workflow permissions: read and write"
     log "[dry-run] Would ensure GitHub branch exists: develop (created from main if missing)"
     log "[dry-run] Would sync GitHub classic branch protection: main"
     log "[dry-run] Would sync GitHub classic branch protection: develop"
@@ -807,6 +846,7 @@ sync_github_repository_settings() {
   fi
 
   sync_repository_general_settings "$repo_slug"
+  sync_github_actions_workflow_permissions "$repo_slug"
   ensure_github_branch "$repo_slug" "develop" "main"
   sync_branch_protection "$repo_slug" "main" "$repo_visibility" "$repo_viewer_permission"
   sync_branch_protection "$repo_slug" "develop" "$repo_visibility" "$repo_viewer_permission"
@@ -984,6 +1024,7 @@ main() {
   [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub account" "$VERIFIED_GITHUB_ACCOUNT"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced local git config" "$SYNCED_GIT_CONFIG"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub repository settings" "$SYNCED_REPOSITORY_SETTINGS"
+  [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub Actions settings" "$SYNCED_GITHUB_ACTIONS_SETTINGS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub branches" "$SYNCED_BRANCHES"
   [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub branches" "$VERIFIED_BRANCHES"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub branch protections" "$SYNCED_BRANCH_PROTECTIONS"

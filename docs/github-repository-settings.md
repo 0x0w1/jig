@@ -28,6 +28,8 @@ SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 
   - 위 6개에 없는 기존 라벨은 삭제됩니다.
 - Repository General 설정 활성화:
   - Automatically delete head branches
+- GitHub Actions Workflow permissions 설정:
+  - Read and write permissions
 - `develop` 브랜치 보장:
   - GitHub에 `develop` 브랜치가 없으면 `main`의 현재 commit에서 생성합니다.
   - 이미 존재하는 `develop` 브랜치는 변경하지 않습니다.
@@ -78,6 +80,7 @@ Branch protection 적용이 실패하면 installer는 다음 정보를 warning�
 - 표준 6개 라벨 자체를 삭제하지 않습니다.
 - 브랜치를 수동으로 삭제하지 않습니다.
 - 기존 브랜치를 이동하거나 덮어쓰지 않습니다.
+- GitHub Actions의 pull request review 승인 권한 설정은 변경하지 않습니다.
 - 릴리스나 태그를 생성하지 않습니다.
 - PR을 생성하거나 병합하지 않습니다.
 - Force push를 하지 않습니다.
@@ -94,7 +97,7 @@ Repository plan 또는 권한 제한 때문에 branch protection을 적용할 �
 sh install.sh --target all --scope project --github-account 0x0w1 --dry-run
 ```
 
-GitHub에 연결된 git repository 안에서 project scope로 실행하면 지정한 `gh` 계정으로 표준 6개 라벨만 남도록 라벨을 정리하고, `develop` 브랜치가 없으면 생성하며, repository settings, branch protection을 적용한 뒤 가능한 범위에서 검증합니다.
+GitHub에 연결된 git repository 안에서 project scope로 실행하면 지정한 `gh` 계정으로 표준 6개 라벨만 남도록 라벨을 정리하고, GitHub Actions workflow permissions를 read and write로 맞추며, `develop` 브랜치가 없으면 생성하고, repository settings, branch protection을 적용한 뒤 가능한 범위에서 검증합니다.
 
 ```bash
 sh install.sh --target all --scope project --github-account 0x0w1
