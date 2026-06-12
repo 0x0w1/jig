@@ -106,6 +106,20 @@ require_text dist/codex/AGENTS.md "Documentation Rules"
 require_text dist/gemini-cli/GEMINI.md "Documentation Rules"
 require_text dist/opencode/AGENTS.md "Documentation Rules"
 
+require_text "dist/claude-code/.claude/skills/github-release/SKILL.md" "Develop-First Gate"
+require_text "dist/codex/.agents/skills/github-release/SKILL.md" "Develop-First Gate"
+require_text "dist/cursor/.cursor/rules/github-release.mdc" "Develop-First Gate"
+require_text dist/codex/AGENTS.md "Develop-First Gate"
+require_text dist/gemini-cli/GEMINI.md "Develop-First Gate"
+require_text dist/opencode/AGENTS.md "Develop-First Gate"
+
+require_text "dist/claude-code/.claude/skills/github-release/SKILL.md" 'Do not commit ordinary code, config, documentation, generated `dist`, or workflow changes directly on `release/*`'
+require_text "dist/codex/.agents/skills/github-release/SKILL.md" 'Do not commit ordinary code, config, documentation, generated `dist`, or workflow changes directly on `release/*`'
+require_text "dist/cursor/.cursor/rules/github-release.mdc" 'Do not commit ordinary code, config, documentation, generated `dist`, or workflow changes directly on `release/*`'
+require_text dist/codex/AGENTS.md 'Do not commit ordinary code, config, documentation, generated `dist`, or workflow changes directly on `release/*`'
+require_text dist/gemini-cli/GEMINI.md 'Do not commit ordinary code, config, documentation, generated `dist`, or workflow changes directly on `release/*`'
+require_text dist/opencode/AGENTS.md 'Do not commit ordinary code, config, documentation, generated `dist`, or workflow changes directly on `release/*`'
+
 require_text dist/codex/AGENTS.md "Scaffolded Procedures for AI Agents"
 require_text dist/gemini-cli/GEMINI.md "Scaffolded Procedures for AI Agents"
 require_text dist/opencode/AGENTS.md "Scaffolded Procedures for AI Agents"

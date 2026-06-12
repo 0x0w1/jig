@@ -2,6 +2,13 @@
 
 SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 `gh` 계정을 사용합니다. 해당 계정이 로그인되어 있지 않으면 `gh auth login`을 실행하고, 로그인되어 있으면 active account가 맞는지 검증합니다. `gh`가 설치되어 있고 현재 디렉터리가 GitHub repository에 연결된 git repository일 때 일부 GitHub Repository 설정을 동기화할 수 있습니다.
 
+## Repository 운영 규칙
+
+- 일반 변경은 현재 `origin/develop`에서 `feature/*`, `fix/*`, `chore/*` 브랜치를 생성하고, 원격 push 후 GitHub PR로 `develop`에 병합합니다.
+- 릴리즈는 사용자가 명시적으로 요청한 경우에만 진행하며, 모든 변경이 `develop`에 PR로 병합된 뒤 현재 `origin/develop`에서 `release/vX.Y.Z` 브랜치를 생성하고 GitHub PR로 `main`에 병합합니다.
+- 릴리즈 요청 안에 아직 `develop`에 병합되지 않은 코드, 설정, 문서, 생성된 `dist`, workflow 변경이 있으면 릴리즈를 중단하고 먼저 일반 변경 PR 플로우를 완료합니다.
+- `release/*` 브랜치에는 일반 작업 변경을 직접 커밋하지 않습니다.
+
 ## install.sh가 적용하는 항목
 
 `install.sh --scope project --github-account <account>`는 Agent 스킬/룰 파일, PR template, Release Drafter YAML 파일을 먼저 설치한 뒤, 가능한 경우 다음 GitHub 작업을 시도합니다.
@@ -38,7 +45,7 @@ SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 
 - `develop` 브랜치 보장:
   - GitHub에 `develop` 브랜치가 없으면 `main`의 현재 commit에서 생성합니다.
   - 이미 존재하는 `develop` 브랜치는 변경하지 않습니다.
-branch protection:
+- Branch protection 안내:
   - `install.sh`는 branch protection을 직접 적용하지 않습니다.
   - `GUIDE` 출력이 남은 수동 설정을 안내합니다.
 

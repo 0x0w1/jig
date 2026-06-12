@@ -15,6 +15,8 @@ Use this repository skill for normal development work requested by the user.
   - `fix/<slug>` for bug, regression, or security fixes.
   - `chore/<slug>` for tooling, dependencies, refactors, docs, or release automation setup.
 - Target `develop`.
+- Ordinary code, config, documentation, generated `dist`, workflow, and installer changes must follow this flow before any release can include them.
+- Release branches are not task branches. Do not use `release/*` for normal implementation work.
 
 ## Phase Rules
 
@@ -45,6 +47,7 @@ If the task is large, split it into phases:
 - Do not merge if tests fail, checks fail, conflicts exist, or branch protection blocks the merge.
 - Do not merge a PR that includes changes outside the current task.
 - Do not use this skill for `release/vX.Y.Z` work; use `github-release`.
+- If the user has not explicitly asked for a release, stop after the `develop` PR is merged or left open with a blocker.
 
 ## Procedure
 
