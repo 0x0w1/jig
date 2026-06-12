@@ -1,19 +1,15 @@
 name-template: "v$RESOLVED_VERSION"
 tag-template: "v$RESOLVED_VERSION"
 commitish: main
+category-template: "### $TITLE"
 categories:
-  - title: "⬆️ Version Updates"
-    labels:
-      - "patch"
-      - "minor"
-      - "major"
-  - title: "🚀 Enhancement"
+  - title: "Enhancement"
     labels:
       - "enhancement"
-  - title: "🐛 Fixes"
+  - title: "Fixes"
     labels:
       - "fix"
-  - title: "🧰 Chore"
+  - title: "Chore"
     labels:
       - "chore"
 change-template: "- $TITLE (#$NUMBER)"
@@ -59,3 +55,13 @@ template: |
   ## Changes
 
   $CHANGES
+
+  ### Summary
+
+  <!-- spai:release-summary:start -->
+  - 요약할 변경사항이 없습니다.
+  <!-- spai:release-summary:end -->
+
+  ### Contributors
+
+  $CONTRIBUTORS

@@ -83,6 +83,7 @@ Knowledges root:
 
 Project scope also installs:
   .github/drafter-config.yaml
+  .github/PULL_REQUEST_TEMPLATE.md
   .github/workflows/drafter.yaml
 
 Project scope also keeps exactly these GitHub labels when gh is available:
@@ -376,6 +377,7 @@ install_project_github_files() {
   fi
 
   copy_file_with_backup "$REPO_RAW_URL/dist/github/drafter-config.yaml" "./.github/drafter-config.yaml"
+  copy_file_with_backup "$REPO_RAW_URL/dist/github/PULL_REQUEST_TEMPLATE.md" "./.github/PULL_REQUEST_TEMPLATE.md"
   copy_file_with_backup "$REPO_RAW_URL/dist/github/workflows/drafter.yaml" "./.github/workflows/drafter.yaml"
 }
 

@@ -10,6 +10,7 @@ Use this repository skill only for setup and synchronization of GitHub repositor
 ## Scope
 
 - Managed files:
+  - `.github/PULL_REQUEST_TEMPLATE.md`
   - `.github/drafter-config.yaml`
   - `.github/workflows/drafter.yaml`
 - Branches: `main`, `develop`.
@@ -69,6 +70,17 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
 10. Enable the repository General setting `Automatically delete head branches` when GitHub CLI permissions allow it.
 11. Protect `main`: PR required, no linear-history requirement, force-push disabled, deletion disabled, conversation resolution required. Require `update_release_draft` only after the workflow is already present on `main`.
 12. Protect `develop`: PR required, force-push disabled, deletion disabled, conversation resolution required.
+
+## Release Notes Format
+
+- Release notes render `Changes` sections in this order when matching changes exist:
+  - `Enhancement`
+  - `Fixes`
+  - `Chore`
+  - `Summary`
+  - `Contributors`
+- `patch`, `minor`, and `major` labels are version resolver inputs only; do not render a `Version Updates` changelog section.
+- The release workflow appends `Summary` by collecting bullet items from `## Summary` in merged PRs that target `develop` and carry `enhancement`, `fix`, or `chore`.
 
 ## Final Report
 

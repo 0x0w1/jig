@@ -32,6 +32,15 @@ skill_title() {
 
 require_file dist/github/drafter-config.yaml
 require_file dist/github/workflows/drafter.yaml
+require_file dist/github/PULL_REQUEST_TEMPLATE.md
+require_text dist/github/drafter-config.yaml "### Summary"
+require_text dist/github/drafter-config.yaml '### $TITLE'
+require_text dist/github/drafter-config.yaml "version-resolver:"
+require_text dist/github/workflows/drafter.yaml "release-drafter/release-drafter@v7"
+require_text dist/github/workflows/drafter.yaml "Append summary release notes"
+require_text dist/github/PULL_REQUEST_TEMPLATE.md "## Summary"
+require_text dist/github/PULL_REQUEST_TEMPLATE.md "## Details"
+require_text dist/github/PULL_REQUEST_TEMPLATE.md "## Tests"
 
 require_file dist/claude-code/CLAUDE.md
 require_text dist/claude-code/CLAUDE.md "spai:start github-release-setup"

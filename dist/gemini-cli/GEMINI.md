@@ -24,6 +24,7 @@ Use this repository skill only for setup and synchronization of GitHub repositor
 ## Scope
 
 - Managed files:
+  - `.github/PULL_REQUEST_TEMPLATE.md`
   - `.github/drafter-config.yaml`
   - `.github/workflows/drafter.yaml`
 - Branches: `main`, `develop`.
@@ -83,6 +84,17 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
 10. Enable the repository General setting `Automatically delete head branches` when GitHub CLI permissions allow it.
 11. Protect `main`: PR required, no linear-history requirement, force-push disabled, deletion disabled, conversation resolution required. Require `update_release_draft` only after the workflow is already present on `main`.
 12. Protect `develop`: PR required, force-push disabled, deletion disabled, conversation resolution required.
+
+## Release Notes Format
+
+- Release notes render `Changes` sections in this order when matching changes exist:
+  - `Enhancement`
+  - `Fixes`
+  - `Chore`
+  - `Summary`
+  - `Contributors`
+- `patch`, `minor`, and `major` labels are version resolver inputs only; do not render a `Version Updates` changelog section.
+- The release workflow appends `Summary` by collecting bullet items from `## Summary` in merged PRs that target `develop` and carry `enhancement`, `fix`, or `chore`.
 
 ## Final Report
 
@@ -232,6 +244,10 @@ If the task is large, split it into phases:
 8. Commit only the task changes with a conventional message matching the branch type.
 9. Push the branch without force.
 10. Open or reuse a PR with base `develop` and head `<prefix>/<slug>`.
+    - Write the PR body in Korean bullet style.
+    - Include `## Summary` with concise release-note-ready bullets from the user's perspective.
+    - Include `## Details` with implementation, configuration, policy, and impact details.
+    - Include `## Tests` with commands run and results.
 11. Apply one work label when possible:
    - `enhancement` for feature branches.
    - `fix` for fix branches.

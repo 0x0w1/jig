@@ -68,6 +68,10 @@ If the task is large, split it into phases:
 8. Commit only the task changes with a conventional message matching the branch type.
 9. Push the branch without force.
 10. Open or reuse a PR with base `develop` and head `<prefix>/<slug>`.
+    - Write the PR body in Korean bullet style.
+    - Include `## Summary` with concise release-note-ready bullets from the user's perspective.
+    - Include `## Details` with implementation, configuration, policy, and impact details.
+    - Include `## Tests` with commands run and results.
 11. Apply one work label when possible:
    - `enhancement` for feature branches.
    - `fix` for fix branches.
