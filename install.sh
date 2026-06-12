@@ -108,6 +108,10 @@ log() {
   printf 'SPAI [info] %s\n' "$*"
 }
 
+pass_task() {
+  log "PASS: $*"
+}
+
 warn() {
   printf 'SPAI [warn] %s\n' "$*" >&2
 }
@@ -242,16 +246,17 @@ copy_file_with_backup() {
   copy_source_url="$1"
   copy_destination="$2"
 
-  if [ "$DRY_RUN" -eq 1 ]; then
-    log "[dry-run] Would copy: $copy_source_url -> $copy_destination"
-    return 0
-  fi
-
   copy_tmp=$(mktemp)
   download_file "$copy_source_url" "$copy_tmp"
-  mkdir -p "$(dirname "$copy_destination")"
 
   if [ ! -f "$copy_destination" ]; then
+    if [ "$DRY_RUN" -eq 1 ]; then
+      log "[dry-run] Would install missing file: $copy_destination"
+      rm -f "$copy_tmp"
+      return 0
+    fi
+
+    mkdir -p "$(dirname "$copy_destination")"
     cp "$copy_tmp" "$copy_destination"
     record_installed "$copy_destination"
     rm -f "$copy_tmp"
@@ -259,11 +264,18 @@ copy_file_with_backup() {
   fi
 
   if cmp -s "$copy_tmp" "$copy_destination"; then
-    log "Skipped unchanged file: $copy_destination"
+    pass_task "unchanged file: $copy_destination"
     rm -f "$copy_tmp"
     return 0
   fi
 
+  if [ "$DRY_RUN" -eq 1 ]; then
+    log "[dry-run] Would update changed file: $copy_destination"
+    rm -f "$copy_tmp"
+    return 0
+  fi
+
+  mkdir -p "$(dirname "$copy_destination")"
   cp "$copy_destination" "$copy_destination.bak"
   cp "$copy_tmp" "$copy_destination"
   record_installed "$copy_destination"
@@ -293,19 +305,20 @@ install_managed_block() {
   managed_start_marker="$3"
   managed_end_marker="$4"
 
-  if [ "$DRY_RUN" -eq 1 ]; then
-    log "[dry-run] Would install managed block: $managed_source_url -> $managed_destination"
-    return 0
-  fi
-
   managed_source_tmp=$(mktemp)
   managed_block_tmp=$(mktemp)
   managed_new_tmp=$(mktemp)
   download_file "$managed_source_url" "$managed_source_tmp"
-  mkdir -p "$(dirname "$managed_destination")"
   extract_managed_block "$managed_source_tmp" "$managed_block_tmp" "$managed_start_marker" "$managed_end_marker"
 
   if [ ! -f "$managed_destination" ]; then
+    if [ "$DRY_RUN" -eq 1 ]; then
+      log "[dry-run] Would install missing managed file: $managed_destination"
+      rm -f "$managed_source_tmp" "$managed_block_tmp" "$managed_new_tmp"
+      return 0
+    fi
+
+    mkdir -p "$(dirname "$managed_destination")"
     cp "$managed_source_tmp" "$managed_destination"
     record_installed "$managed_destination"
     rm -f "$managed_source_tmp" "$managed_block_tmp" "$managed_new_tmp"
@@ -339,11 +352,18 @@ install_managed_block() {
   fi
 
   if cmp -s "$managed_new_tmp" "$managed_destination"; then
-    log "Skipped unchanged managed block: $managed_destination"
+    pass_task "unchanged managed block: $managed_destination"
     rm -f "$managed_source_tmp" "$managed_block_tmp" "$managed_new_tmp"
     return 0
   fi
 
+  if [ "$DRY_RUN" -eq 1 ]; then
+    log "[dry-run] Would update changed managed block: $managed_destination"
+    rm -f "$managed_source_tmp" "$managed_block_tmp" "$managed_new_tmp"
+    return 0
+  fi
+
+  mkdir -p "$(dirname "$managed_destination")"
   cp "$managed_destination" "$managed_destination.bak"
   cp "$managed_new_tmp" "$managed_destination"
   record_installed "$managed_destination"
@@ -368,16 +388,19 @@ sync_local_git_user_config() {
     return 0
   fi
 
-  if [ "$DRY_RUN" -eq 1 ]; then
-    log "[dry-run] Would configure local git user.name/user.email"
-    return 0
-  fi
-
   if ! command -v git >/dev/null 2>&1; then
+    if [ "$DRY_RUN" -eq 1 ]; then
+      log "[dry-run] Would require git to configure local user.name/user.email"
+      return 0
+    fi
     error "git is required to configure local user.name/user.email."
   fi
 
   if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    if [ "$DRY_RUN" -eq 1 ]; then
+      log "[dry-run] Would require a git repository to configure local user.name/user.email"
+      return 0
+    fi
     error "local git user config requires running inside a git repository."
   fi
 
@@ -386,22 +409,83 @@ sync_local_git_user_config() {
   log "Current local git user.name: ${current_git_user_name:-unset}"
   log "Current local git user.email: ${current_git_user_email:-unset}"
 
-  if [ -z "$GIT_USER_NAME" ]; then
-    GIT_USER_NAME=$(prompt_tty "Local git user.name: ")
+  target_git_user_name="$GIT_USER_NAME"
+  target_git_user_email="$GIT_USER_EMAIL"
+  prompt_git_user_name=0
+  prompt_git_user_email=0
+
+  if [ -z "$target_git_user_name" ]; then
+    if [ -n "$current_git_user_name" ]; then
+      target_git_user_name="$current_git_user_name"
+    else
+      prompt_git_user_name=1
+    fi
   fi
 
-  if [ -z "$GIT_USER_EMAIL" ]; then
-    GIT_USER_EMAIL=$(prompt_tty "Local git user.email: ")
+  if [ -z "$target_git_user_email" ]; then
+    if [ -n "$current_git_user_email" ]; then
+      target_git_user_email="$current_git_user_email"
+    else
+      prompt_git_user_email=1
+    fi
   fi
 
-  [ -n "$GIT_USER_NAME" ] || error "local git user.name is required."
-  [ -n "$GIT_USER_EMAIL" ] || error "local git user.email is required."
+  if [ "$DRY_RUN" -eq 1 ]; then
+    if [ "$prompt_git_user_name" -eq 1 ]; then
+      log "[dry-run] Would prompt for missing local git user.name"
+    elif [ "$current_git_user_name" != "$target_git_user_name" ]; then
+      log "[dry-run] Would set local git user.name: $target_git_user_name"
+    fi
 
-  git config --local user.name "$GIT_USER_NAME"
-  git config --local user.email "$GIT_USER_EMAIL"
-  log "Local git user config updated"
-  record_git_config "user.name=$GIT_USER_NAME"
-  record_git_config "user.email=$GIT_USER_EMAIL"
+    if [ "$prompt_git_user_email" -eq 1 ]; then
+      log "[dry-run] Would prompt for missing local git user.email"
+    elif [ "$current_git_user_email" != "$target_git_user_email" ]; then
+      log "[dry-run] Would set local git user.email: $target_git_user_email"
+    fi
+
+    if [ "$prompt_git_user_name" -eq 0 ] &&
+      [ "$prompt_git_user_email" -eq 0 ] &&
+      [ "$current_git_user_name" = "$target_git_user_name" ] &&
+      [ "$current_git_user_email" = "$target_git_user_email" ]; then
+      pass_task "local git user config already complete"
+    fi
+    return 0
+  fi
+
+  if [ "$prompt_git_user_name" -eq 1 ]; then
+    target_git_user_name=$(prompt_tty "Local git user.name: ")
+  fi
+
+  if [ "$prompt_git_user_email" -eq 1 ]; then
+    target_git_user_email=$(prompt_tty "Local git user.email: ")
+  fi
+
+  [ -n "$target_git_user_name" ] || error "local git user.name is required."
+  [ -n "$target_git_user_email" ] || error "local git user.email is required."
+
+  git_config_changed=0
+
+  if [ "$current_git_user_name" = "$target_git_user_name" ]; then
+    pass_task "local git user.name already set: $target_git_user_name"
+  else
+    git config --local user.name "$target_git_user_name"
+    record_git_config "user.name=$target_git_user_name"
+    git_config_changed=1
+  fi
+
+  if [ "$current_git_user_email" = "$target_git_user_email" ]; then
+    pass_task "local git user.email already set: $target_git_user_email"
+  else
+    git config --local user.email "$target_git_user_email"
+    record_git_config "user.email=$target_git_user_email"
+    git_config_changed=1
+  fi
+
+  if [ "$git_config_changed" -eq 1 ]; then
+    log "Local git user config updated"
+  else
+    pass_task "local git user config already complete"
+  fi
 }
 
 is_absolute_path() {
@@ -409,6 +493,16 @@ is_absolute_path() {
     /*) return 0 ;;
     *) return 1 ;;
   esac
+}
+
+knowledges_root_is_valid() {
+  knowledges_root="$1"
+
+  [ -n "$knowledges_root" ] || return 1
+  is_absolute_path "$knowledges_root" || return 1
+  [ -d "$knowledges_root" ] || return 1
+  [ -d "$knowledges_root/.git" ] || return 1
+  [ -d "$knowledges_root/raw" ] || return 1
 }
 
 validate_knowledges_root() {
@@ -421,6 +515,18 @@ validate_knowledges_root() {
   [ -d "$knowledges_root" ] || error "knowledges root does not exist or is not a directory: $knowledges_root"
   [ -d "$knowledges_root/.git" ] || error "knowledges root must be the cloned git repository root and contain .git: $knowledges_root"
   [ -d "$knowledges_root/raw" ] || error "knowledges root must contain raw/: $knowledges_root"
+}
+
+current_knowledges_root_env() {
+  [ -f ".env" ] || return 0
+
+  awk '
+    /^KNOWLEDGES_ROOT=/ {
+      sub(/^KNOWLEDGES_ROOT=/, "")
+      print
+      exit
+    }
+  ' ".env"
 }
 
 prepare_knowledges_root_env() {
@@ -436,6 +542,21 @@ prepare_knowledges_root_env() {
   fi
 
   if [ -z "$KNOWLEDGES_ROOT_INPUT" ]; then
+    existing_knowledges_root=$(current_knowledges_root_env)
+    if [ -n "$existing_knowledges_root" ]; then
+      if knowledges_root_is_valid "$existing_knowledges_root"; then
+        KNOWLEDGES_ROOT_INPUT="$existing_knowledges_root"
+        return 0
+      fi
+      warn "Existing KNOWLEDGES_ROOT is invalid and will be requested again: $existing_knowledges_root"
+    fi
+
+    if [ "$DRY_RUN" -eq 1 ]; then
+      log "[dry-run] Would prompt for missing knowledges root"
+      CONFIGURE_KNOWLEDGES_ROOT=0
+      return 0
+    fi
+
     KNOWLEDGES_ROOT_INPUT=$(prompt_tty "Absolute knowledges git repository root: ")
   fi
 
@@ -448,11 +569,6 @@ sync_knowledges_root_env() {
   fi
 
   validate_knowledges_root "$KNOWLEDGES_ROOT_INPUT"
-
-  if [ "$DRY_RUN" -eq 1 ]; then
-    log "[dry-run] Would write KNOWLEDGES_ROOT to .env: $KNOWLEDGES_ROOT_INPUT"
-    return 0
-  fi
 
   env_file=".env"
   env_tmp=$(mktemp)
@@ -479,8 +595,14 @@ sync_knowledges_root_env() {
   fi
 
   if [ -f "$env_file" ] && cmp -s "$env_tmp" "$env_file"; then
-    log "Skipped unchanged knowledges root: .env"
+    pass_task "knowledges root already set in .env"
     record_knowledges_setting "KNOWLEDGES_ROOT=$KNOWLEDGES_ROOT_INPUT (already set)"
+    rm -f "$env_tmp"
+    return 0
+  fi
+
+  if [ "$DRY_RUN" -eq 1 ]; then
+    log "[dry-run] Would write KNOWLEDGES_ROOT to .env: $KNOWLEDGES_ROOT_INPUT"
     rm -f "$env_tmp"
     return 0
   fi
@@ -595,6 +717,11 @@ ensure_github_label() {
   label_color="$2"
   label_description="$3"
 
+  if github_label_is_synced "$label_name" "$label_color" "$label_description"; then
+    pass_task "GitHub label already synced: $label_name"
+    return 0
+  fi
+
   if github_label_exists "$label_name"; then
     gh label edit "$label_name" --color "$label_color" --description "$label_description" >/dev/null
     log "GitHub label updated: $label_name"
@@ -605,6 +732,23 @@ ensure_github_label() {
   gh label create "$label_name" --color "$label_color" --description "$label_description" >/dev/null
   log "GitHub label created: $label_name"
   record_label "$label_name (created)"
+}
+
+github_label_is_synced() {
+  label_name="$1"
+  label_color="#$2"
+  label_description="$3"
+
+  gh label list --limit 1000 | awk -F '\t' -v name="$label_name" -v color="$label_color" -v description="$label_description" '
+    $1 == name {
+      actual_color = toupper($3)
+      expected_color = toupper(color)
+      if ($2 == description && actual_color == expected_color) {
+        synced = 1
+      }
+    }
+    END { exit synced ? 0 : 1 }
+  '
 }
 
 github_label_exists() {
@@ -626,6 +770,7 @@ is_standard_github_label() {
 delete_nonstandard_github_labels() {
   labels_tmp=$(mktemp)
   label_names_tmp=$(mktemp)
+  deleted_count=0
 
   gh label list --limit 1000 > "$labels_tmp"
   awk -F '\t' '{ print $1 }' "$labels_tmp" > "$label_names_tmp"
@@ -639,6 +784,7 @@ delete_nonstandard_github_labels() {
     if gh label delete "$label_name" --yes >/dev/null; then
       log "GitHub label deleted: $label_name"
       record_deleted_label "$label_name"
+      deleted_count=$((deleted_count + 1))
     else
       rm -f "$labels_tmp" "$label_names_tmp"
       error "GitHub label deletion failed: $label_name"
@@ -646,6 +792,10 @@ delete_nonstandard_github_labels() {
   done < "$label_names_tmp"
 
   rm -f "$labels_tmp" "$label_names_tmp"
+
+  if [ "$deleted_count" -eq 0 ]; then
+    pass_task "GitHub labels already contain only standard labels"
+  fi
 }
 
 sync_github_labels() {
@@ -761,7 +911,7 @@ ensure_github_branch() {
   source_branch="$3"
 
   if github_branch_exists "$repo_slug" "$branch_name"; then
-    log "GitHub branch exists: $branch_name"
+    pass_task "GitHub branch exists: $branch_name"
     record_verified_branch "$branch_name (exists)"
     return 0
   fi
@@ -776,7 +926,7 @@ ensure_github_branch() {
     log "GitHub branch created: $branch_name from $source_branch"
     record_branch "$branch_name (created from $source_branch)"
   elif github_branch_exists "$repo_slug" "$branch_name"; then
-    log "GitHub branch exists: $branch_name"
+    pass_task "GitHub branch exists: $branch_name"
     record_verified_branch "$branch_name (exists)"
     return 0
   else
@@ -819,6 +969,13 @@ EOF
 sync_repository_general_settings() {
   repo_slug="$1"
 
+  delete_branch_on_merge=$(gh api "repos/$repo_slug" --jq .delete_branch_on_merge 2>/dev/null || printf 'unknown')
+  if [ "$delete_branch_on_merge" = "true" ]; then
+    pass_task "GitHub repository setting already enabled: Automatically delete head branches"
+    record_repository_setting "Automatically delete head branches (already enabled)"
+    return 0
+  fi
+
   if gh api -X PATCH "repos/$repo_slug" -F delete_branch_on_merge=true >/dev/null 2>&1; then
     log "GitHub repository setting enabled: Automatically delete head branches"
     record_repository_setting "Automatically delete head branches (enabled)"
@@ -840,7 +997,7 @@ sync_github_actions_workflow_permissions() {
 
   current_workflow_permissions=$(gh api "repos/$repo_slug/actions/permissions/workflow" --jq .default_workflow_permissions 2>/dev/null || true)
   if [ "$current_workflow_permissions" = "write" ]; then
-    log "GitHub Actions workflow permissions already allow read and write"
+    pass_task "GitHub Actions workflow permissions already allow read and write"
     record_github_actions_setting "Workflow permissions read and write (already enabled)"
     return 0
   fi
@@ -865,6 +1022,23 @@ sync_github_actions_workflow_permissions() {
   fi
 }
 
+branch_protection_is_synced() {
+  repo_slug="$1"
+  protection_branch="$2"
+
+  pr_required=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .required_pull_request_reviews == null then "false" else "true" end' 2>/dev/null || printf 'false')
+  status_checks_required=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .required_status_checks == null then "false" else "true" end' 2>/dev/null || printf 'unknown')
+  allow_force_pushes=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .allow_force_pushes.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
+  allow_deletions=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .allow_deletions.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
+  conversation_required=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .required_conversation_resolution.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
+
+  [ "$pr_required" = "true" ] &&
+    [ "$status_checks_required" = "false" ] &&
+    [ "$allow_force_pushes" = "false" ] &&
+    [ "$allow_deletions" = "false" ] &&
+    [ "$conversation_required" = "true" ]
+}
+
 sync_branch_protection() {
   repo_slug="$1"
   protection_branch="$2"
@@ -873,6 +1047,12 @@ sync_branch_protection() {
 
   if ! github_branch_exists "$repo_slug" "$protection_branch"; then
     warn "GitHub branch protection skipped: $protection_branch does not exist on GitHub."
+    return 0
+  fi
+
+  if branch_protection_is_synced "$repo_slug" "$protection_branch"; then
+    pass_task "GitHub classic branch protection already synced: $protection_branch"
+    record_verified_branch_protection "$protection_branch (already synced)"
     return 0
   fi
 
@@ -902,17 +1082,7 @@ verify_branch_protection() {
   repo_slug="$1"
   protection_branch="$2"
 
-  pr_required=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .required_pull_request_reviews == null then "false" else "true" end' 2>/dev/null || printf 'false')
-  status_checks_required=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .required_status_checks == null then "false" else "true" end' 2>/dev/null || printf 'unknown')
-  allow_force_pushes=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .allow_force_pushes.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
-  allow_deletions=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .allow_deletions.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
-  conversation_required=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .required_conversation_resolution.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
-
-  if [ "$pr_required" = "true" ] &&
-    [ "$status_checks_required" = "false" ] &&
-    [ "$allow_force_pushes" = "false" ] &&
-    [ "$allow_deletions" = "false" ] &&
-    [ "$conversation_required" = "true" ]; then
+  if branch_protection_is_synced "$repo_slug" "$protection_branch"; then
     record_verified_branch_protection "$protection_branch"
     return 0
   fi
