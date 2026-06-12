@@ -2,7 +2,7 @@
 
 ## 문서
 
-- [GitHub Repository Settings](docs/github-repository-settings.md): `install.sh`가 project scope에서 적용하는 라벨 정리, `develop` 브랜치 생성, branch protection, General 설정입니다.
+- [GitHub Repository Settings](docs/github-repository-settings.md): `install.sh`가 project scope에서 적용하는 라벨 정리, `develop` 브랜치 생성, General 설정입니다.
 
 ## 개요
 
@@ -12,7 +12,7 @@ SPAI는 Codex, Claude Code, Cursor, Gemini CLI, OpenCode 등 여러 AI Agent 환
 
 이 프로젝트는 `curl` 또는 `wget`을 통해 각 Agent 환경에 맞는 스킬/규칙 파일을 설치할 수 있도록 구성되어 있습니다.
 
-> 이 설치 스크립트는 AI Agent용 스킬/규칙/가드레일 파일과 Release Drafter YAML 파일을 설치하고, project scope에서는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 `gh` 계정을 사용합니다. 해당 `gh` 계정이 로그인되어 있지 않으면 `gh auth login`을 실행하고, 로그인되어 있으면 active account가 맞는지 검증합니다. `gh`를 사용할 수 있으면 표준 6개 GitHub 라벨만 남도록 라벨을 정리하며, repository visibility와 현재 계정 권한을 확인한 뒤 `develop` 브랜치 생성, `main`/`develop` classic branch protection, General의 Automatically delete head branches 설정, Actions workflow permissions의 read and write 설정을 동기화합니다. 표준 6개 외 라벨은 삭제됩니다. 브랜치 수동 삭제, 릴리스, 태그, PR 생성/병합은 직접 수행하지 않습니다.
+> 이 설치 스크립트는 AI Agent용 스킬/규칙/가드레일 파일과 Release Drafter YAML 파일을 설치하고, project scope에서는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 `gh` 계정을 사용합니다. 해당 `gh` 계정이 로그인되어 있지 않으면 `gh auth login`을 실행하고, 로그인되어 있으면 active account가 맞는지 검증합니다. `gh`를 사용할 수 있으면 표준 6개 GitHub 라벨만 남도록 라벨을 정리하며, repository visibility와 현재 계정 권한을 확인한 뒤 `develop` 브랜치 생성, General의 Automatically delete head branches 설정, Actions workflow permissions의 read and write 설정을 동기화합니다. 설치가 끝나면 `GUIDE`가 남은 수동 작업을 안내합니다. 표준 6개 외 라벨은 삭제됩니다. 브랜치 수동 삭제, 릴리스, 태그, PR 생성/병합은 직접 수행하지 않습니다.
 
 ## SPAI의 의미
 
@@ -129,7 +129,7 @@ chore
 
 라벨 정리 전에 installer는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 계정이 `gh`에 로그인되어 있는지 확인합니다. 없으면 `gh auth login`을 실행한 뒤 `gh auth switch --user`로 active account를 맞추고 검증합니다. `.git` repository가 없으면 라벨 정리는 건너뛰고 통과 로그를 출력합니다.
 
-installer는 각 설치 작업 전에 현재 상태를 먼저 검토합니다. 파일, managed block, `.env`, 로컬 git user, GitHub 라벨, repository settings, branch protection이 이미 원하는 상태이면 `PASS` 로그를 출력하고 쓰기 작업을 건너뜁니다. `--configure-git-user`와 `--configure-knowledges-root`도 기존 값이 유효하면 입력을 묻지 않고, 빠져 있거나 유효하지 않은 값만 입력받습니다.
+installer는 각 설치 작업 전에 현재 상태를 먼저 검토합니다. 파일, managed block, `.env`, 로컬 git user, GitHub 라벨, repository settings가 이미 원하는 상태이면 `PASS` 로그를 출력하고 쓰기 작업을 건너뜁니다. `--configure-git-user`와 `--configure-knowledges-root`도 기존 값이 유효하면 입력을 묻지 않고, 빠져 있거나 유효하지 않은 값만 입력받습니다.
 
 설치되는 PR template은 `feature/*`, `fix/*`, `chore/*`에서 `develop`으로 보내는 PR의 `## Summary`, `## Details`, `## Tests`를 한글 개조식으로 작성하도록 안내합니다. 릴리스 생성 시 workflow는 `develop` 대상 PR 중 `enhancement`, `fix`, `chore` 라벨이 있는 PR의 `## Summary` bullet을 취합해 릴리즈 노트 하단 Summary에 추가합니다. `## Summary`에서는 파일명, 설정 키, 라벨, 브랜치명, workflow 이름처럼 강조할 기술 용어를 backtick으로 감쌉니다.
 
@@ -155,7 +155,7 @@ sh install.sh --target all --scope project --github-account 0x0w1 \
 
 `--knowledges-root` 값은 `.git/`과 `raw/`를 포함하는 knowledges git clone 루트여야 합니다. 상대경로나 Obsidian vault alias는 허용하지 않습니다. 같은 값은 `SPAI_KNOWLEDGES_ROOT` 환경 변수로도 전달할 수 있고, 대화형으로 입력하려면 `--configure-knowledges-root`를 사용합니다.
 
-project scope 설치 시 `gh`를 사용할 수 있으면 GitHub Repository 설정도 동기화합니다.
+project scope 설치 시 `gh`를 사용할 수 있으면 GitHub Repository 설정도 동기화합니다. branch protection은 설치하지 않고, 종료 시 `GUIDE`로 수동 작업만 안내합니다.
 
 ```text
 Repository context:
@@ -170,24 +170,9 @@ Actions:
 Branches:
   develop:
     created from main when missing
-
-Classic branch protection:
-  main:
-    pull request required
-    required status checks off
-    linear history not required
-    force push disabled
-    branch deletion disabled
-    conversation resolution required
-  develop:
-    pull request required
-    required status checks off
-    force push disabled
-    branch deletion disabled
-    conversation resolution required
 ```
 
-private repository에서 classic branch protection 적용이 실패하면 installer는 repo visibility, 현재 계정 권한, GitHub API 오류를 warning으로 출력합니다. private repository의 protected branches는 GitHub plan 지원과 repository rules 수정 권한이 모두 필요합니다.
+`install.sh`는 branch protection을 직접 적용하지 않습니다. 필요한 경우 `main`과 `develop`에 대한 보호 규칙을 수동으로 설정하세요.
 
 자세한 적용/건너뛰기 조건은 [GitHub Repository Settings](docs/github-repository-settings.md)를 참고하세요.
 
@@ -396,7 +381,7 @@ $KNOWLEDGES_ROOT/raw/inbox/<source_project>/<slug>.md
 - 설정 중에 PR을 병합하지 않습니다.
 - 사용자의 관련 없는 working tree 변경 사항을 수정하거나 되돌리지 않습니다.
 - 일반 Agent 작업에서는 명시적 확인 없이 라벨을 삭제하지 않습니다. `install.sh --scope project`는 표준 6개 라벨만 남기도록 표준 외 라벨을 삭제하는 설치 동작을 포함합니다.
-- `install.sh`는 표준 6개 라벨 정리, General의 Automatically delete head branches, `main`/`develop` branch protection 외의 GitHub Repository 설정을 직접 변경하지 않습니다.
+- `install.sh`는 표준 6개 라벨 정리, General의 Automatically delete head branches, Actions workflow permissions, `develop` 브랜치 생성 외의 GitHub Repository 설정을 직접 변경하지 않습니다.
 - `install.sh`는 브랜치를 수동으로 삭제하지 않습니다.
 
 ## 개발자용: dist 재생성
@@ -425,12 +410,12 @@ sh scripts/validate-dist.sh
 - project scope 설치 시 `.github/PULL_REQUEST_TEMPLATE.md`, `.github/drafter-config.yaml`, `.github/workflows/drafter.yaml`도 설치됩니다.
 - project scope 설치는 `--github-account <account>` 또는 `SPAI_GITHUB_ACCOUNT=<account>` 입력이 필요합니다.
 - knowledges raw ingest 설정은 `--knowledges-root <absolute-path>` 또는 `SPAI_KNOWLEDGES_ROOT=<absolute-path>`로 `.env`에 `KNOWLEDGES_ROOT`를 기록할 때만 적용됩니다.
-- project scope 설치 시 `gh`, git repository, GitHub repository 확인이 가능하면 지정한 `gh` 계정으로 로그인/선택을 검증하고, 표준 6개 라벨만 남도록 라벨을 정리하고, `develop` 브랜치 생성, branch protection, Automatically delete head branches 설정을 동기화하며 가능한 범위에서 검증합니다.
+- project scope 설치 시 `gh`, git repository, GitHub repository 확인이 가능하면 지정한 `gh` 계정으로 로그인/선택을 검증하고, 표준 6개 라벨만 남도록 라벨을 정리하고, `develop` 브랜치 생성, Automatically delete head branches 설정을 동기화하며 가능한 범위에서 검증합니다.
 - `.git` repository가 없으면 GitHub Repository 설정 동기화를 건너뛰고 통과 로그를 출력합니다.
-- 원격 `develop` 브랜치가 없으면 `main`의 현재 commit에서 `develop`을 만든 뒤 branch protection을 적용합니다.
+- 원격 `develop` 브랜치가 없으면 `main`의 현재 commit에서 `develop`을 만듭니다.
 - 표준 6개 외의 기존 라벨은 삭제됩니다.
 - `content` 라벨은 표준 라벨이 아니며, 신규 기능 또는 개선 사항은 `enhancement`로 처리합니다.
-- Release Drafter 실행 결과는 대상 Repository의 GitHub Actions 권한과 branch protection 설정에 영향을 받습니다.
+- Release Drafter 실행 결과는 대상 Repository의 GitHub Actions 권한에 영향을 받습니다.
 
 ## License
 
