@@ -4,7 +4,7 @@ SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 
 
 ## install.sh가 적용하는 항목
 
-`install.sh --scope project --github-account <account>`는 Agent 스킬/룰 파일과 Release Drafter YAML 파일을 먼저 설치한 뒤, 가능한 경우 다음 GitHub 작업을 시도합니다.
+`install.sh --scope project --github-account <account>`는 Agent 스킬/룰 파일, PR template, Release Drafter YAML 파일을 먼저 설치한 뒤, 가능한 경우 다음 GitHub 작업을 시도합니다.
 
 - GitHub CLI 계정 선택:
   - `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 입력 받은 계정을 사용합니다.
@@ -26,6 +26,10 @@ SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 
   - `fix`
   - `chore`
   - 위 6개에 없는 기존 라벨은 삭제됩니다.
+- Release Drafter 릴리즈 노트 형식:
+  - `Changes` 하위에 `Enhancement`, `Fixes`, `Chore`, `Summary`, `Contributors` 순으로 출력합니다.
+  - `patch`, `minor`, `major`는 버전 계산에만 사용하고 `Version Updates` 카테고리로 출력하지 않습니다.
+  - `develop` 대상 PR 중 `enhancement`, `fix`, `chore` 라벨이 있는 PR의 `## Summary` bullet을 취합해 `Summary` 섹션에 추가합니다.
 - Repository General 설정 활성화:
   - Automatically delete head branches
 - GitHub Actions Workflow permissions 설정:

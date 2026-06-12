@@ -111,6 +111,7 @@ mkdir -p \
 
 cp "$SKILL_FILES/drafter-config.yaml" dist/github/drafter-config.yaml
 cp "$SKILL_FILES/drafter.yaml" dist/github/workflows/drafter.yaml
+cp "$SKILL_FILES/PULL_REQUEST_TEMPLATE.md" dist/github/PULL_REQUEST_TEMPLATE.md
 
 cat > dist/claude-code/CLAUDE.md <<'EOF'
 # SPAI
