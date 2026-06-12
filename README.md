@@ -128,6 +128,8 @@ chore
 
 라벨 정리 전에 installer는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 계정이 `gh`에 로그인되어 있는지 확인합니다. 없으면 `gh auth login`을 실행한 뒤 `gh auth switch --user`로 active account를 맞추고 검증합니다. `.git` repository가 없으면 라벨 정리는 건너뛰고 통과 로그를 출력합니다.
 
+installer는 각 설치 작업 전에 현재 상태를 먼저 검토합니다. 파일, managed block, `.env`, 로컬 git user, GitHub 라벨, repository settings, branch protection이 이미 원하는 상태이면 `PASS` 로그를 출력하고 쓰기 작업을 건너뜁니다. `--configure-git-user`와 `--configure-knowledges-root`도 기존 값이 유효하면 입력을 묻지 않고, 빠져 있거나 유효하지 않은 값만 입력받습니다.
+
 로컬 git 작성자 정보를 바꾸고 싶으면 다음처럼 실행할 수 있습니다.
 
 ```bash
@@ -407,8 +409,9 @@ sh scripts/validate-dist.sh
 ## 주의사항
 
 - 설치 스크립트는 기본 설치 중에는 로컬 git user 변경 prompt를 띄우지 않습니다. `gh` 로그인이 필요하거나 `--configure-git-user`를 사용하면 터미널 입력이 필요할 수 있습니다.
+- 설치 스크립트는 재실행 시 이미 반영된 작업을 `PASS` 처리하고, 필요한 작업만 입력받거나 실행합니다.
 - 기존 파일을 변경해야 할 때는 `.bak` 백업을 생성합니다.
-- `--dry-run`을 사용하면 실제 파일 시스템을 수정하지 않고 예정 작업만 출력합니다.
+- `--dry-run`을 사용하면 실제 파일 시스템을 수정하지 않고 예정 작업을 출력하며, 파일과 managed block은 현재 내용과 비교해 missing/changed/PASS 상태를 구분합니다.
 - project scope 설치 시 `.github/drafter-config.yaml`과 `.github/workflows/drafter.yaml`도 설치됩니다.
 - project scope 설치는 `--github-account <account>` 또는 `SPAI_GITHUB_ACCOUNT=<account>` 입력이 필요합니다.
 - knowledges raw ingest 설정은 `--knowledges-root <absolute-path>` 또는 `SPAI_KNOWLEDGES_ROOT=<absolute-path>`로 `.env`에 `KNOWLEDGES_ROOT`를 기록할 때만 적용됩니다.
