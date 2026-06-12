@@ -2,6 +2,13 @@
 
 SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 `gh` 계정을 사용합니다. 해당 계정이 로그인되어 있지 않으면 `gh auth login`을 실행하고, 로그인되어 있으면 active account가 맞는지 검증합니다. `gh`가 설치되어 있고 현재 디렉터리가 GitHub repository에 연결된 git repository일 때 일부 GitHub Repository 설정을 동기화할 수 있습니다.
 
+## Repository 운영 규칙
+
+- 일반 변경은 현재 `origin/develop`에서 `feature/*`, `fix/*`, `chore/*` 브랜치를 생성하고, 원격 push 후 GitHub PR로 `develop`에 병합합니다.
+- 릴리즈는 사용자가 명시적으로 요청한 경우에만 진행하며, 모든 변경이 `develop`에 PR로 병합된 뒤 현재 `origin/develop`에서 `release/vX.Y.Z` 브랜치를 생성하고 GitHub PR로 `main`에 병합합니다.
+- 릴리즈 요청 안에 아직 `develop`에 병합되지 않은 코드, 설정, 문서, 생성된 `dist`, workflow 변경이 있으면 릴리즈를 중단하고 먼저 일반 변경 PR 플로우를 완료합니다.
+- `release/*` 브랜치에는 일반 작업 변경을 직접 커밋하지 않습니다.
+
 ## install.sh가 적용하는 항목
 
 `install.sh --scope project --github-account <account>`는 Agent 스킬/룰 파일, PR template, Release Drafter YAML 파일을 먼저 설치한 뒤, 가능한 경우 다음 GitHub 작업을 시도합니다.
@@ -14,10 +21,8 @@ SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 
 - 로컬 git user 설정:
   - `--configure-git-user`를 사용하면 `user.name`, `user.email`을 입력 받아 `git config --local`에 저장합니다.
   - `--git-user-name`, `--git-user-email` 또는 `SPAI_GIT_USER_NAME`, `SPAI_GIT_USER_EMAIL`을 사용하면 비대화식으로 저장합니다.
-- Branch protection은 GitHub Rulesets가 아니라 classic branch protection으로 생성합니다.
 - Repository context 확인:
   - `gh repo view --json visibility,viewerPermission`으로 repository visibility와 현재 `gh` 계정 권한을 확인합니다.
-  - private repository이면 classic branch protection에 GitHub plan 지원과 repository rules 수정 권한이 필요할 수 있음을 warning으로 출력합니다.
 - 표준 6개 라벨 생성 또는 업데이트 후, 표준 외 라벨 삭제:
   - `patch`
   - `minor`
@@ -27,7 +32,8 @@ SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 
   - `chore`
   - 위 6개에 없는 기존 라벨은 삭제됩니다.
 - Release Drafter 릴리즈 노트 형식:
-  - `Changes` 하위에 `Enhancement`, `Fixes`, `Chore`, `Summary` 순으로 출력합니다.
+  - `Changes` 하위에 `🚀 Enhancements`, `🐛 Fixes`, `🧰 Chores`, `Summary` 순으로 출력합니다.
+  - 변경 카테고리 섹션 사이에는 Markdown horizontal rule을 넣습니다.
   - `patch`, `minor`, `major`는 버전 계산에만 사용하고 `Version Updates` 카테고리로 출력하지 않습니다.
   - `develop` 대상 PR 중 `enhancement`, `fix`, `chore` 라벨이 있는 PR의 `## Summary` bullet을 취합해 `Summary` 섹션에 추가합니다.
   - `Summary` bullet에서는 파일명, 설정 키, 라벨, 브랜치명, workflow 이름처럼 강조할 기술 용어를 backtick으로 감쌉니다.
@@ -39,19 +45,9 @@ SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 
 - `develop` 브랜치 보장:
   - GitHub에 `develop` 브랜치가 없으면 `main`의 현재 commit에서 생성합니다.
   - 이미 존재하는 `develop` 브랜치는 변경하지 않습니다.
-- `main` classic branch protection 적용:
-  - Pull request가 필요합니다.
-  - Required status checks는 사용하지 않습니다.
-  - Linear history는 요구하지 않습니다.
-  - Force push를 비활성화합니다.
-  - Branch deletion을 비활성화합니다.
-  - Conversation resolution을 요구합니다.
-- `develop` classic branch protection 적용:
-  - Pull request가 필요합니다.
-  - Required status checks는 사용하지 않습니다.
-  - Force push를 비활성화합니다.
-  - Branch deletion을 비활성화합니다.
-  - Conversation resolution을 요구합니다.
+- Branch protection 안내:
+  - `install.sh`는 branch protection을 직접 적용하지 않습니다.
+  - `GUIDE` 출력이 남은 수동 설정을 안내합니다.
 
 ## 중단되는 경우
 
@@ -69,15 +65,7 @@ installer는 다음 상황에서 GitHub Repository 설정 작업을 건너뛰고
 - `git`이 설치되어 있지 않은 경우
 - 현재 디렉터리가 git repository가 아닌 경우
 - `gh repo view`가 현재 repository를 해석할 수 없는 경우
-- 인증된 사용자에게 branch 생성, repository 설정 또는 branch protection 수정 권한이 없는 경우
-
-Branch protection 적용이 실패하면 installer는 다음 정보를 warning으로 출력하고 계속 진행합니다.
-
-- 대상 branch
-- repository slug
-- repository visibility
-- 현재 `gh` 계정의 repository permission
-- `gh api`가 반환한 GitHub API 오류
+- 인증된 사용자에게 branch 생성 또는 repository 설정 수정 권한이 없는 경우
 
 ## Safety Boundaries
 
@@ -93,8 +81,6 @@ Branch protection 적용이 실패하면 installer는 다음 정보를 warning�
 - 기본 브랜치를 변경하지 않습니다.
 - Repository visibility 또는 ownership을 변경하지 않습니다.
 
-Repository plan 또는 권한 제한 때문에 branch protection을 적용할 수 없는 경우 installer는 warning을 출력하고 계속 진행합니다. GitHub protected branches는 public repository에서는 GitHub Free에서도 사용할 수 있지만, private repository에서는 GitHub Pro, Team, Enterprise Cloud, 또는 Enterprise Server 등 protected branches를 지원하는 plan이 필요합니다.
-
 ## 검증
 
 파일이나 GitHub 설정을 수정하지 않고 예정 작업만 보려면 dry-run mode를 사용합니다.
@@ -103,7 +89,7 @@ Repository plan 또는 권한 제한 때문에 branch protection을 적용할 �
 sh install.sh --target all --scope project --github-account 0x0w1 --dry-run
 ```
 
-GitHub에 연결된 git repository 안에서 project scope로 실행하면 지정한 `gh` 계정으로 표준 6개 라벨만 남도록 라벨을 정리하고, GitHub Actions workflow permissions를 read and write로 맞추며, `develop` 브랜치가 없으면 생성하고, repository settings, branch protection을 적용한 뒤 가능한 범위에서 검증합니다.
+GitHub에 연결된 git repository 안에서 project scope로 실행하면 지정한 `gh` 계정으로 표준 6개 라벨만 남도록 라벨을 정리하고, GitHub Actions workflow permissions를 read and write로 맞추며, `develop` 브랜치가 없으면 생성하고, repository settings를 동기화한 뒤 가능한 범위에서 검증합니다. branch protection은 `GUIDE`로 수동 안내합니다.
 
 ```bash
 sh install.sh --target all --scope project --github-account 0x0w1

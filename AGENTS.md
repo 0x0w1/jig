@@ -24,6 +24,8 @@ Use these repo-scoped Codex skills:
 - Do not create `.codex`, `.claude/skills`, or unrequested AI skill directories inside this repository.
 - Do not manually create release tags or GitHub releases when release-drafter is configured.
 - For ordinary implementation tasks, create a `feature/*`, `fix/*`, or `chore/*` branch from `origin/develop`, run tests, open a PR to `develop`, and merge it automatically only when checks pass, the PR is mergeable, and branch protection allows it.
+- If a release request includes unmerged code, config, documentation, generated `dist`, or workflow changes, stop release execution and complete those changes first through a `feature/*`, `fix/*`, or `chore/*` PR into `develop`.
+- Do not commit ordinary task changes directly on `release/*`. A release branch must be created from the current `origin/develop` after all intended changes are already merged to `develop`.
 - For release PRs, do not merge unless the user explicitly asks for merge execution and checks/protection allow it.
 - Preserve unrelated user changes.
 
@@ -39,13 +41,14 @@ Use these repo-scoped Codex skills:
 ## Release Rules
 
 - Release requests must use `vX.Y.Z`.
-- Create `release/vX.Y.Z` from `origin/develop`.
+- Create `release/vX.Y.Z` from the current `origin/develop` only after all intended changes have already been merged to `develop` by PR.
 - Open the release PR with base `main`.
 - Treat release PRs as version upgrades, not chores.
 - Title release PRs as `<patch|minor|major>: release vX.Y.Z`.
 - Use a merge commit for `release/*` into `main`; do not require linear history on `main`.
 - Apply one version label: `patch`, `minor`, or `major`.
 - Do not apply `chore`, `enhancement`, or `fix` to release PRs.
+- Do not recreate or push a merged/deleted `release/*` branch unless starting a new version release from the current `origin/develop`.
 - Let release-drafter publish the release and tag after `main` receives the release merge.
 
 ## Reporting
