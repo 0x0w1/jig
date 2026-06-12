@@ -24,8 +24,6 @@ SYNCED_REPOSITORY_SETTINGS=""
 SYNCED_GITHUB_ACTIONS_SETTINGS=""
 SYNCED_BRANCHES=""
 VERIFIED_BRANCHES=""
-SYNCED_BRANCH_PROTECTIONS=""
-VERIFIED_BRANCH_PROTECTIONS=""
 
 print_help() {
   cat <<'EOF'
@@ -95,7 +93,7 @@ Project scope also syncs GitHub repository settings when gh is available:
   account: selected by --github-account or SPAI_GITHUB_ACCOUNT
   general: Automatically delete head branches
   actions: Workflow permissions set to read and write
-  branches: develop creation plus main and develop protection rules
+  branches: develop creation from main when missing
 
 Target-specific project installs:
   codex: .agents/skills/*, .agents/rules/*, .agents/guardrails/* plus AGENTS.md
@@ -231,16 +229,6 @@ $1"
 
 record_verified_branch() {
   VERIFIED_BRANCHES="${VERIFIED_BRANCHES}
-$1"
-}
-
-record_branch_protection() {
-  SYNCED_BRANCH_PROTECTIONS="${SYNCED_BRANCH_PROTECTIONS}
-$1"
-}
-
-record_verified_branch_protection() {
-  VERIFIED_BRANCH_PROTECTIONS="${VERIFIED_BRANCH_PROTECTIONS}
 $1"
 }
 
@@ -967,31 +955,6 @@ ensure_github_branch() {
   fi
 }
 
-write_branch_protection_payload() {
-  protection_payload="$3"
-
-  cat > "$protection_payload" <<'EOF'
-{
-  "required_status_checks": null,
-  "enforce_admins": false,
-  "required_pull_request_reviews": {
-    "dismiss_stale_reviews": false,
-    "require_code_owner_reviews": false,
-    "required_approving_review_count": 0,
-    "require_last_push_approval": false
-  },
-  "restrictions": null,
-  "required_linear_history": false,
-  "allow_force_pushes": false,
-  "allow_deletions": false,
-  "block_creations": false,
-  "required_conversation_resolution": true,
-  "lock_branch": false,
-  "allow_fork_syncing": false
-}
-EOF
-}
-
 sync_repository_general_settings() {
   repo_slug="$1"
 
@@ -1048,74 +1011,6 @@ sync_github_actions_workflow_permissions() {
   fi
 }
 
-branch_protection_is_synced() {
-  repo_slug="$1"
-  protection_branch="$2"
-
-  pr_required=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .required_pull_request_reviews == null then "false" else "true" end' 2>/dev/null || printf 'false')
-  status_checks_required=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .required_status_checks == null then "false" else "true" end' 2>/dev/null || printf 'unknown')
-  allow_force_pushes=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .allow_force_pushes.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
-  allow_deletions=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .allow_deletions.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
-  conversation_required=$(gh api "repos/$repo_slug/branches/$protection_branch/protection" --jq 'if .required_conversation_resolution.enabled == true then "true" else "false" end' 2>/dev/null || printf 'unknown')
-
-  [ "$pr_required" = "true" ] &&
-    [ "$status_checks_required" = "false" ] &&
-    [ "$allow_force_pushes" = "false" ] &&
-    [ "$allow_deletions" = "false" ] &&
-    [ "$conversation_required" = "true" ]
-}
-
-sync_branch_protection() {
-  repo_slug="$1"
-  protection_branch="$2"
-  repo_visibility="${3:-unknown}"
-  repo_viewer_permission="${4:-unknown}"
-
-  if ! github_branch_exists "$repo_slug" "$protection_branch"; then
-    warn "GitHub branch protection skipped: $protection_branch does not exist on GitHub."
-    return 0
-  fi
-
-  if branch_protection_is_synced "$repo_slug" "$protection_branch"; then
-    pass_task "GitHub classic branch protection already synced: $protection_branch"
-    record_verified_branch_protection "$protection_branch (already synced)"
-    return 0
-  fi
-
-  protection_payload=$(mktemp)
-  protection_error=$(mktemp)
-  write_branch_protection_payload "$protection_branch" "$repo_slug" "$protection_payload"
-
-  if gh api -X PUT "repos/$repo_slug/branches/$protection_branch/protection" --input "$protection_payload" >/dev/null 2>"$protection_error"; then
-    log "GitHub classic branch protection synced: $protection_branch"
-    record_branch_protection "$protection_branch (classic, PR required, status checks off, no force push, no deletion, conversations required)"
-  else
-    warn "GitHub branch protection failed: $protection_branch (repo=$repo_slug, visibility=$repo_visibility, permission=$repo_viewer_permission)."
-    if [ "$repo_visibility" = "PRIVATE" ]; then
-      warn "Private repositories require a GitHub plan that supports protected branches, plus permission to edit repository rules."
-    fi
-    warn "Check repository plan and admin permission."
-    warn_file_lines "GitHub API error" "$protection_error"
-    rm -f "$protection_payload" "$protection_error"
-    return 0
-  fi
-
-  rm -f "$protection_payload" "$protection_error"
-  verify_branch_protection "$repo_slug" "$protection_branch"
-}
-
-verify_branch_protection() {
-  repo_slug="$1"
-  protection_branch="$2"
-
-  if branch_protection_is_synced "$repo_slug" "$protection_branch"; then
-    record_verified_branch_protection "$protection_branch"
-    return 0
-  fi
-
-  warn "GitHub branch protection verification failed: $protection_branch"
-}
-
 sync_github_repository_settings() {
   if [ "$SCOPE" != "project" ]; then
     return 0
@@ -1128,9 +1023,6 @@ sync_github_repository_settings() {
     log "[dry-run] Would set GitHub Actions workflow permissions: read and write"
     log "[dry-run] Would verify GitHub Actions workflow permissions: read and write"
     log "[dry-run] Would ensure GitHub branch exists: develop (created from main if missing)"
-    log "[dry-run] Would sync GitHub classic branch protection: main"
-    log "[dry-run] Would sync GitHub classic branch protection: develop"
-    log "[dry-run] Would verify GitHub classic branch protection: main, develop"
     return 0
   fi
 
@@ -1142,15 +1034,22 @@ sync_github_repository_settings() {
   repo_visibility=$(github_repo_visibility)
   repo_viewer_permission=$(github_repo_viewer_permission)
   log "GitHub repository context: $repo_slug (visibility=$repo_visibility, permission=$repo_viewer_permission)"
-  if [ "$repo_visibility" = "PRIVATE" ]; then
-    warn "GitHub repository is private: classic branch protection may require GitHub Pro, Team, Enterprise Cloud, or Enterprise Server."
-  fi
 
   sync_repository_general_settings "$repo_slug"
   sync_github_actions_workflow_permissions "$repo_slug"
   ensure_github_branch "$repo_slug" "develop" "main"
-  sync_branch_protection "$repo_slug" "main" "$repo_visibility" "$repo_viewer_permission"
-  sync_branch_protection "$repo_slug" "develop" "$repo_visibility" "$repo_viewer_permission"
+}
+
+print_guide() {
+  if [ "$SCOPE" != "project" ]; then
+    return 0
+  fi
+
+  printf '\nGUIDE\n'
+  printf '%s\n' '  Remaining manual steps:'
+  printf '%s\n' '    - Apply branch protection to `main` if your repository policy requires it.'
+  printf '%s\n' '    - Apply branch protection to `develop` if your repository policy requires it.'
+  printf '%s\n' '    - Keep the protection settings aligned with your repository rules or release process.'
 }
 
 install_claude_code() {
@@ -1357,8 +1256,7 @@ main() {
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub Actions settings" "$SYNCED_GITHUB_ACTIONS_SETTINGS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub branches" "$SYNCED_BRANCHES"
   [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub branches" "$VERIFIED_BRANCHES"
-  [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub branch protections" "$SYNCED_BRANCH_PROTECTIONS"
-  [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub branch protections" "$VERIFIED_BRANCH_PROTECTIONS"
+  print_guide
 }
 
 main "$@"
