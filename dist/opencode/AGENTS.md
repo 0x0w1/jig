@@ -90,9 +90,9 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
   - `Fixes`
   - `Chore`
   - `Summary`
-  - `Contributors`
 - `patch`, `minor`, and `major` labels are version resolver inputs only; do not render a `Version Updates` changelog section.
 - The release workflow appends `Summary` by collecting bullet items from `## Summary` in merged PRs that target `develop` and carry `enhancement`, `fix`, or `chore`.
+- The release body does not render an explicit `Contributors` section because GitHub exposes contributor information separately.
 
 ## Final Report
 
@@ -244,6 +244,7 @@ If the task is large, split it into phases:
 10. Open or reuse a PR with base `develop` and head `<prefix>/<slug>`.
     - Write the PR body in Korean bullet style.
     - Include `## Summary` with concise release-note-ready bullets from the user's perspective.
+    - In `## Summary`, wrap useful technical terms in backticks, such as file paths, config keys, labels, branch names, workflow names, command names, env vars, and release note section names.
     - Include `## Details` with implementation, configuration, policy, and impact details.
     - Include `## Tests` with commands run and results.
 11. Apply one work label when possible:

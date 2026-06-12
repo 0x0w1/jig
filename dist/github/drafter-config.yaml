@@ -4,30 +4,27 @@ commitish: main
 category-template: "### $TITLE"
 categories:
   - title: "Enhancement"
-    when:
-      label: "enhancement"
+    labels:
+      - "enhancement"
   - title: "Fixes"
-    when:
-      label: "fix"
+    labels:
+      - "fix"
   - title: "Chore"
-    when:
-      label: "chore"
-  - type: "version-resolver"
-    semver-increment: "major"
-    when:
-      label: "major"
-  - type: "version-resolver"
-    semver-increment: "minor"
-    when:
-      label: "minor"
-  - type: "version-resolver"
-    semver-increment: "patch"
-    when:
-      label: "patch"
-  - type: "version-resolver"
-    semver-increment: "patch"
+    labels:
+      - "chore"
 change-template: "- $TITLE (#$NUMBER)"
 change-title-escapes: '\<*_&'
+version-resolver:
+  major:
+    labels:
+      - "major"
+  minor:
+    labels:
+      - "minor"
+  patch:
+    labels:
+      - "patch"
+  default: patch
 autolabeler:
   - label: "patch"
     title:
@@ -64,7 +61,3 @@ template: |
   <!-- spai:release-summary:start -->
   - 요약할 변경사항이 없습니다.
   <!-- spai:release-summary:end -->
-
-  ### Contributors
-
-  $CONTRIBUTORS
