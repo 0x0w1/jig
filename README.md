@@ -141,6 +141,15 @@ sh install.sh --target all --scope project --github-account 0x0w1 \
   --git-user-name "0x0w1" --git-user-email "rootsik1221@gmail.com"
 ```
 
+knowledges raw ingest를 사용할 프로젝트에서는 `install.sh`에 cloned knowledges repository의 절대경로를 넘겨 `.env`를 설정할 수 있습니다.
+
+```bash
+sh install.sh --target all --scope project --github-account 0x0w1 \
+  --knowledges-root /Users/houston/Documents/Personals/knowledges
+```
+
+`--knowledges-root` 값은 `.git/`과 `raw/`를 포함하는 knowledges git clone 루트여야 합니다. 상대경로나 Obsidian vault alias는 허용하지 않습니다. 같은 값은 `SPAI_KNOWLEDGES_ROOT` 환경 변수로도 전달할 수 있고, 대화형으로 입력하려면 `--configure-knowledges-root`를 사용합니다.
+
 project scope 설치 시 `gh`를 사용할 수 있으면 GitHub Repository 설정도 동기화합니다.
 
 ```text
@@ -317,7 +326,7 @@ Codex와 OpenCode는 project scope에서 모두 `AGENTS.md`를 사용합니다. 
 - `github-sync`: Release Drafter 파일, 표준 라벨, `main`/`develop` 브랜치, 브랜치 보호를 동기화합니다. 릴리스 생성에는 사용하지 않습니다.
 - `github-release`: `origin/develop`에서 `release/vX.Y.Z`를 만들고 `main` 릴리스 PR을 통해 Release Drafter 게시를 진행합니다.
 - `develop-task-flow`: 일반 개발 작업을 `origin/develop`에서 feature/fix/chore 브랜치로 시작하고 테스트, PR, develop 머지까지 진행합니다.
-- `knowledges-quick-ingest`: 현재 프로젝트의 durable knowledge를 `.env`로 지정한 LLM + Obsidian Wiki + Graphify 기반 knowledges vault의 `raw/` 하위에 provenance와 함께 추가합니다.
+- `knowledges-quick-ingest`: 현재 프로젝트의 durable knowledge를 `.env`로 지정한 LLM + Obsidian Wiki + Graphify 기반 knowledges git repository의 `raw/` 하위에 provenance와 함께 추가합니다.
 - `knowledges-raw-contract`: knowledges raw Markdown의 경로, frontmatter, body 구조 계약입니다.
 - `knowledges-ingest`: secrets/privacy, batch size, Graphify 비용, `/sync`/`/resync` 범위를 제한하는 ingest guardrail입니다.
 
@@ -325,19 +334,26 @@ SPAI는 각 Agent 환경의 권장 instruction surface에 맞춰 위 절차를 �
 
 ## Knowledges raw ingest 설정
 
-현재 프로젝트에서 외부 knowledges vault로 raw 정보를 보낼 때는 `.env`에 vault 경로를 설정합니다.
+현재 프로젝트에서 외부 knowledges repository로 raw 정보를 보낼 때는 `.env`에 cloned knowledges git repository의 절대경로를 설정합니다. 이 값은 Obsidian vault alias나 상대경로가 아니라 `.git/`과 `raw/`를 포함하는 repository root여야 합니다.
 
 ```dotenv
-KNOWLEDGES_ROOT=../knowledges
+KNOWLEDGES_ROOT=/Users/houston/Documents/Personals/knowledges
 ```
 
-Agent는 `.env`를 shell code로 실행하지 않고 `KNOWLEDGES_ROOT` 또는 `KNOWLEDGES_PROJECT_PATH` 값만 읽습니다. 작업 시 대상 vault의 `raw/` 하위 디렉토리를 먼저 살펴본 뒤, 외부 프로젝트 ingest는 기본적으로 다음 위치에 Markdown raw 파일을 생성하거나 갱신합니다.
+`install.sh`는 다음 입력으로 `.env`의 `KNOWLEDGES_ROOT`를 생성하거나 갱신할 수 있습니다.
+
+```bash
+sh install.sh --target all --scope project --github-account 0x0w1 \
+  --knowledges-root /Users/houston/Documents/Personals/knowledges
+```
+
+Agent는 `.env`를 shell code로 실행하지 않고 `KNOWLEDGES_ROOT` 또는 `KNOWLEDGES_PROJECT_PATH` 값만 읽습니다. 작업 시 대상 repository의 `raw/` 하위 디렉토리를 먼저 살펴본 뒤, 외부 프로젝트 ingest는 기본적으로 다음 위치에 Markdown raw 파일을 생성하거나 갱신합니다.
 
 ```text
 $KNOWLEDGES_ROOT/raw/inbox/<source_project>/<slug>.md
 ```
 
-생성되는 raw 파일은 `date`, `tags`, `status`, `source_project`, `source_path`, `source_commit`, `source_updated_at`, `source_id`, `content_hash` frontmatter를 포함해야 합니다. Wiki 직접 수정과 전체 Graphify rebuild는 기본 동작이 아니며, 필요한 경우 knowledges vault의 `/sync`가 `graphify . --update`를 한 번 실행하도록 합니다.
+생성되는 raw 파일은 `date`, `tags`, `status`, `source_project`, `source_path`, `source_commit`, `source_updated_at`, `source_id`, `content_hash` frontmatter를 포함해야 합니다. Wiki 직접 수정과 전체 Graphify rebuild는 기본 동작이 아니며, 필요한 경우 knowledges repository의 `/sync`가 `graphify . --update`를 한 번 실행하도록 합니다. `.env`에는 로컬 절대경로가 들어가므로 커밋하지 않는 것을 권장합니다.
 
 ## 스킬이 설정하는 GitHub Repository 정책
 
@@ -395,6 +411,7 @@ sh scripts/validate-dist.sh
 - `--dry-run`을 사용하면 실제 파일 시스템을 수정하지 않고 예정 작업만 출력합니다.
 - project scope 설치 시 `.github/drafter-config.yaml`과 `.github/workflows/drafter.yaml`도 설치됩니다.
 - project scope 설치는 `--github-account <account>` 또는 `SPAI_GITHUB_ACCOUNT=<account>` 입력이 필요합니다.
+- knowledges raw ingest 설정은 `--knowledges-root <absolute-path>` 또는 `SPAI_KNOWLEDGES_ROOT=<absolute-path>`로 `.env`에 `KNOWLEDGES_ROOT`를 기록할 때만 적용됩니다.
 - project scope 설치 시 `gh`, git repository, GitHub repository 확인이 가능하면 지정한 `gh` 계정으로 로그인/선택을 검증하고, 표준 6개 라벨만 남도록 라벨을 정리하고, `develop` 브랜치 생성, branch protection, Automatically delete head branches 설정을 동기화하며 가능한 범위에서 검증합니다.
 - `.git` repository가 없으면 GitHub Repository 설정 동기화를 건너뛰고 통과 로그를 출력합니다.
 - 원격 `develop` 브랜치가 없으면 `main`의 현재 commit에서 `develop`을 만든 뒤 branch protection을 적용합니다.

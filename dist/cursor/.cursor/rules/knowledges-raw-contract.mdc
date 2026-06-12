@@ -1,5 +1,5 @@
 ---
-description: "Knowledges raw Markdown contract for LLM + Obsidian + Graphify vault ingestion."
+description: "Knowledges raw Markdown contract for LLM + Obsidian + Graphify git repository ingestion."
 globs:
   - "**/*"
 alwaysApply: false
@@ -7,17 +7,17 @@ alwaysApply: false
 
 # Knowledges Raw Contract
 
-Use this contract when writing raw data into an external knowledges vault.
+Use this contract when writing raw data into an external knowledges git repository.
 
 ## Configuration
 
-The source project should declare the vault path in `.env`:
+The source project should declare the absolute cloned knowledges repository root in `.env`:
 
 ```dotenv
-KNOWLEDGES_ROOT=../knowledges
+KNOWLEDGES_ROOT=/Users/houston/Documents/Personals/knowledges
 ```
 
-Agents may also accept `KNOWLEDGES_PROJECT_PATH` as an alias. Do not commit secrets to `.env`, and do not source `.env` as executable shell code.
+Agents may also accept `KNOWLEDGES_PROJECT_PATH` as an alias. The path must be absolute and must point to a git clone root containing `.git/` and `raw/`, not to an Obsidian vault alias. Do not commit local `.env` files, and do not source `.env` as executable shell code.
 
 ## Path
 
