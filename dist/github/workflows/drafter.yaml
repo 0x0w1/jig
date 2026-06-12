@@ -101,6 +101,13 @@ jobs:
               return keptLines.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd();
             }
 
+            function removeContributorsSection(body) {
+              return body
+                .replace(/\n### Contributors\n[\s\S]*$/i, '')
+                .replace(/\n{3,}/g, '\n\n')
+                .trimEnd();
+            }
+
             function replaceSummaryBlock(body, summaryLines) {
               const replacement = [
                 summaryStart,
@@ -113,11 +120,7 @@ jobs:
                 return body.replace(markerPattern, replacement);
               }
 
-              const contributorsHeading = '\n### Contributors';
               const summaryBlock = `\n### Summary\n\n${replacement}\n`;
-              if (body.includes(contributorsHeading)) {
-                return body.replace(contributorsHeading, `${summaryBlock}${contributorsHeading}`);
-              }
 
               return `${body.trimEnd()}\n\n### Summary\n\n${replacement}\n`;
             }
@@ -166,7 +169,8 @@ jobs:
             }
 
             const bodyWithoutReleasePullRequests = removePullRequestLines(body, pullRequestNumbersToRemove);
-            const updatedBody = replaceSummaryBlock(bodyWithoutReleasePullRequests, summaryLines);
+            const bodyWithoutContributors = removeContributorsSection(bodyWithoutReleasePullRequests);
+            const updatedBody = replaceSummaryBlock(bodyWithoutContributors, summaryLines);
             if (updatedBody !== body) {
               await github.rest.repos.updateRelease({
                 owner,

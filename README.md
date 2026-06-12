@@ -131,7 +131,7 @@ chore
 
 installer는 각 설치 작업 전에 현재 상태를 먼저 검토합니다. 파일, managed block, `.env`, 로컬 git user, GitHub 라벨, repository settings, branch protection이 이미 원하는 상태이면 `PASS` 로그를 출력하고 쓰기 작업을 건너뜁니다. `--configure-git-user`와 `--configure-knowledges-root`도 기존 값이 유효하면 입력을 묻지 않고, 빠져 있거나 유효하지 않은 값만 입력받습니다.
 
-설치되는 PR template은 `feature/*`, `fix/*`, `chore/*`에서 `develop`으로 보내는 PR의 `## Summary`, `## Details`, `## Tests`를 한글 개조식으로 작성하도록 안내합니다. 릴리스 생성 시 workflow는 `develop` 대상 PR 중 `enhancement`, `fix`, `chore` 라벨이 있는 PR의 `## Summary` bullet을 취합해 릴리즈 노트 하단 Summary에 추가합니다.
+설치되는 PR template은 `feature/*`, `fix/*`, `chore/*`에서 `develop`으로 보내는 PR의 `## Summary`, `## Details`, `## Tests`를 한글 개조식으로 작성하도록 안내합니다. 릴리스 생성 시 workflow는 `develop` 대상 PR 중 `enhancement`, `fix`, `chore` 라벨이 있는 PR의 `## Summary` bullet을 취합해 릴리즈 노트 하단 Summary에 추가합니다. `## Summary`에서는 파일명, 설정 키, 라벨, 브랜치명, workflow 이름처럼 강조할 기술 용어를 backtick으로 감쌉니다.
 
 로컬 git 작성자 정보를 바꾸고 싶으면 다음처럼 실행할 수 있습니다.
 
@@ -382,9 +382,9 @@ $KNOWLEDGES_ROOT/raw/inbox/<source_project>/<slug>.md
   - `Fixes`
   - `Chore`
   - `Summary`
-  - `Contributors`
 - 릴리스 PR은 `patch`, `minor`, `major` 버전 업그레이드로 처리
 - `patch`, `minor`, `major` 라벨은 버전 계산에만 사용하고 `Version Updates` 카테고리로 출력하지 않음
+- `Contributors`는 GitHub가 별도로 노출하므로 릴리즈 본문에는 명시적으로 출력하지 않음
 - General의 Automatically delete head branches 설정
 
 ## Safety Rules
