@@ -1,15 +1,18 @@
-name-template: "v$RESOLVED_VERSION"
+name-template: "v$RESOLVED_VERSION 🌈"
 tag-template: "v$RESOLVED_VERSION"
 commitish: main
-category-template: "### $TITLE"
+category-template: |
+  ---
+
+  ### $TITLE
 categories:
-  - title: "Enhancement"
+  - title: "🚀 Enhancements"
     labels:
       - "enhancement"
-  - title: "Fixes"
+  - title: "🐛 Fixes"
     labels:
       - "fix"
-  - title: "Chore"
+  - title: "🧰 Chores"
     labels:
       - "chore"
 change-template: "- $TITLE (#$NUMBER)"
