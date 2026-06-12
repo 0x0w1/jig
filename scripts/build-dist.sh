@@ -32,10 +32,28 @@ append_skill_body() {
   ' "$skill_file"
 }
 
-append_managed_header() {
+append_branded_managed_header() {
   cat <<'EOF'
 # SPAI
 
+Scaffolded Procedures for AI Agents
+
+<!-- spai:start github-release-setup -->
+
+SPAI installs repository release and development workflows as durable instructions.
+
+Available procedures:
+
+- `github-sync`: repository setup and synchronization; not for creating releases.
+- `github-release`: release/vX.Y.Z execution from develop to main.
+- `develop-task-flow`: normal development tasks from develop through a PR back to develop.
+- `knowledges-quick-ingest`: send small project knowledge into a configured LLM + Obsidian + Graphify knowledges git repository.
+
+EOF
+}
+
+append_managed_header() {
+  cat <<'EOF'
 Scaffolded Procedures for AI Agents
 
 <!-- spai:start github-release-setup -->
@@ -114,8 +132,6 @@ cp "$SKILL_FILES/drafter.yaml" dist/github/workflows/drafter.yaml
 cp "$SKILL_FILES/PULL_REQUEST_TEMPLATE.md" dist/github/PULL_REQUEST_TEMPLATE.md
 
 cat > dist/claude-code/CLAUDE.md <<'EOF'
-# SPAI
-
 Scaffolded Procedures for AI Agents
 
 <!-- spai:start github-release-setup -->
@@ -209,7 +225,7 @@ for guardrail in $GUARDRAILS; do
 done
 
 {
-  append_managed_header
+  append_branded_managed_header
   append_all_skill_bodies
   append_all_rule_bodies
   append_all_guardrail_bodies

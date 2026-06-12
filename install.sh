@@ -80,6 +80,7 @@ Knowledges root:
   Use --knowledges-root <absolute-path> or SPAI_KNOWLEDGES_ROOT to write KNOWLEDGES_ROOT into project .env.
   The path must be the absolute path to the cloned knowledges git repository root and must contain .git and raw/.
   Use --configure-knowledges-root to prompt for the path interactively.
+  Use --force to replace an existing managed file entirely when it does not already contain SPAI markers.
 
 Project scope also installs:
   .github/drafter-config.yaml
@@ -347,9 +348,28 @@ install_managed_block() {
       !inside { print }
     ' "$managed_destination" > "$managed_new_tmp"
   else
+    managed_action="append"
+    if [ "$FORCE" -eq 1 ]; then
+      managed_action="replace"
+      if [ "$DRY_RUN" -eq 1 ]; then
+        log "[dry-run] Would replace existing managed file: $managed_destination"
+        rm -f "$managed_source_tmp" "$managed_block_tmp" "$managed_new_tmp"
+        return 0
+      fi
+
+      mkdir -p "$(dirname "$managed_destination")"
+      cp "$managed_destination" "$managed_destination.bak"
+      cp "$managed_source_tmp" "$managed_destination"
+      record_installed "$managed_destination"
+      rm -f "$managed_source_tmp" "$managed_block_tmp" "$managed_new_tmp"
+      return 0
+    fi
+
     cp "$managed_destination" "$managed_new_tmp"
-    printf '\n' >> "$managed_new_tmp"
-    cat "$managed_source_tmp" >> "$managed_new_tmp"
+    if [ -s "$managed_new_tmp" ]; then
+      printf '\n' >> "$managed_new_tmp"
+    fi
+    cat "$managed_block_tmp" >> "$managed_new_tmp"
   fi
 
   if cmp -s "$managed_new_tmp" "$managed_destination"; then
@@ -359,7 +379,11 @@ install_managed_block() {
   fi
 
   if [ "$DRY_RUN" -eq 1 ]; then
-    log "[dry-run] Would update changed managed block: $managed_destination"
+    if [ "${managed_action:-update}" = "append" ]; then
+      log "[dry-run] Would append managed block to existing file: $managed_destination"
+    else
+      log "[dry-run] Would update changed managed block: $managed_destination"
+    fi
     rm -f "$managed_source_tmp" "$managed_block_tmp" "$managed_new_tmp"
     return 0
   fi

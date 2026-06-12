@@ -232,7 +232,7 @@ global scope:
   knowledges-ingest.md
 ```
 
-Codex는 repo/user skill 위치에 절차형 `SKILL.md`를 설치하고, knowledges raw contract와 ingest guardrail을 함께 설치합니다. `AGENTS.md`에는 SPAI managed block을 삽입하거나 교체합니다.
+Codex는 repo/user skill 위치에 절차형 `SKILL.md`를 설치하고, knowledges raw contract와 ingest guardrail을 함께 설치합니다. `AGENTS.md`에 이미 SPAI marker가 있으면 해당 managed block만 교체하고, marker가 없으면 기존 내용을 보존한 채 managed block을 뒤에 추가합니다. 기존 파일 전체를 SP AI 템플릿으로 교체하려면 `--force`를 사용합니다.
 
 ### Claude Code
 
@@ -275,7 +275,7 @@ global scope:
   knowledges-ingest.md
 ```
 
-Claude Code는 project/user skill을 `.claude/skills/<skill>/SKILL.md` 구조로 설치하고, knowledges rule/guardrail을 함께 설치합니다. `CLAUDE.md`에는 SPAI managed block을 삽입하거나 교체합니다. 실제 Repository 설정 파일은 공통 project 파일로 `.github/`에 설치됩니다.
+Claude Code는 project/user skill을 `.claude/skills/<skill>/SKILL.md` 구조로 설치하고, knowledges rule/guardrail을 함께 설치합니다. `CLAUDE.md`에 이미 SPAI marker가 있으면 해당 managed block만 교체하고, marker가 없으면 기존 내용을 보존한 채 managed block을 뒤에 추가합니다. 기존 파일 전체를 SP AI 템플릿으로 교체하려면 `--force`를 사용합니다. 실제 Repository 설정 파일은 공통 project 파일로 `.github/`에 설치됩니다.
 
 ### Cursor
 
@@ -322,7 +322,7 @@ global scope:
 ~/.config/opencode/AGENTS.md
 ```
 
-Codex와 OpenCode는 project scope에서 모두 `AGENTS.md`를 사용합니다. SPAI는 동일한 managed block marker를 사용해 중복 삽입을 방지합니다.
+Codex와 OpenCode는 project scope에서 모두 `AGENTS.md`를 사용합니다. SPAI는 동일한 managed block marker를 사용해 중복 삽입을 방지하고, marker가 없는 기존 파일은 보존한 채 managed block만 추가합니다. 기존 파일 전체를 SP AI 템플릿으로 교체하려면 `--force`를 사용합니다.
 
 ## 제공되는 스킬
 
@@ -420,6 +420,7 @@ sh scripts/validate-dist.sh
 - 설치 스크립트는 기본 설치 중에는 로컬 git user 변경 prompt를 띄우지 않습니다. `gh` 로그인이 필요하거나 `--configure-git-user`를 사용하면 터미널 입력이 필요할 수 있습니다.
 - 설치 스크립트는 재실행 시 이미 반영된 작업을 `PASS` 처리하고, 필요한 작업만 입력받거나 실행합니다.
 - 기존 파일을 변경해야 할 때는 `.bak` 백업을 생성합니다.
+- `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`처럼 managed block을 쓰는 파일은 marker가 있으면 그 구간만 교체하고, marker가 없으면 기존 내용을 보존한 채 managed block을 추가합니다. 전체 템플릿으로 교체하려면 `--force`를 사용합니다.
 - `--dry-run`을 사용하면 실제 파일 시스템을 수정하지 않고 예정 작업을 출력하며, 파일과 managed block은 현재 내용과 비교해 missing/changed/PASS 상태를 구분합니다.
 - project scope 설치 시 `.github/PULL_REQUEST_TEMPLATE.md`, `.github/drafter-config.yaml`, `.github/workflows/drafter.yaml`도 설치됩니다.
 - project scope 설치는 `--github-account <account>` 또는 `SPAI_GITHUB_ACCOUNT=<account>` 입력이 필요합니다.
