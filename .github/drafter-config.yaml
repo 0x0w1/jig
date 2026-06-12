@@ -61,7 +61,3 @@ template: |
   <!-- spai:release-summary:start -->
   - 요약할 변경사항이 없습니다.
   <!-- spai:release-summary:end -->
-
-  ### Contributors
-
-  $CONTRIBUTORS

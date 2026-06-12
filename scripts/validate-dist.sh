@@ -124,6 +124,10 @@ if grep -R -E 'back-merge|backmerge|백머지' dist >/dev/null 2>&1; then
   fail "dist contains forbidden back-merge text"
 fi
 
+if grep -R '\$CONTRIBUTORS' dist/github >/dev/null 2>&1; then
+  fail "dist GitHub release config contains explicit CONTRIBUTORS section"
+fi
+
 if ! grep -R 'SPAI' dist >/dev/null 2>&1; then
   fail "dist does not contain SPAI"
 fi
