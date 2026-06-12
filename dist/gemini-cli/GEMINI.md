@@ -88,10 +88,11 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
 ## Release Notes Format
 
 - Release notes render `Changes` sections in this order when matching changes exist:
-  - `Enhancement`
-  - `Fixes`
-  - `Chore`
+  - `🚀 Enhancements`
+  - `🐛 Fixes`
+  - `🧰 Chores`
   - `Summary`
+- Release note change sections are separated with Markdown horizontal rules.
 - `patch`, `minor`, and `major` labels are version resolver inputs only; do not render a `Version Updates` changelog section.
 - The release workflow appends `Summary` by collecting bullet items from `## Summary` in merged PRs that target `develop` and carry `enhancement`, `fix`, or `chore`.
 - The release body does not render an explicit `Contributors` section because GitHub exposes contributor information separately.

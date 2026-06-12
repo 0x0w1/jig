@@ -363,10 +363,11 @@ $KNOWLEDGES_ROOT/raw/inbox/<source_project>/<slug>.md
   - `chore`
 - Release Drafter 기반 릴리스 노트 및 태그 게시 설정
 - 릴리즈 노트 `Changes` 출력 순서:
-  - `Enhancement`
-  - `Fixes`
-  - `Chore`
+  - `🚀 Enhancements`
+  - `🐛 Fixes`
+  - `🧰 Chores`
   - `Summary`
+- 변경 카테고리 섹션 사이에는 Markdown horizontal rule을 출력
 - 릴리스 PR은 `patch`, `minor`, `major` 버전 업그레이드로 처리
 - `patch`, `minor`, `major` 라벨은 버전 계산에만 사용하고 `Version Updates` 카테고리로 출력하지 않음
 - `Contributors`는 GitHub가 별도로 노출하므로 릴리즈 본문에는 명시적으로 출력하지 않음

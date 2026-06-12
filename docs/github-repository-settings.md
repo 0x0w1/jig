@@ -25,7 +25,8 @@ SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 
   - `chore`
   - 위 6개에 없는 기존 라벨은 삭제됩니다.
 - Release Drafter 릴리즈 노트 형식:
-  - `Changes` 하위에 `Enhancement`, `Fixes`, `Chore`, `Summary` 순으로 출력합니다.
+  - `Changes` 하위에 `🚀 Enhancements`, `🐛 Fixes`, `🧰 Chores`, `Summary` 순으로 출력합니다.
+  - 변경 카테고리 섹션 사이에는 Markdown horizontal rule을 넣습니다.
   - `patch`, `minor`, `major`는 버전 계산에만 사용하고 `Version Updates` 카테고리로 출력하지 않습니다.
   - `develop` 대상 PR 중 `enhancement`, `fix`, `chore` 라벨이 있는 PR의 `## Summary` bullet을 취합해 `Summary` 섹션에 추가합니다.
   - `Summary` bullet에서는 파일명, 설정 키, 라벨, 브랜치명, workflow 이름처럼 강조할 기술 용어를 backtick으로 감쌉니다.
