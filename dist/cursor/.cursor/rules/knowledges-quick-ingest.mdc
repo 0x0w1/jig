@@ -1,5 +1,5 @@
 ---
-description: "Use when Codex needs to add durable project knowledge into an external LLM + Obsidian wiki + Graphify vault. Triggers include requests to ingest raw knowledge, send notes into a knowledges project, configure KNOWLEDGES_ROOT from .env, inspect a knowledges/raw tree, or prepare raw Markdown for later raw -> wiki -> graphify sync."
+description: "Use when Codex needs to add durable project knowledge into an external knowledges git repository that backs an LLM + Obsidian wiki + Graphify workflow. Triggers include requests to ingest raw knowledge, send notes into a knowledges project, configure an absolute KNOWLEDGES_ROOT in .env, inspect a knowledges/raw tree, or prepare raw Markdown for later raw -> wiki -> graphify sync."
 globs:
   - "**/*"
 alwaysApply: false
@@ -8,7 +8,7 @@ alwaysApply: false
 
 # Knowledges Quick Ingest
 
-Use this skill to send a small amount of durable knowledge from the current project into a configured knowledges vault.
+Use this skill to send a small amount of durable knowledge from the current project into a configured knowledges git repository.
 
 ## Required Context
 
@@ -21,7 +21,7 @@ If this is installed as Cursor rules, use `.cursor/rules/knowledges-raw-contract
 
 If the target-specific rule files are unavailable, continue with this minimal fallback: write only sanitized Markdown raw files, preserve provenance, avoid wiki edits, and avoid full graph rebuilds.
 
-## Resolve The Vault
+## Resolve The Repository
 
 Prefer the current project's `.env` file. Do not source it as shell code. Parse only simple `KEY=value` lines.
 
@@ -30,18 +30,21 @@ Supported keys:
 - `KNOWLEDGES_ROOT`
 - `KNOWLEDGES_PROJECT_PATH` as a compatibility alias
 
-If neither key is present, use `../knowledges` only when that directory exists. Otherwise ask the user for the vault path.
+`KNOWLEDGES_ROOT` must be an absolute path to the cloned knowledges git repository root, not an Obsidian vault alias or a relative path. The resolved directory must contain both `.git/` and `raw/`.
+
+If neither key is present, ask the user for the absolute cloned repository path. Do not silently fall back to `../knowledges`.
 
 Example `.env`:
 
 ```dotenv
-KNOWLEDGES_ROOT=../knowledges
+KNOWLEDGES_ROOT=/Users/houston/Documents/Personals/knowledges
 ```
 
 Validate the resolved path before writing:
 
 ```bash
 test -d "$KNOWLEDGES_ROOT"
+test -d "$KNOWLEDGES_ROOT/.git"
 test -d "$KNOWLEDGES_ROOT/raw"
 ```
 
@@ -88,7 +91,7 @@ git rev-parse --short HEAD
 
 Write one Markdown file per coherent topic. If a raw file with the same `source_id` already exists, update that file instead of creating a duplicate.
 
-The body should be concise but sufficient for the knowledges vault's `/sync` workflow to create or update wiki documents.
+The body should be concise but sufficient for the knowledges repository's `/sync` workflow to create or update wiki documents.
 
 After writing raw files, run the manifest update if the tool exists:
 
