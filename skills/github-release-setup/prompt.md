@@ -74,22 +74,21 @@ Release Drafter는 릴리스 PR 자체가 아니라 실제 변경 사항이 들�
 `.github/drafter-config.yaml`에는 다음 내용을 사용하세요.
 
 ```yaml
-name-template: "v$RESOLVED_VERSION"
+name-template: "v$RESOLVED_VERSION 🌈"
 tag-template: "v$RESOLVED_VERSION"
 commitish: main
+category-template: |
+  ---
+
+  ### $TITLE
 categories:
-  - title: "⬆️ Version Updates"
-    labels:
-      - "patch"
-      - "minor"
-      - "major"
-  - title: "🚀 Enhancement"
+  - title: "🚀 Enhancements"
     labels:
       - "enhancement"
   - title: "🐛 Fixes"
     labels:
       - "fix"
-  - title: "🧰 Chore"
+  - title: "🧰 Chores"
     labels:
       - "chore"
 change-template: "- $TITLE (#$NUMBER)"
