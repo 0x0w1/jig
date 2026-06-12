@@ -110,6 +110,7 @@ project scope 설치 시 target과 관계없이 다음 파일도 설치됩니다
 
 ```text
 .github/
+  PULL_REQUEST_TEMPLATE.md
   drafter-config.yaml
   workflows/
     drafter.yaml
@@ -129,6 +130,8 @@ chore
 라벨 정리 전에 installer는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 계정이 `gh`에 로그인되어 있는지 확인합니다. 없으면 `gh auth login`을 실행한 뒤 `gh auth switch --user`로 active account를 맞추고 검증합니다. `.git` repository가 없으면 라벨 정리는 건너뛰고 통과 로그를 출력합니다.
 
 installer는 각 설치 작업 전에 현재 상태를 먼저 검토합니다. 파일, managed block, `.env`, 로컬 git user, GitHub 라벨, repository settings, branch protection이 이미 원하는 상태이면 `PASS` 로그를 출력하고 쓰기 작업을 건너뜁니다. `--configure-git-user`와 `--configure-knowledges-root`도 기존 값이 유효하면 입력을 묻지 않고, 빠져 있거나 유효하지 않은 값만 입력받습니다.
+
+설치되는 PR template은 `feature/*`, `fix/*`, `chore/*`에서 `develop`으로 보내는 PR의 `## Summary`, `## Details`, `## Tests`를 한글 개조식으로 작성하도록 안내합니다. 릴리스 생성 시 workflow는 `develop` 대상 PR 중 `enhancement`, `fix`, `chore` 라벨이 있는 PR의 `## Summary` bullet을 취합해 릴리즈 노트 하단 Summary에 추가합니다.
 
 로컬 git 작성자 정보를 바꾸고 싶으면 다음처럼 실행할 수 있습니다.
 
@@ -374,8 +377,14 @@ $KNOWLEDGES_ROOT/raw/inbox/<source_project>/<slug>.md
   - `fix`
   - `chore`
 - Release Drafter 기반 릴리스 노트 및 태그 게시 설정
+- 릴리즈 노트 `Changes` 출력 순서:
+  - `Enhancement`
+  - `Fixes`
+  - `Chore`
+  - `Summary`
+  - `Contributors`
 - 릴리스 PR은 `patch`, `minor`, `major` 버전 업그레이드로 처리
-- Release Drafter 버전 계산을 위해 실제 변경 PR에도 `patch`, `minor`, `major` 중 하나의 version 라벨을 적용
+- `patch`, `minor`, `major` 라벨은 버전 계산에만 사용하고 `Version Updates` 카테고리로 출력하지 않음
 - General의 Automatically delete head branches 설정
 
 ## Safety Rules
@@ -412,7 +421,7 @@ sh scripts/validate-dist.sh
 - 설치 스크립트는 재실행 시 이미 반영된 작업을 `PASS` 처리하고, 필요한 작업만 입력받거나 실행합니다.
 - 기존 파일을 변경해야 할 때는 `.bak` 백업을 생성합니다.
 - `--dry-run`을 사용하면 실제 파일 시스템을 수정하지 않고 예정 작업을 출력하며, 파일과 managed block은 현재 내용과 비교해 missing/changed/PASS 상태를 구분합니다.
-- project scope 설치 시 `.github/drafter-config.yaml`과 `.github/workflows/drafter.yaml`도 설치됩니다.
+- project scope 설치 시 `.github/PULL_REQUEST_TEMPLATE.md`, `.github/drafter-config.yaml`, `.github/workflows/drafter.yaml`도 설치됩니다.
 - project scope 설치는 `--github-account <account>` 또는 `SPAI_GITHUB_ACCOUNT=<account>` 입력이 필요합니다.
 - knowledges raw ingest 설정은 `--knowledges-root <absolute-path>` 또는 `SPAI_KNOWLEDGES_ROOT=<absolute-path>`로 `.env`에 `KNOWLEDGES_ROOT`를 기록할 때만 적용됩니다.
 - project scope 설치 시 `gh`, git repository, GitHub repository 확인이 가능하면 지정한 `gh` 계정으로 로그인/선택을 검증하고, 표준 6개 라벨만 남도록 라벨을 정리하고, `develop` 브랜치 생성, branch protection, Automatically delete head branches 설정을 동기화하며 가능한 범위에서 검증합니다.

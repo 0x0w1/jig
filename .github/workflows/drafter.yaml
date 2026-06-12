@@ -21,11 +21,140 @@ jobs:
         run: echo "Release drafting runs after this PR is merged to main."
 
       - name: Release
+        id: release_drafter
         if: github.event_name == 'push'
         # reference: https://github.com/release-drafter/release-drafter
-        uses: release-drafter/release-drafter@v6
+        uses: release-drafter/release-drafter@v7
         with:
           config-name: drafter-config.yaml
           publish: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Append summary release notes
+        if: github.event_name == 'push' && steps.release_drafter.outputs.id != ''
+        uses: actions/github-script@v7
+        env:
+          RELEASE_ID: ${{ steps.release_drafter.outputs.id }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const releaseId = Number(process.env.RELEASE_ID);
+            const summaryStart = '<!-- spai:release-summary:start -->';
+            const summaryEnd = '<!-- spai:release-summary:end -->';
+            const releaseNoteLabels = new Set(['enhancement', 'fix', 'chore']);
+
+            function escapeRegExp(value) {
+              return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
+
+            function extractPullRequestNumbers(body) {
+              const numbers = [];
+              const seen = new Set();
+              for (const match of body.matchAll(/#(\d+)/g)) {
+                const number = Number(match[1]);
+                if (!seen.has(number)) {
+                  seen.add(number);
+                  numbers.push(number);
+                }
+              }
+              return numbers;
+            }
+
+            function extractSummaryItems(body) {
+              const lines = (body || '').replace(/\r\n/g, '\n').split('\n');
+              const items = [];
+              let inSummary = false;
+
+              for (const rawLine of lines) {
+                const line = rawLine.trim();
+                if (/^#{2,6}\s+Summary\s*$/i.test(line)) {
+                  inSummary = true;
+                  continue;
+                }
+                if (inSummary && /^#{1,6}\s+/.test(line)) {
+                  break;
+                }
+                if (!inSummary || !line || line.startsWith('<!--')) {
+                  continue;
+                }
+
+                const bullet = line.match(/^[-*]\s+(.+)$/);
+                const item = (bullet ? bullet[1] : line).trim();
+                if (item && item !== '-' && item !== '없음' && !/^n\/a$/i.test(item)) {
+                  items.push(item);
+                }
+              }
+
+              return items;
+            }
+
+            function replaceSummaryBlock(body, summaryLines) {
+              const replacement = [
+                summaryStart,
+                ...summaryLines,
+                summaryEnd,
+              ].join('\n');
+              const markerPattern = new RegExp(`${escapeRegExp(summaryStart)}[\\s\\S]*?${escapeRegExp(summaryEnd)}`);
+
+              if (markerPattern.test(body)) {
+                return body.replace(markerPattern, replacement);
+              }
+
+              const contributorsHeading = '\n### Contributors';
+              const summaryBlock = `\n### Summary\n\n${replacement}\n`;
+              if (body.includes(contributorsHeading)) {
+                return body.replace(contributorsHeading, `${summaryBlock}${contributorsHeading}`);
+              }
+
+              return `${body.trimEnd()}\n\n### Summary\n\n${replacement}\n`;
+            }
+
+            const release = await github.rest.repos.getRelease({
+              owner,
+              repo,
+              release_id: releaseId,
+            });
+            const body = release.data.body || '';
+            const prNumbers = extractPullRequestNumbers(body);
+            const summaryLines = [];
+            const seenItems = new Set();
+
+            for (const pull_number of prNumbers) {
+              const { data: pullRequest } = await github.rest.pulls.get({
+                owner,
+                repo,
+                pull_number,
+              });
+              const labels = pullRequest.labels.map((label) => label.name);
+              const shouldInclude =
+                pullRequest.base.ref === 'develop' &&
+                labels.some((label) => releaseNoteLabels.has(label));
+
+              if (!shouldInclude) {
+                continue;
+              }
+
+              for (const item of extractSummaryItems(pullRequest.body)) {
+                const line = `- ${item} (#${pull_number})`;
+                if (!seenItems.has(line)) {
+                  seenItems.add(line);
+                  summaryLines.push(line);
+                }
+              }
+            }
+
+            if (summaryLines.length === 0) {
+              summaryLines.push('- 요약할 변경사항이 없습니다.');
+            }
+
+            const updatedBody = replaceSummaryBlock(body, summaryLines);
+            if (updatedBody !== body) {
+              await github.rest.repos.updateRelease({
+                owner,
+                repo,
+                release_id: releaseId,
+                body: updatedBody,
+              });
+            }

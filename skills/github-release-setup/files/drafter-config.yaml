@@ -1,34 +1,33 @@
 name-template: "v$RESOLVED_VERSION"
 tag-template: "v$RESOLVED_VERSION"
 commitish: main
+category-template: "### $TITLE"
 categories:
-  - title: "⬆️ Version Updates"
-    labels:
-      - "patch"
-      - "minor"
-      - "major"
-  - title: "🚀 Enhancement"
-    labels:
-      - "enhancement"
-  - title: "🐛 Fixes"
-    labels:
-      - "fix"
-  - title: "🧰 Chore"
-    labels:
-      - "chore"
+  - title: "Enhancement"
+    when:
+      label: "enhancement"
+  - title: "Fixes"
+    when:
+      label: "fix"
+  - title: "Chore"
+    when:
+      label: "chore"
+  - type: "version-resolver"
+    semver-increment: "major"
+    when:
+      label: "major"
+  - type: "version-resolver"
+    semver-increment: "minor"
+    when:
+      label: "minor"
+  - type: "version-resolver"
+    semver-increment: "patch"
+    when:
+      label: "patch"
+  - type: "version-resolver"
+    semver-increment: "patch"
 change-template: "- $TITLE (#$NUMBER)"
 change-title-escapes: '\<*_&'
-version-resolver:
-  major:
-    labels:
-      - "major"
-  minor:
-    labels:
-      - "minor"
-  patch:
-    labels:
-      - "patch"
-  default: patch
 autolabeler:
   - label: "patch"
     title:
@@ -59,3 +58,13 @@ template: |
   ## Changes
 
   $CHANGES
+
+  ### Summary
+
+  <!-- spai:release-summary:start -->
+  - 요약할 변경사항이 없습니다.
+  <!-- spai:release-summary:end -->
+
+  ### Contributors
+
+  $CONTRIBUTORS
