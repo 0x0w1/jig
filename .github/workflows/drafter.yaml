@@ -90,6 +90,17 @@ jobs:
               return items;
             }
 
+            function removePullRequestLines(body, pullRequestNumbers) {
+              const numbers = new Set(pullRequestNumbers.map((number) => Number(number)));
+              const lines = body.replace(/\r\n/g, '\n').split('\n');
+              const keptLines = lines.filter((line) => {
+                const match = line.match(/^\s*-\s+.+\(#(\d+)\)\s*$/);
+                return !match || !numbers.has(Number(match[1]));
+              });
+
+              return keptLines.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd();
+            }
+
             function replaceSummaryBlock(body, summaryLines) {
               const replacement = [
                 summaryStart,
@@ -120,6 +131,7 @@ jobs:
             const prNumbers = extractPullRequestNumbers(body);
             const summaryLines = [];
             const seenItems = new Set();
+            const pullRequestNumbersToRemove = [];
 
             for (const pull_number of prNumbers) {
               const { data: pullRequest } = await github.rest.pulls.get({
@@ -131,6 +143,10 @@ jobs:
               const shouldInclude =
                 pullRequest.base.ref === 'develop' &&
                 labels.some((label) => releaseNoteLabels.has(label));
+
+              if (pullRequest.base.ref !== 'develop') {
+                pullRequestNumbersToRemove.push(pull_number);
+              }
 
               if (!shouldInclude) {
                 continue;
@@ -149,7 +165,8 @@ jobs:
               summaryLines.push('- 요약할 변경사항이 없습니다.');
             }
 
-            const updatedBody = replaceSummaryBlock(body, summaryLines);
+            const bodyWithoutReleasePullRequests = removePullRequestLines(body, pullRequestNumbersToRemove);
+            const updatedBody = replaceSummaryBlock(bodyWithoutReleasePullRequests, summaryLines);
             if (updatedBody !== body) {
               await github.rest.repos.updateRelease({
                 owner,

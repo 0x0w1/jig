@@ -35,7 +35,7 @@ require_file dist/github/workflows/drafter.yaml
 require_file dist/github/PULL_REQUEST_TEMPLATE.md
 require_text dist/github/drafter-config.yaml "### Summary"
 require_text dist/github/drafter-config.yaml '### $TITLE'
-require_text dist/github/drafter-config.yaml "type: \"version-resolver\""
+require_text dist/github/drafter-config.yaml "version-resolver:"
 require_text dist/github/workflows/drafter.yaml "release-drafter/release-drafter@v7"
 require_text dist/github/workflows/drafter.yaml "Append summary release notes"
 require_text dist/github/PULL_REQUEST_TEMPLATE.md "## Summary"
