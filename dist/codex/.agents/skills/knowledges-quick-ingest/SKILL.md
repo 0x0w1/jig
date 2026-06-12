@@ -1,0 +1,111 @@
+---
+name: knowledges-quick-ingest
+description: Use when Codex needs to add durable project knowledge into an external knowledges git repository that backs an LLM + Obsidian wiki + Graphify workflow. Triggers include requests to ingest raw knowledge, send notes into a knowledges project, configure an absolute KNOWLEDGES_ROOT in .env, inspect a knowledges/raw tree, or prepare raw Markdown for later raw -> wiki -> graphify sync.
+---
+
+# Knowledges Quick Ingest
+
+Use this skill to send a small amount of durable knowledge from the current project into a configured knowledges git repository.
+
+## Required Context
+
+Before writing raw data, read:
+
+- `../../rules/knowledges-raw-contract.md`
+- `../../guardrails/knowledges-ingest.md`
+
+If this is installed as Cursor rules, use `.cursor/rules/knowledges-raw-contract.mdc` and `.cursor/rules/knowledges-ingest-guardrails.mdc` instead. If this is embedded in a single managed instruction file, use the `rule: knowledges-raw-contract` and `guardrail: knowledges-ingest` sections in that file.
+
+If the target-specific rule files are unavailable, continue with this minimal fallback: write only sanitized Markdown raw files, preserve provenance, avoid wiki edits, and avoid full graph rebuilds.
+
+## Resolve The Repository
+
+Prefer the current project's `.env` file. Do not source it as shell code. Parse only simple `KEY=value` lines.
+
+Supported keys:
+
+- `KNOWLEDGES_ROOT`
+- `KNOWLEDGES_PROJECT_PATH` as a compatibility alias
+
+`KNOWLEDGES_ROOT` must be an absolute path to the cloned knowledges git repository root, not an Obsidian vault alias or a relative path. The resolved directory must contain both `.git/` and `raw/`.
+
+If neither key is present, ask the user for the absolute cloned repository path. Do not silently fall back to `../knowledges`.
+
+Example `.env`:
+
+```dotenv
+KNOWLEDGES_ROOT=/Users/houston/Documents/Personals/knowledges
+```
+
+Validate the resolved path before writing:
+
+```bash
+test -d "$KNOWLEDGES_ROOT"
+test -d "$KNOWLEDGES_ROOT/.git"
+test -d "$KNOWLEDGES_ROOT/raw"
+```
+
+## Inspect Raw First
+
+Before choosing a destination, inspect the raw tree:
+
+```bash
+find "$KNOWLEDGES_ROOT/raw" -maxdepth 3 -type d | sort
+find "$KNOWLEDGES_ROOT/raw" -maxdepth 3 -type f ! -name ".DS_Store" ! -name ".gitkeep" | sort
+```
+
+Use the existing category layout when the user explicitly names a category and it already fits. For cross-project imports, default to:
+
+```text
+raw/inbox/<source_project>/<slug>.md
+```
+
+Create missing directories under `raw/inbox/<source_project>/` as needed.
+
+## Select Source Material
+
+Import only durable, reusable knowledge:
+
+- architecture decisions
+- implementation summaries
+- design notes
+- operational procedures
+- lessons learned
+- project retrospectives
+- user-facing behavior summaries
+
+Skip generated files, dependency/vendor files, large raw dumps, logs without lasting value, and secrets.
+
+Use changed files first:
+
+```bash
+git status --short
+git diff --name-only
+git rev-parse --short HEAD
+```
+
+## Write Raw Markdown
+
+Write one Markdown file per coherent topic. If a raw file with the same `source_id` already exists, update that file instead of creating a duplicate.
+
+The body should be concise but sufficient for the knowledges repository's `/sync` workflow to create or update wiki documents.
+
+After writing raw files, run the manifest update if the tool exists:
+
+```bash
+cd "$KNOWLEDGES_ROOT"
+python3 .claude/scripts/raw_manifest.py changed --write
+```
+
+Do not run a full raw/wiki review. Run `/sync` only when the user asks to proceed with wiki and Graphify updates, or when the request clearly includes syncing. Let `/sync` run `graphify . --update` once at the end.
+
+## Report
+
+Report:
+
+- resolved `KNOWLEDGES_ROOT`
+- raw directories inspected
+- raw files created or updated
+- source files or commits used for provenance
+- whether manifest update ran
+- whether `/sync` or Graphify was deferred

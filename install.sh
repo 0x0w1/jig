@@ -10,6 +10,8 @@ GITHUB_HOST="${SPAI_GITHUB_HOST:-github.com}"
 CONFIGURE_GIT_USER="${SPAI_CONFIGURE_GIT_USER:-0}"
 GIT_USER_NAME="${SPAI_GIT_USER_NAME:-}"
 GIT_USER_EMAIL="${SPAI_GIT_USER_EMAIL:-}"
+CONFIGURE_KNOWLEDGES_ROOT="${SPAI_CONFIGURE_KNOWLEDGES_ROOT:-0}"
+KNOWLEDGES_ROOT_INPUT="${SPAI_KNOWLEDGES_ROOT:-}"
 REPO_RAW_URL="${REPO_RAW_URL:-https://raw.githubusercontent.com/0x0w1/spai/main}"
 INSTALLED_FILES=""
 SYNCED_LABELS=""
@@ -17,6 +19,7 @@ DELETED_LABELS=""
 VERIFIED_LABELS=""
 VERIFIED_GITHUB_ACCOUNT=""
 SYNCED_GIT_CONFIG=""
+SYNCED_KNOWLEDGES_SETTINGS=""
 SYNCED_REPOSITORY_SETTINGS=""
 SYNCED_GITHUB_ACTIONS_SETTINGS=""
 SYNCED_BRANCHES=""
@@ -29,7 +32,7 @@ print_help() {
 SPAI - Scaffolded Procedures for AI Agents
 
 Usage:
-  sh install.sh [--target <target>] [--scope <scope>] [--github-account <account>] [--configure-git-user] [--dry-run] [--force]
+  sh install.sh [--target <target>] [--scope <scope>] [--github-account <account>] [--knowledges-root <absolute-path>] [--configure-git-user] [--dry-run] [--force]
 
 Targets:
   codex
@@ -62,6 +65,7 @@ Environment:
   SPAI_GITHUB_ACCOUNT=0x0w1 sh install.sh --target all --scope project
   SPAI_GITHUB_HOST=github.example.com SPAI_GITHUB_ACCOUNT=monalisa sh install.sh --target all --scope project
   SPAI_GIT_USER_NAME="Mona Lisa" SPAI_GIT_USER_EMAIL=monalisa@example.com sh install.sh --target all --scope project --github-account monalisa
+  SPAI_KNOWLEDGES_ROOT=/Users/me/projects/knowledges sh install.sh --target all --scope project --github-account 0x0w1
 
 GitHub account:
   Project scope requires --github-account <account> or SPAI_GITHUB_ACCOUNT.
@@ -71,6 +75,11 @@ GitHub account:
 Local git user:
   Use --configure-git-user to prompt for local user.name and user.email.
   Use --git-user-name and --git-user-email, or SPAI_GIT_USER_NAME and SPAI_GIT_USER_EMAIL, to set them non-interactively.
+
+Knowledges root:
+  Use --knowledges-root <absolute-path> or SPAI_KNOWLEDGES_ROOT to write KNOWLEDGES_ROOT into project .env.
+  The path must be the absolute path to the cloned knowledges git repository root and must contain .git and raw/.
+  Use --configure-knowledges-root to prompt for the path interactively.
 
 Project scope also installs:
   .github/drafter-config.yaml
@@ -87,8 +96,8 @@ Project scope also syncs GitHub repository settings when gh is available:
   branches: develop creation plus main and develop protection rules
 
 Target-specific project installs:
-  codex: .agents/skills/* plus AGENTS.md
-  claude-code: .claude/skills/* plus CLAUDE.md
+  codex: .agents/skills/*, .agents/rules/*, .agents/guardrails/* plus AGENTS.md
+  claude-code: .claude/skills/*, .claude/rules/*, .claude/guardrails/* plus CLAUDE.md
   cursor: .cursor/rules/*.mdc
   gemini-cli: GEMINI.md
   opencode: AGENTS.md
@@ -142,7 +151,7 @@ prompt_tty() {
   prompt_message="$1"
 
   if [ ! -r /dev/tty ] || [ ! -w /dev/tty ]; then
-    error "interactive input requires a terminal. Pass --git-user-name and --git-user-email instead."
+    error "interactive input requires a terminal. Pass the required option values non-interactively instead."
   fi
 
   printf '%s' "$prompt_message" >/dev/tty
@@ -191,6 +200,11 @@ $1"
 
 record_git_config() {
   SYNCED_GIT_CONFIG="${SYNCED_GIT_CONFIG}
+$1"
+}
+
+record_knowledges_setting() {
+  SYNCED_KNOWLEDGES_SETTINGS="${SYNCED_KNOWLEDGES_SETTINGS}
 $1"
 }
 
@@ -388,6 +402,97 @@ sync_local_git_user_config() {
   log "Local git user config updated"
   record_git_config "user.name=$GIT_USER_NAME"
   record_git_config "user.email=$GIT_USER_EMAIL"
+}
+
+is_absolute_path() {
+  case "$1" in
+    /*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+validate_knowledges_root() {
+  knowledges_root="$1"
+
+  [ -n "$knowledges_root" ] || error "knowledges root is required."
+  if ! is_absolute_path "$knowledges_root"; then
+    error "knowledges root must be an absolute path: $knowledges_root"
+  fi
+  [ -d "$knowledges_root" ] || error "knowledges root does not exist or is not a directory: $knowledges_root"
+  [ -d "$knowledges_root/.git" ] || error "knowledges root must be the cloned git repository root and contain .git: $knowledges_root"
+  [ -d "$knowledges_root/raw" ] || error "knowledges root must contain raw/: $knowledges_root"
+}
+
+prepare_knowledges_root_env() {
+  if [ "$SCOPE" != "project" ]; then
+    if [ -n "$KNOWLEDGES_ROOT_INPUT" ] || [ "$CONFIGURE_KNOWLEDGES_ROOT" = "1" ]; then
+      error "--knowledges-root requires --scope project."
+    fi
+    return 0
+  fi
+
+  if [ "$CONFIGURE_KNOWLEDGES_ROOT" != "1" ] && [ -z "$KNOWLEDGES_ROOT_INPUT" ]; then
+    return 0
+  fi
+
+  if [ -z "$KNOWLEDGES_ROOT_INPUT" ]; then
+    KNOWLEDGES_ROOT_INPUT=$(prompt_tty "Absolute knowledges git repository root: ")
+  fi
+
+  validate_knowledges_root "$KNOWLEDGES_ROOT_INPUT"
+}
+
+sync_knowledges_root_env() {
+  if [ "$CONFIGURE_KNOWLEDGES_ROOT" != "1" ] && [ -z "$KNOWLEDGES_ROOT_INPUT" ]; then
+    return 0
+  fi
+
+  validate_knowledges_root "$KNOWLEDGES_ROOT_INPUT"
+
+  if [ "$DRY_RUN" -eq 1 ]; then
+    log "[dry-run] Would write KNOWLEDGES_ROOT to .env: $KNOWLEDGES_ROOT_INPUT"
+    return 0
+  fi
+
+  env_file=".env"
+  env_tmp=$(mktemp)
+
+  if [ -f "$env_file" ]; then
+    awk -v value="$KNOWLEDGES_ROOT_INPUT" '
+      BEGIN { written = 0 }
+      /^KNOWLEDGES_ROOT=/ {
+        if (!written) {
+          print "KNOWLEDGES_ROOT=" value
+          written = 1
+        }
+        next
+      }
+      { print }
+      END {
+        if (!written) {
+          print "KNOWLEDGES_ROOT=" value
+        }
+      }
+    ' "$env_file" > "$env_tmp"
+  else
+    printf 'KNOWLEDGES_ROOT=%s\n' "$KNOWLEDGES_ROOT_INPUT" > "$env_tmp"
+  fi
+
+  if [ -f "$env_file" ] && cmp -s "$env_tmp" "$env_file"; then
+    log "Skipped unchanged knowledges root: .env"
+    record_knowledges_setting "KNOWLEDGES_ROOT=$KNOWLEDGES_ROOT_INPUT (already set)"
+    rm -f "$env_tmp"
+    return 0
+  fi
+
+  if [ -f "$env_file" ]; then
+    cp "$env_file" "$env_file.bak"
+  fi
+  cp "$env_tmp" "$env_file"
+  rm -f "$env_tmp"
+  record_installed "$env_file"
+  record_knowledges_setting "KNOWLEDGES_ROOT=$KNOWLEDGES_ROOT_INPUT"
+  log "Project .env updated: KNOWLEDGES_ROOT"
 }
 
 github_active_account() {
@@ -856,27 +961,41 @@ install_claude_code() {
   if [ "$SCOPE" = "project" ]; then
     memory_destination="./CLAUDE.md"
     skill_base="./.claude/skills"
+    rule_base="./.claude/rules"
+    guardrail_base="./.claude/guardrails"
   else
     memory_destination="$HOME/.claude/CLAUDE.md"
     skill_base="$HOME/.claude/skills"
+    rule_base="$HOME/.claude/rules"
+    guardrail_base="$HOME/.claude/guardrails"
   fi
   install_managed_block "$REPO_RAW_URL/dist/claude-code/CLAUDE.md" "$memory_destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
   copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/.claude/skills/github-sync/SKILL.md" "$skill_base/github-sync/SKILL.md"
   copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/.claude/skills/github-release/SKILL.md" "$skill_base/github-release/SKILL.md"
   copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/.claude/skills/develop-task-flow/SKILL.md" "$skill_base/develop-task-flow/SKILL.md"
+  copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/.claude/skills/knowledges-quick-ingest/SKILL.md" "$skill_base/knowledges-quick-ingest/SKILL.md"
+  copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/.claude/rules/knowledges-raw-contract.md" "$rule_base/knowledges-raw-contract.md"
+  copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/.claude/guardrails/knowledges-ingest.md" "$guardrail_base/knowledges-ingest.md"
 }
 
 install_codex() {
   if [ "$SCOPE" = "project" ]; then
     destination="./AGENTS.md"
     skill_base="./.agents/skills"
+    rule_base="./.agents/rules"
+    guardrail_base="./.agents/guardrails"
   else
     destination="$HOME/.codex/AGENTS.md"
     skill_base="$HOME/.agents/skills"
+    rule_base="$HOME/.agents/rules"
+    guardrail_base="$HOME/.agents/guardrails"
   fi
   copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/github-sync/SKILL.md" "$skill_base/github-sync/SKILL.md"
   copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/github-release/SKILL.md" "$skill_base/github-release/SKILL.md"
   copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/develop-task-flow/SKILL.md" "$skill_base/develop-task-flow/SKILL.md"
+  copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/knowledges-quick-ingest/SKILL.md" "$skill_base/knowledges-quick-ingest/SKILL.md"
+  copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/rules/knowledges-raw-contract.md" "$rule_base/knowledges-raw-contract.md"
+  copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/guardrails/knowledges-ingest.md" "$guardrail_base/knowledges-ingest.md"
   install_managed_block "$REPO_RAW_URL/dist/codex/AGENTS.md" "$destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
 }
 
@@ -887,6 +1006,9 @@ install_cursor() {
   copy_file_with_backup "$REPO_RAW_URL/dist/cursor/.cursor/rules/github-sync.mdc" "./.cursor/rules/github-sync.mdc"
   copy_file_with_backup "$REPO_RAW_URL/dist/cursor/.cursor/rules/github-release.mdc" "./.cursor/rules/github-release.mdc"
   copy_file_with_backup "$REPO_RAW_URL/dist/cursor/.cursor/rules/develop-task-flow.mdc" "./.cursor/rules/develop-task-flow.mdc"
+  copy_file_with_backup "$REPO_RAW_URL/dist/cursor/.cursor/rules/knowledges-quick-ingest.mdc" "./.cursor/rules/knowledges-quick-ingest.mdc"
+  copy_file_with_backup "$REPO_RAW_URL/dist/cursor/.cursor/rules/knowledges-raw-contract.mdc" "./.cursor/rules/knowledges-raw-contract.mdc"
+  copy_file_with_backup "$REPO_RAW_URL/dist/cursor/.cursor/rules/knowledges-ingest-guardrails.mdc" "./.cursor/rules/knowledges-ingest-guardrails.mdc"
 }
 
 install_gemini_cli() {
@@ -957,6 +1079,15 @@ main() {
         GIT_USER_EMAIL="$1"
         CONFIGURE_GIT_USER=1
         ;;
+      --knowledges-root|--knowledges-path)
+        knowledges_root_option="$1"
+        shift
+        [ "$#" -gt 0 ] || error "$knowledges_root_option requires a value"
+        KNOWLEDGES_ROOT_INPUT="$1"
+        ;;
+      --configure-knowledges-root)
+        CONFIGURE_KNOWLEDGES_ROOT=1
+        ;;
       --dry-run)
         DRY_RUN=1
         ;;
@@ -988,6 +1119,7 @@ main() {
     error "project scope requires --github-account <account> or SPAI_GITHUB_ACCOUNT."
   fi
 
+  prepare_knowledges_root_env
   need_downloader
 
   if [ "$TARGET" = "all" ]; then
@@ -1005,6 +1137,7 @@ main() {
   fi
 
   install_project_github_files
+  sync_knowledges_root_env
   sync_local_git_user_config
   sync_github_labels
   sync_github_repository_settings
@@ -1023,6 +1156,7 @@ main() {
   [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub labels" "$VERIFIED_LABELS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub account" "$VERIFIED_GITHUB_ACCOUNT"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced local git config" "$SYNCED_GIT_CONFIG"
+  [ "$DRY_RUN" -eq 1 ] || print_list "Synced knowledges settings" "$SYNCED_KNOWLEDGES_SETTINGS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub repository settings" "$SYNCED_REPOSITORY_SETTINGS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub Actions settings" "$SYNCED_GITHUB_ACTIONS_SETTINGS"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub branches" "$SYNCED_BRANCHES"

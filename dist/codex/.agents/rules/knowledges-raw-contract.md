@@ -1,0 +1,69 @@
+# Knowledges Raw Contract
+
+Use this contract when writing raw data into an external knowledges git repository.
+
+## Configuration
+
+The source project should declare the absolute cloned knowledges repository root in `.env`:
+
+```dotenv
+KNOWLEDGES_ROOT=/Users/houston/Documents/Personals/knowledges
+```
+
+Agents may also accept `KNOWLEDGES_PROJECT_PATH` as an alias. The path must be absolute and must point to a git clone root containing `.git/` and `raw/`, not to an Obsidian vault alias. Do not commit local `.env` files, and do not source `.env` as executable shell code.
+
+## Path
+
+For external project imports, prefer:
+
+```text
+raw/inbox/<source_project>/<slug>.md
+```
+
+If the user explicitly names an existing raw category and it matches the topic, the agent may write directly under that category after inspecting `raw/`.
+
+## Frontmatter
+
+Every imported raw Markdown file must include:
+
+```yaml
+---
+date: YYYY-MM-DD
+tags: []
+status: draft
+source_project: project-name
+source_path: relative/path/in/source/project
+source_commit: git-sha-or-empty
+source_updated_at: ISO-8601-or-empty
+source_id: project-name:relative/path-or-topic
+content_hash: sha256:<hash>
+---
+```
+
+Rules:
+
+- `source_id` must remain stable across updates.
+- `content_hash` must represent the meaningful source content, not the generated raw wrapper.
+- `status` starts as `draft`; the knowledges `/sync` workflow changes it to `migrated`.
+- Use one raw file per coherent topic instead of one file per tiny note.
+- Keep excerpts concise when the original is large; summarize and cite `source_path`.
+
+## Body
+
+Prefer this shape:
+
+```markdown
+# Topic Title
+
+## Source Summary
+
+## Durable Facts
+
+## Decisions
+
+## Relationships
+
+## Open Questions
+```
+
+The body can vary, but it must give the knowledges `/sync` workflow enough context to decide whether to create or update wiki documents.
