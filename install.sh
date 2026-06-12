@@ -87,8 +87,8 @@ Project scope also syncs GitHub repository settings when gh is available:
   branches: develop creation plus main and develop protection rules
 
 Target-specific project installs:
-  codex: .agents/skills/* plus AGENTS.md
-  claude-code: .claude/skills/* plus CLAUDE.md
+  codex: .agents/skills/*, .agents/rules/*, .agents/guardrails/* plus AGENTS.md
+  claude-code: .claude/skills/*, .claude/rules/*, .claude/guardrails/* plus CLAUDE.md
   cursor: .cursor/rules/*.mdc
   gemini-cli: GEMINI.md
   opencode: AGENTS.md
@@ -856,27 +856,41 @@ install_claude_code() {
   if [ "$SCOPE" = "project" ]; then
     memory_destination="./CLAUDE.md"
     skill_base="./.claude/skills"
+    rule_base="./.claude/rules"
+    guardrail_base="./.claude/guardrails"
   else
     memory_destination="$HOME/.claude/CLAUDE.md"
     skill_base="$HOME/.claude/skills"
+    rule_base="$HOME/.claude/rules"
+    guardrail_base="$HOME/.claude/guardrails"
   fi
   install_managed_block "$REPO_RAW_URL/dist/claude-code/CLAUDE.md" "$memory_destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
   copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/.claude/skills/github-sync/SKILL.md" "$skill_base/github-sync/SKILL.md"
   copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/.claude/skills/github-release/SKILL.md" "$skill_base/github-release/SKILL.md"
   copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/.claude/skills/develop-task-flow/SKILL.md" "$skill_base/develop-task-flow/SKILL.md"
+  copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/.claude/skills/knowledges-quick-ingest/SKILL.md" "$skill_base/knowledges-quick-ingest/SKILL.md"
+  copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/.claude/rules/knowledges-raw-contract.md" "$rule_base/knowledges-raw-contract.md"
+  copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/.claude/guardrails/knowledges-ingest.md" "$guardrail_base/knowledges-ingest.md"
 }
 
 install_codex() {
   if [ "$SCOPE" = "project" ]; then
     destination="./AGENTS.md"
     skill_base="./.agents/skills"
+    rule_base="./.agents/rules"
+    guardrail_base="./.agents/guardrails"
   else
     destination="$HOME/.codex/AGENTS.md"
     skill_base="$HOME/.agents/skills"
+    rule_base="$HOME/.agents/rules"
+    guardrail_base="$HOME/.agents/guardrails"
   fi
   copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/github-sync/SKILL.md" "$skill_base/github-sync/SKILL.md"
   copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/github-release/SKILL.md" "$skill_base/github-release/SKILL.md"
   copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/develop-task-flow/SKILL.md" "$skill_base/develop-task-flow/SKILL.md"
+  copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/knowledges-quick-ingest/SKILL.md" "$skill_base/knowledges-quick-ingest/SKILL.md"
+  copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/rules/knowledges-raw-contract.md" "$rule_base/knowledges-raw-contract.md"
+  copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/guardrails/knowledges-ingest.md" "$guardrail_base/knowledges-ingest.md"
   install_managed_block "$REPO_RAW_URL/dist/codex/AGENTS.md" "$destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
 }
 
@@ -887,6 +901,9 @@ install_cursor() {
   copy_file_with_backup "$REPO_RAW_URL/dist/cursor/.cursor/rules/github-sync.mdc" "./.cursor/rules/github-sync.mdc"
   copy_file_with_backup "$REPO_RAW_URL/dist/cursor/.cursor/rules/github-release.mdc" "./.cursor/rules/github-release.mdc"
   copy_file_with_backup "$REPO_RAW_URL/dist/cursor/.cursor/rules/develop-task-flow.mdc" "./.cursor/rules/develop-task-flow.mdc"
+  copy_file_with_backup "$REPO_RAW_URL/dist/cursor/.cursor/rules/knowledges-quick-ingest.mdc" "./.cursor/rules/knowledges-quick-ingest.mdc"
+  copy_file_with_backup "$REPO_RAW_URL/dist/cursor/.cursor/rules/knowledges-raw-contract.mdc" "./.cursor/rules/knowledges-raw-contract.mdc"
+  copy_file_with_backup "$REPO_RAW_URL/dist/cursor/.cursor/rules/knowledges-ingest-guardrails.mdc" "./.cursor/rules/knowledges-ingest-guardrails.mdc"
 }
 
 install_gemini_cli() {

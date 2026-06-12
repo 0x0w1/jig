@@ -1,7 +1,9 @@
 #!/usr/bin/env sh
 set -eu
 
-SKILLS="github-sync github-release develop-task-flow"
+SKILLS="github-sync github-release develop-task-flow knowledges-quick-ingest"
+RULES="knowledges-raw-contract"
+GUARDRAILS="knowledges-ingest"
 
 fail() {
   echo "validate-dist: $*" >&2
@@ -23,6 +25,7 @@ skill_title() {
     github-sync) printf '%s\n' "# GitHub Sync" ;;
     github-release) printf '%s\n' "# GitHub Release" ;;
     develop-task-flow) printf '%s\n' "# Develop Task Flow" ;;
+    knowledges-quick-ingest) printf '%s\n' "# Knowledges Quick Ingest" ;;
     *) fail "unknown skill: $1" ;;
   esac
 }
@@ -57,6 +60,32 @@ for skill in $SKILLS; do
   require_text dist/codex/AGENTS.md "$skill"
   require_text dist/gemini-cli/GEMINI.md "$skill"
   require_text dist/opencode/AGENTS.md "$skill"
+done
+
+for rule in $RULES; do
+  require_file "rules/$rule.md"
+  require_file "dist/claude-code/.claude/rules/$rule.md"
+  require_file "dist/codex/.agents/rules/$rule.md"
+  require_file "dist/cursor/.cursor/rules/$rule.mdc"
+  require_text "dist/claude-code/.claude/rules/$rule.md" "Knowledges Raw Contract"
+  require_text "dist/codex/.agents/rules/$rule.md" "Knowledges Raw Contract"
+  require_text "dist/cursor/.cursor/rules/$rule.mdc" "Knowledges Raw Contract"
+  require_text dist/codex/AGENTS.md "$rule"
+  require_text dist/gemini-cli/GEMINI.md "$rule"
+  require_text dist/opencode/AGENTS.md "$rule"
+done
+
+for guardrail in $GUARDRAILS; do
+  require_file "guardrails/$guardrail.md"
+  require_file "dist/claude-code/.claude/guardrails/$guardrail.md"
+  require_file "dist/codex/.agents/guardrails/$guardrail.md"
+  require_file "dist/cursor/.cursor/rules/$guardrail-guardrails.mdc"
+  require_text "dist/claude-code/.claude/guardrails/$guardrail.md" "Knowledges Ingest Guardrails"
+  require_text "dist/codex/.agents/guardrails/$guardrail.md" "Knowledges Ingest Guardrails"
+  require_text "dist/cursor/.cursor/rules/$guardrail-guardrails.mdc" "Knowledges Ingest Guardrails"
+  require_text dist/codex/AGENTS.md "$guardrail"
+  require_text dist/gemini-cli/GEMINI.md "$guardrail"
+  require_text dist/opencode/AGENTS.md "$guardrail"
 done
 
 require_text "dist/claude-code/.claude/skills/develop-task-flow/SKILL.md" "Documentation Rules"

@@ -11,6 +11,7 @@ Available procedures:
 - `github-sync`: repository setup and synchronization; not for creating releases.
 - `github-release`: release/vX.Y.Z execution from develop to main.
 - `develop-task-flow`: normal development tasks from develop through a PR back to develop.
+- `knowledges-quick-ingest`: send small project knowledge into a configured LLM + Obsidian + Graphify knowledges vault.
 
 
 ## github-sync
@@ -257,5 +258,232 @@ Keep reports short and include:
 - Labels applied
 - Commands that could not run and why
 - User next actions, if any
+
+## knowledges-quick-ingest
+
+
+# Knowledges Quick Ingest
+
+Use this skill to send a small amount of durable knowledge from the current project into a configured knowledges vault.
+
+## Required Context
+
+Before writing raw data, read:
+
+- `../../rules/knowledges-raw-contract.md`
+- `../../guardrails/knowledges-ingest.md`
+
+If this is installed as Cursor rules, use `.cursor/rules/knowledges-raw-contract.mdc` and `.cursor/rules/knowledges-ingest-guardrails.mdc` instead. If this is embedded in a single managed instruction file, use the `rule: knowledges-raw-contract` and `guardrail: knowledges-ingest` sections in that file.
+
+If the target-specific rule files are unavailable, continue with this minimal fallback: write only sanitized Markdown raw files, preserve provenance, avoid wiki edits, and avoid full graph rebuilds.
+
+## Resolve The Vault
+
+Prefer the current project's `.env` file. Do not source it as shell code. Parse only simple `KEY=value` lines.
+
+Supported keys:
+
+- `KNOWLEDGES_ROOT`
+- `KNOWLEDGES_PROJECT_PATH` as a compatibility alias
+
+If neither key is present, use `../knowledges` only when that directory exists. Otherwise ask the user for the vault path.
+
+Example `.env`:
+
+```dotenv
+KNOWLEDGES_ROOT=../knowledges
+```
+
+Validate the resolved path before writing:
+
+```bash
+test -d "$KNOWLEDGES_ROOT"
+test -d "$KNOWLEDGES_ROOT/raw"
+```
+
+## Inspect Raw First
+
+Before choosing a destination, inspect the raw tree:
+
+```bash
+find "$KNOWLEDGES_ROOT/raw" -maxdepth 3 -type d | sort
+find "$KNOWLEDGES_ROOT/raw" -maxdepth 3 -type f ! -name ".DS_Store" ! -name ".gitkeep" | sort
+```
+
+Use the existing category layout when the user explicitly names a category and it already fits. For cross-project imports, default to:
+
+```text
+raw/inbox/<source_project>/<slug>.md
+```
+
+Create missing directories under `raw/inbox/<source_project>/` as needed.
+
+## Select Source Material
+
+Import only durable, reusable knowledge:
+
+- architecture decisions
+- implementation summaries
+- design notes
+- operational procedures
+- lessons learned
+- project retrospectives
+- user-facing behavior summaries
+
+Skip generated files, dependency/vendor files, large raw dumps, logs without lasting value, and secrets.
+
+Use changed files first:
+
+```bash
+git status --short
+git diff --name-only
+git rev-parse --short HEAD
+```
+
+## Write Raw Markdown
+
+Write one Markdown file per coherent topic. If a raw file with the same `source_id` already exists, update that file instead of creating a duplicate.
+
+The body should be concise but sufficient for the knowledges vault's `/sync` workflow to create or update wiki documents.
+
+After writing raw files, run the manifest update if the tool exists:
+
+```bash
+cd "$KNOWLEDGES_ROOT"
+python3 .claude/scripts/raw_manifest.py changed --write
+```
+
+Do not run a full raw/wiki review. Run `/sync` only when the user asks to proceed with wiki and Graphify updates, or when the request clearly includes syncing. Let `/sync` run `graphify . --update` once at the end.
+
+## Report
+
+Report:
+
+- resolved `KNOWLEDGES_ROOT`
+- raw directories inspected
+- raw files created or updated
+- source files or commits used for provenance
+- whether manifest update ran
+- whether `/sync` or Graphify was deferred
+
+## rule: knowledges-raw-contract
+
+# Knowledges Raw Contract
+
+Use this contract when writing raw data into an external knowledges vault.
+
+## Configuration
+
+The source project should declare the vault path in `.env`:
+
+```dotenv
+KNOWLEDGES_ROOT=../knowledges
+```
+
+Agents may also accept `KNOWLEDGES_PROJECT_PATH` as an alias. Do not commit secrets to `.env`, and do not source `.env` as executable shell code.
+
+## Path
+
+For external project imports, prefer:
+
+```text
+raw/inbox/<source_project>/<slug>.md
+```
+
+If the user explicitly names an existing raw category and it matches the topic, the agent may write directly under that category after inspecting `raw/`.
+
+## Frontmatter
+
+Every imported raw Markdown file must include:
+
+```yaml
+---
+date: YYYY-MM-DD
+tags: []
+status: draft
+source_project: project-name
+source_path: relative/path/in/source/project
+source_commit: git-sha-or-empty
+source_updated_at: ISO-8601-or-empty
+source_id: project-name:relative/path-or-topic
+content_hash: sha256:<hash>
+---
+```
+
+Rules:
+
+- `source_id` must remain stable across updates.
+- `content_hash` must represent the meaningful source content, not the generated raw wrapper.
+- `status` starts as `draft`; the knowledges `/sync` workflow changes it to `migrated`.
+- Use one raw file per coherent topic instead of one file per tiny note.
+- Keep excerpts concise when the original is large; summarize and cite `source_path`.
+
+## Body
+
+Prefer this shape:
+
+```markdown
+# Topic Title
+
+## Source Summary
+
+## Durable Facts
+
+## Decisions
+
+## Relationships
+
+## Open Questions
+```
+
+The body can vary, but it must give the knowledges `/sync` workflow enough context to decide whether to create or update wiki documents.
+
+## guardrail: knowledges-ingest
+
+# Knowledges Ingest Guardrails
+
+## Scope
+
+- Default to incremental import into `raw/`.
+- Inspect `raw/` before choosing a destination path.
+- Do not edit `wiki/` directly from another project unless the user explicitly requests it.
+- Do not run full raw/wiki review unless the user explicitly asks for `/resync`.
+- Do not run Graphify repeatedly for each raw file. Let `/sync` run `graphify . --update` once at the end.
+
+## Privacy
+
+Do not import:
+
+- `.env` contents
+- API keys, tokens, private keys, passwords, cookies, or session values
+- private customer data
+- database dumps
+- logs containing personal data
+
+If durable knowledge depends on sensitive material, write a sanitized summary and record only the non-sensitive source path.
+
+## Cost And Time Control
+
+Use changed files first:
+
+```bash
+git status --short
+git diff --name-only
+git rev-parse --short HEAD
+```
+
+Avoid:
+
+- reading the full source repository
+- re-summarizing unchanged documents
+- full Graphify rebuilds during quick ingest
+- importing more than a small batch without user confirmation
+
+Defer and report before running `/sync` when:
+
+- more than 5 raw files would be imported
+- source content is larger than roughly 20,000 words
+- the update requires comparing many existing wiki pages
+- Graphify update is expected to be slow or costly
 
 <!-- spai:end github-release-setup -->

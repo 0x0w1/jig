@@ -12,7 +12,7 @@ SPAI는 Codex, Claude Code, Cursor, Gemini CLI, OpenCode 등 여러 AI Agent 환
 
 이 프로젝트는 `curl` 또는 `wget`을 통해 각 Agent 환경에 맞는 스킬/규칙 파일을 설치할 수 있도록 구성되어 있습니다.
 
-> 이 설치 스크립트는 AI Agent용 스킬/규칙 파일과 Release Drafter YAML 파일을 설치하고, project scope에서는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 `gh` 계정을 사용합니다. 해당 `gh` 계정이 로그인되어 있지 않으면 `gh auth login`을 실행하고, 로그인되어 있으면 active account가 맞는지 검증합니다. `gh`를 사용할 수 있으면 표준 6개 GitHub 라벨만 남도록 라벨을 정리하며, repository visibility와 현재 계정 권한을 확인한 뒤 `develop` 브랜치 생성, `main`/`develop` classic branch protection, General의 Automatically delete head branches 설정, Actions workflow permissions의 read and write 설정을 동기화합니다. 표준 6개 외 라벨은 삭제됩니다. 브랜치 수동 삭제, 릴리스, 태그, PR 생성/병합은 직접 수행하지 않습니다.
+> 이 설치 스크립트는 AI Agent용 스킬/규칙/가드레일 파일과 Release Drafter YAML 파일을 설치하고, project scope에서는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 `gh` 계정을 사용합니다. 해당 `gh` 계정이 로그인되어 있지 않으면 `gh auth login`을 실행하고, 로그인되어 있으면 active account가 맞는지 검증합니다. `gh`를 사용할 수 있으면 표준 6개 GitHub 라벨만 남도록 라벨을 정리하며, repository visibility와 현재 계정 권한을 확인한 뒤 `develop` 브랜치 생성, `main`/`develop` classic branch protection, General의 Automatically delete head branches 설정, Actions workflow permissions의 read and write 설정을 동기화합니다. 표준 6개 외 라벨은 삭제됩니다. 브랜치 수동 삭제, 릴리스, 태그, PR 생성/병합은 직접 수행하지 않습니다.
 
 ## SPAI의 의미
 
@@ -191,6 +191,12 @@ project scope:
       SKILL.md
     develop-task-flow/
       SKILL.md
+    knowledges-quick-ingest/
+      SKILL.md
+  rules/
+    knowledges-raw-contract.md
+  guardrails/
+    knowledges-ingest.md
 ```
 
 global scope:
@@ -204,9 +210,15 @@ global scope:
     SKILL.md
   develop-task-flow/
     SKILL.md
+  knowledges-quick-ingest/
+    SKILL.md
+~/.agents/rules/
+  knowledges-raw-contract.md
+~/.agents/guardrails/
+  knowledges-ingest.md
 ```
 
-Codex는 repo/user skill 위치에 세 개의 `SKILL.md`를 설치하고, `AGENTS.md`에는 SPAI managed block을 삽입하거나 교체합니다.
+Codex는 repo/user skill 위치에 절차형 `SKILL.md`를 설치하고, knowledges raw contract와 ingest guardrail을 함께 설치합니다. `AGENTS.md`에는 SPAI managed block을 삽입하거나 교체합니다.
 
 ### Claude Code
 
@@ -222,6 +234,12 @@ project scope:
       SKILL.md
     develop-task-flow/
       SKILL.md
+    knowledges-quick-ingest/
+      SKILL.md
+  rules/
+    knowledges-raw-contract.md
+  guardrails/
+    knowledges-ingest.md
 ```
 
 global scope:
@@ -235,9 +253,15 @@ global scope:
     SKILL.md
   develop-task-flow/
     SKILL.md
+  knowledges-quick-ingest/
+    SKILL.md
+~/.claude/rules/
+  knowledges-raw-contract.md
+~/.claude/guardrails/
+  knowledges-ingest.md
 ```
 
-Claude Code는 세 개의 project/user skill을 `.claude/skills/<skill>/SKILL.md` 구조로 설치하고, `CLAUDE.md`에는 SPAI managed block을 삽입하거나 교체합니다. 실제 Repository 설정 파일은 공통 project 파일로 `.github/`에 설치됩니다.
+Claude Code는 project/user skill을 `.claude/skills/<skill>/SKILL.md` 구조로 설치하고, knowledges rule/guardrail을 함께 설치합니다. `CLAUDE.md`에는 SPAI managed block을 삽입하거나 교체합니다. 실제 Repository 설정 파일은 공통 project 파일로 `.github/`에 설치됩니다.
 
 ### Cursor
 
@@ -249,6 +273,9 @@ project scope:
     github-sync.mdc
     github-release.mdc
     develop-task-flow.mdc
+    knowledges-quick-ingest.mdc
+    knowledges-raw-contract.mdc
+    knowledges-ingest-guardrails.mdc
 ```
 
 Cursor global scope는 현재 지원하지 않습니다.
@@ -285,13 +312,32 @@ Codex와 OpenCode는 project scope에서 모두 `AGENTS.md`를 사용합니다. 
 
 ## 제공되는 스킬
 
-현재 제공되는 절차형 스킬/룰은 세 개입니다.
+현재 제공되는 절차형 스킬/룰/가드레일은 다음과 같습니다.
 
 - `github-sync`: Release Drafter 파일, 표준 라벨, `main`/`develop` 브랜치, 브랜치 보호를 동기화합니다. 릴리스 생성에는 사용하지 않습니다.
 - `github-release`: `origin/develop`에서 `release/vX.Y.Z`를 만들고 `main` 릴리스 PR을 통해 Release Drafter 게시를 진행합니다.
 - `develop-task-flow`: 일반 개발 작업을 `origin/develop`에서 feature/fix/chore 브랜치로 시작하고 테스트, PR, develop 머지까지 진행합니다.
+- `knowledges-quick-ingest`: 현재 프로젝트의 durable knowledge를 `.env`로 지정한 LLM + Obsidian Wiki + Graphify 기반 knowledges vault의 `raw/` 하위에 provenance와 함께 추가합니다.
+- `knowledges-raw-contract`: knowledges raw Markdown의 경로, frontmatter, body 구조 계약입니다.
+- `knowledges-ingest`: secrets/privacy, batch size, Graphify 비용, `/sync`/`/resync` 범위를 제한하는 ingest guardrail입니다.
 
-SPAI는 각 Agent 환경의 권장 instruction surface에 맞춰 위 세 절차를 설치합니다.
+SPAI는 각 Agent 환경의 권장 instruction surface에 맞춰 위 절차를 설치합니다.
+
+## Knowledges raw ingest 설정
+
+현재 프로젝트에서 외부 knowledges vault로 raw 정보를 보낼 때는 `.env`에 vault 경로를 설정합니다.
+
+```dotenv
+KNOWLEDGES_ROOT=../knowledges
+```
+
+Agent는 `.env`를 shell code로 실행하지 않고 `KNOWLEDGES_ROOT` 또는 `KNOWLEDGES_PROJECT_PATH` 값만 읽습니다. 작업 시 대상 vault의 `raw/` 하위 디렉토리를 먼저 살펴본 뒤, 외부 프로젝트 ingest는 기본적으로 다음 위치에 Markdown raw 파일을 생성하거나 갱신합니다.
+
+```text
+$KNOWLEDGES_ROOT/raw/inbox/<source_project>/<slug>.md
+```
+
+생성되는 raw 파일은 `date`, `tags`, `status`, `source_project`, `source_path`, `source_commit`, `source_updated_at`, `source_id`, `content_hash` frontmatter를 포함해야 합니다. Wiki 직접 수정과 전체 Graphify rebuild는 기본 동작이 아니며, 필요한 경우 knowledges vault의 `/sync`가 `graphify . --update`를 한 번 실행하도록 합니다.
 
 ## 스킬이 설정하는 GitHub Repository 정책
 
@@ -332,7 +378,7 @@ SPAI는 각 Agent 환경의 권장 instruction surface에 맞춰 위 세 절차�
 sh scripts/build-dist.sh
 ```
 
-`dist/`는 `skills/github-sync`, `skills/github-release`, `skills/develop-task-flow`, 그리고 `skills/github-release-setup/files/`에서 재생성됩니다.
+`dist/`는 `skills/github-sync`, `skills/github-release`, `skills/develop-task-flow`, `skills/knowledges-quick-ingest`, 그리고 `skills/github-release-setup/files/`에서 재생성됩니다. `rules/`와 `guardrails/`의 knowledges 파일도 함께 dist로 복사됩니다.
 
 ## 개발자용: dist 검증
 
