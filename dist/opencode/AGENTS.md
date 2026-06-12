@@ -1,5 +1,3 @@
-# SPAI
-
 Scaffolded Procedures for AI Agents
 
 <!-- spai:start github-release-setup -->
