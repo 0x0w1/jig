@@ -7,7 +7,7 @@ SPAI installs reusable project skills for repository release and development wor
 Available Claude Code skills:
 
 - `/github-sync`: repository setup and synchronization; not for creating releases.
-- `/github-release`: release/vX.Y.Z execution from develop to main.
+- `/github-release`: release execution promoting develop to main through a release PR.
 - `/develop-task-flow`: normal development tasks from develop through a PR back to develop.
 - `/knowledges-quick-ingest`: send small project knowledge into a configured LLM + Obsidian + Graphify knowledges git repository.
 
