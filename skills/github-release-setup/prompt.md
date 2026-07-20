@@ -11,8 +11,7 @@
   - `feature/<slug>`
   - `fix/<slug>`
   - `chore/<slug>`
-- `main`을 대상으로 하는 릴리스 브랜치 규칙
-  - `release/vX.Y.Z`
+- `develop`에서 `main`으로의 릴리스 PR 규칙 (별도 `release/*` 브랜치 없음)
 - 정확히 6개의 GitHub 라벨
   - `patch`
   - `minor`
@@ -296,7 +295,7 @@ gh label edit patch --color 0E8A16 --description "하위 호환 버그 수정 �
 
 - Pull Request를 필수로 합니다.
 - Linear history는 요구하지 마세요.
-- 이유: `release/*`는 merge commit과 함께 `main`으로 병합되어야 하기 때문입니다.
+- 이유: `develop`에서 `main`으로의 릴리스 PR은 merge commit과 함께 병합되어야 하기 때문입니다.
 - force push를 금지합니다.
 - branch deletion을 금지합니다.
 - conversation resolution을 필수로 합니다.

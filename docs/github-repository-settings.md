@@ -5,9 +5,9 @@ SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 
 ## Repository 운영 규칙
 
 - 일반 변경은 현재 `origin/develop`에서 `feature/*`, `fix/*`, `chore/*` 브랜치를 생성하고, 원격 push 후 GitHub PR로 `develop`에 병합합니다.
-- 릴리즈는 사용자가 명시적으로 요청한 경우에만 진행하며, 모든 변경이 `develop`에 PR로 병합된 뒤 현재 `origin/develop`에서 `release/vX.Y.Z` 브랜치를 생성하고 GitHub PR로 `main`에 병합합니다.
+- 릴리즈는 사용자가 명시적으로 요청한 경우에만 진행하며, 모든 변경이 `develop`에 PR로 병합된 뒤 base `main`, head `develop`인 릴리즈 PR 하나로 `main`에 병합합니다. 별도의 `release/*` 브랜치는 만들지 않습니다.
 - 릴리즈 요청 안에 아직 `develop`에 병합되지 않은 코드, 설정, 문서, 생성된 `dist`, workflow 변경이 있으면 릴리즈를 중단하고 먼저 일반 변경 PR 플로우를 완료합니다.
-- `release/*` 브랜치에는 일반 작업 변경을 직접 커밋하지 않습니다.
+- 릴리즈 PR에는 일반 작업 변경을 추가하지 않으며, 이미 `develop`에 병합된 상태만 승격합니다.
 
 ## install.sh가 적용하는 항목
 

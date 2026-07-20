@@ -7,7 +7,7 @@ SPAI installs repository release and development workflows as durable instructio
 Available procedures:
 
 - `github-sync`: repository setup and synchronization; not for creating releases.
-- `github-release`: release/vX.Y.Z execution from develop to main.
+- `github-release`: release execution promoting develop to main through a release PR.
 - `develop-task-flow`: normal development tasks from develop through a PR back to develop.
 - `knowledges-quick-ingest`: send small project knowledge into a configured LLM + Obsidian + Graphify knowledges git repository.
 
@@ -117,14 +117,15 @@ Use this repository skill for release execution.
 
 ## Release Model
 
-- Release branches target `main`: `release/vX.Y.Z`.
-- Release branches are created from the current `origin/develop`.
-- Release branches contain the already-merged `develop` state intended for release.
-- `release/*` merges to `main` with a merge commit.
+- A release promotes the current `origin/develop` to `main` through a single release PR.
+- The release PR has base `main` and head `develop`; there is no `release/*` branch.
+- `develop` must already contain every intended release change, merged by PR.
+- The release PR merges to `main` with a merge commit; do not require linear history on `main`.
 - Release PRs are version upgrade PRs, not chore PRs.
 - Release PR titles use `<patch|minor|major>: release vX.Y.Z`.
 - Release PRs carry exactly one version label: `patch`, `minor`, or `major`.
 - Release-drafter publishes the release and tag after `main` receives the release merge.
+- Release notes are collected from the `develop`-targeting task PRs in the release range, so every change must reach `develop` through a `feature/*`, `fix/*`, or `chore/*` PR to appear in the notes.
 
 ## Safety Rules
 
@@ -133,8 +134,8 @@ Use this repository skill for release execution.
 - Do not manually create release tags or GitHub releases when release-drafter is configured.
 - Do not merge PRs unless the user explicitly requested merge execution and branch protection/checks allow it.
 - Do not push directly to `main` or `develop`.
-- Do not commit ordinary code, config, documentation, generated `dist`, or workflow changes directly on `release/*`.
-- Do not recreate or push a merged/deleted `release/*` branch unless starting a new version release from the current `origin/develop`.
+- The release PR must only promote already-merged `develop` state; do not add ordinary code, config, documentation, generated `dist`, or workflow changes in the release PR.
+- Do not open a release PR while `origin/develop` still lacks an intended change; complete it through a task PR first.
 - Preserve unrelated user changes.
 
 ## Develop-First Gate
@@ -142,7 +143,7 @@ Use this repository skill for release execution.
 - If the release request includes unmerged implementation, config, docs, generated `dist`, or workflow changes, stop release execution.
 - Complete those changes first with `develop-task-flow`: create a `feature/*`, `fix/*`, or `chore/*` branch from `origin/develop`, push it, open a PR to `develop`, and merge that PR when safe and allowed.
 - Resume release only after `origin/develop` contains every intended change.
-- If the user has not explicitly asked to release, stop at the `develop` PR merge and do not create a `release/*` branch.
+- If the user has not explicitly asked to release, stop at the `develop` PR merge and do not open a release PR to `main`.
 
 ## Release Procedure
 
@@ -153,34 +154,30 @@ Use this when the user asks to release a concrete version such as `v0.1.0`.
    - `git status --short --branch`
    - `git fetch origin --prune`
    - local and remote `main` and `develop`
-   - existing `release/vX.Y.Z` branch
-   - open release PRs
+   - open release PRs from `develop` to `main`
    - existing tag or release for the version
 3. Stop and report if the worktree has unrelated user changes that would be touched.
 4. Confirm release-drafter files exist:
    - `.github/drafter-config.yaml`
    - `.github/workflows/drafter.yaml`
 5. Verify `origin/develop` already contains every intended release change. If not, stop and run the Develop-First Gate.
-6. Create `release/vX.Y.Z` from the current `origin/develop`, unless it already exists and points at the same intended `develop` state.
-7. Push `release/vX.Y.Z` without force.
-8. Decide the version upgrade type from the user request or release intent:
+6. Decide the version upgrade type from the user request or release intent:
    - patch release: `patch`
    - minor release: `minor`
    - major release: `major`
-9. Open or reuse a PR with base `main`, head `release/vX.Y.Z`, and title `<patch|minor|major>: release vX.Y.Z`.
-10. Apply exactly one version label: `patch`, `minor`, or `major`.
-11. Do not apply `chore`, `enhancement`, or `fix` to the release PR.
-12. Do not manually create a tag or release.
-13. Merge the release PR only if the user explicitly asked for merge execution and checks/protection allow it. Use a merge commit.
-14. After `main` updates, expect the workflow to publish the release and tag.
+7. Open or reuse a PR with base `main`, head `develop`, and title `<patch|minor|major>: release vX.Y.Z`.
+8. Apply exactly one version label: `patch`, `minor`, or `major`.
+9. Do not apply `chore`, `enhancement`, or `fix` to the release PR.
+10. Do not manually create a tag or release.
+11. Merge the release PR only if the user explicitly asked for merge execution and checks/protection allow it. Use a merge commit.
+12. After `main` updates, expect the workflow to publish the release and tag.
 
 ## Final Report
 
 Keep reports short and include:
 
 - Current repo and branch
-- Release branch status
-- Release PR status
+- Release PR status (`develop` to `main`)
 - Version label status
 - Release/tag status
 - Commands that could not run and why
@@ -202,7 +199,7 @@ Use this repository skill for normal development work requested by the user.
   - `chore/<slug>` for tooling, dependencies, refactors, docs, or release automation setup.
 - Target `develop`.
 - Ordinary code, config, documentation, generated `dist`, workflow, and installer changes must follow this flow before any release can include them.
-- Release branches are not task branches. Do not use `release/*` for normal implementation work.
+- A release is a `develop` to `main` PR, not a task. Do not do normal implementation work through the release PR.
 
 ## Phase Rules
 
@@ -232,7 +229,7 @@ If the task is large, split it into phases:
 - Do not overwrite files with different content without explicit confirmation.
 - Do not merge if tests fail, checks fail, conflicts exist, or branch protection blocks the merge.
 - Do not merge a PR that includes changes outside the current task.
-- Do not use this skill for `release/vX.Y.Z` work; use `github-release`.
+- Do not use this skill for release execution; use `github-release`.
 - If the user has not explicitly asked for a release, stop after the `develop` PR is merged or left open with a blocker.
 
 ## Procedure

@@ -15,9 +15,10 @@ SPAI는 Codex, Claude Code, Cursor, Gemini CLI, OpenCode 등 여러 AI Agent 환
 ## Repository 운영 규칙
 
 - 일반 변경은 현재 `origin/develop`에서 `feature/*`, `fix/*`, `chore/*` 브랜치를 생성하고, 원격 push 후 GitHub PR로 `develop`에 병합합니다.
-- 릴리즈는 사용자가 명시적으로 요청한 경우에만 진행하며, 모든 변경이 `develop`에 PR로 병합된 뒤 현재 `origin/develop`에서 `release/vX.Y.Z` 브랜치를 생성하고 GitHub PR로 `main`에 병합합니다.
+- 릴리즈는 사용자가 명시적으로 요청한 경우에만 진행하며, 모든 변경이 `develop`에 PR로 병합된 뒤 base `main`, head `develop`인 릴리즈 PR 하나로 `main`에 병합합니다. 별도의 `release/*` 브랜치는 만들지 않습니다.
 - 릴리즈 요청 안에 아직 `develop`에 병합되지 않은 코드, 설정, 문서, 생성된 `dist`, workflow 변경이 있으면 릴리즈를 중단하고 먼저 일반 변경 PR 플로우를 완료합니다.
-- `release/*` 브랜치에는 일반 작업 변경을 직접 커밋하지 않습니다.
+- 릴리즈 PR에는 일반 작업 변경을 추가하지 않으며, 이미 `develop`에 병합된 상태만 승격합니다.
+- 릴리즈 노트는 릴리즈 범위의 `develop` 대상 작업 PR에서 취합되므로, 모든 변경은 `feature/*`, `fix/*`, `chore/*` PR로 `develop`에 병합되어야 노트에 나타납니다.
 
 > 이 설치 스크립트는 AI Agent용 스킬/규칙/가드레일 파일과 Release Drafter YAML 파일을 설치하고, project scope에서는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 `gh` 계정을 사용합니다. 해당 `gh` 계정이 로그인되어 있지 않으면 `gh auth login`을 실행하고, 로그인되어 있으면 active account가 맞는지 검증합니다. `gh`를 사용할 수 있으면 표준 6개 GitHub 라벨만 남도록 라벨을 정리하며, repository visibility와 현재 계정 권한을 확인한 뒤 `develop` 브랜치 생성, General의 Automatically delete head branches 설정, Actions workflow permissions의 read and write 설정을 동기화합니다. 설치가 끝나면 `GUIDE`가 남은 수동 작업을 안내합니다. 표준 6개 외 라벨은 삭제됩니다. 브랜치 수동 삭제, 릴리스, 태그, PR 생성/병합은 직접 수행하지 않습니다.
 
@@ -321,7 +322,7 @@ Codex와 OpenCode는 project scope에서 모두 `AGENTS.md`를 사용합니다. 
 현재 제공되는 절차형 스킬/룰/가드레일은 다음과 같습니다.
 
 - `github-sync`: Release Drafter 파일, 표준 라벨, `main`/`develop` 브랜치, 브랜치 보호를 동기화합니다. 릴리스 생성에는 사용하지 않습니다.
-- `github-release`: `origin/develop`에서 `release/vX.Y.Z`를 만들고 `main` 릴리스 PR을 통해 Release Drafter 게시를 진행합니다.
+- `github-release`: base `main`, head `develop`인 릴리스 PR을 통해 `develop`을 `main`으로 승격하고 Release Drafter 게시를 진행합니다.
 - `develop-task-flow`: 일반 개발 작업을 `origin/develop`에서 feature/fix/chore 브랜치로 시작하고 테스트, PR, develop 머지까지 진행합니다.
 - `knowledges-quick-ingest`: 현재 프로젝트의 durable knowledge를 `.env`로 지정한 LLM + Obsidian Wiki + Graphify 기반 knowledges git repository의 `raw/` 하위에 provenance와 함께 추가합니다.
 - `knowledges-raw-contract`: knowledges raw Markdown의 경로, frontmatter, body 구조 계약입니다.
@@ -359,8 +360,7 @@ $KNOWLEDGES_ROOT/raw/inbox/<source_project>/<slug>.md
   - `feature/<slug>`
   - `fix/<slug>`
   - `chore/<slug>`
-- `main` 대상 릴리스 브랜치
-  - `release/vX.Y.Z`
+- `develop`에서 `main`으로의 릴리스 PR (별도 `release/*` 브랜치 없음)
 - 정확히 6개의 표준 라벨
   - `patch`
   - `minor`
