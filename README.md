@@ -1,23 +1,34 @@
 # SPAI
 
+**Scaffolded Procedures for AI Agents** — AI 에이전트 CLI 환경에 저장소 운영 절차를 설치하는 하네스 설정 도구입니다.
+
+## 프로젝트 소개
+
+사이드 프로젝트마다 AI 에이전트(Claude Code, Codex, Antigravity CLI)를 쓰다 보면, 브랜치 규칙·커밋 규칙·릴리즈 절차를 프로젝트마다·에이전트마다 다시 알려줘야 합니다. SPAI는 이 반복을 없앱니다: 원라이너 한 번으로 같은 절차 스킬 세트를 어느 에이전트 환경에나 설치하고, 설치 이후의 업데이트와 상태 진단까지 관리합니다.
+
+지원 대상: **Claude Code**, **Codex**, **Antigravity CLI**
+
+## 제공하는 가치
+
+일반 스킬 모음과 달리 SPAI는 두 가지를 함께 관리합니다.
+
+1. **저장소 상태 수렴** — 스킬(세션 절차)만 배포하는 게 아니라, 브랜치 모델·branch protection·릴리즈 규율이라는 *저장소 상태*를 `github-sync`로 맞추고 `spai-doctor`로 진단합니다. 규칙 문서가 아니라 집행되는 규칙입니다.
+2. **에이전트 횡단 일관성 + 수명주기** — 하나의 절차 원본(`skills/`)을 여러 CLI 형식으로 렌더링해 배포하고, 버전 스탬프·`spai-update`·`spai-doctor`로 설치 이후를 관리합니다. flow 프로필(`solo-cli`/`team-pr`)과 스킬 선택 설치(`manifest.tsv` 카탈로그)를 지원합니다.
+
+제공 스킬:
+
+| 스킬 | 역할 |
+|---|---|
+| `develop-task-flow` | `feature/fix/chore` 브랜치에서 작업 후 `develop`에 squash merge |
+| `github-release` | `develop`을 `main`으로 fast-forward 승격, 버전 계산 후 태그·릴리즈 생성 |
+| `github-sync` | `main`/`develop` 브랜치와 branch protection 동기화 |
+| `spai-update` | 설치본을 최신 SPAI 릴리즈로 업데이트 |
+| `spai-doctor` | 설치 상태 진단(버전·드리프트·보호 규칙·레거시), read-only |
+
 ## 문서
 
 - [GitHub Repository Settings](docs/github-repository-settings.md): `install.sh`가 project scope에서 적용하는 `develop` 브랜치 생성과 GitHub 설정, 그리고 수동으로 안내하는 branch protection입니다.
 - [Roadmap](docs/roadmap.md): SPAI의 정체성과 방향 후보(트리거 조건부) 기록입니다.
-
-## 개요
-
-SPAI는 Scaffolded Procedures for AI Agents의 약자입니다.
-
-SPAI는 Codex, Claude Code, Antigravity CLI 등 여러 AI Agent 환경에서 사용할 수 있는 절차형 스킬을 배포하기 위한 오픈소스 프로젝트입니다.
-
-이 프로젝트는 `curl` 또는 `wget`을 통해 각 Agent 환경에 맞는 스킬/규칙 파일을 설치할 수 있도록 구성되어 있습니다.
-
-## 지원 대상
-
-- Codex
-- Claude Code
-- Antigravity CLI
 
 ## 설치 방법
 
@@ -271,16 +282,6 @@ global scope:
 ```
 
 Antigravity CLI는 워크스페이스 루트 `GEMINI.md`를 규칙 파일로 읽고 `.agents/skills/<skill>/SKILL.md`에서 네이티브 스킬을 인식합니다. Codex와 Antigravity는 project scope에서 동일한 `.agents/skills/` 경로를 공유하므로 두 target을 함께 설치해도 안전합니다. `GEMINI.md`에 이미 SPAI marker가 있으면 해당 managed block만 교체하고, marker가 없으면 기존 내용을 보존한 채 managed block을 뒤에 추가합니다. 기존 파일 전체를 SPAI 템플릿으로 교체하려면 `--force`를 사용합니다.
-
-## 제공되는 스킬
-
-| 스킬 | 역할 |
-|---|---|
-| `develop-task-flow` | `feature/fix/chore` 브랜치에서 작업 후 `develop`에 squash merge |
-| `github-release` | `develop`을 `main`으로 fast-forward 승격, 버전 계산 후 태그·릴리즈 생성 |
-| `github-sync` | `main`/`develop` 브랜치와 branch protection 동기화 |
-| `spai-update` | 설치본을 최신 SPAI 릴리즈로 업데이트 |
-| `spai-doctor` | 설치 상태 진단(버전·드리프트·보호 규칙·레거시), read-only |
 
 ## 개발자용: dist 재생성
 
