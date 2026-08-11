@@ -94,6 +94,14 @@ require_text "dist/claude-code-plugin/spai/.claude-plugin/plugin.json" '"name": 
 require_text "dist/claude-code-plugin/spai/skills/develop-task-flow/SKILL.md" 'git merge --squash'
 require_text "dist/claude-code-plugin/spai/skills/github-release/SKILL.md" 'git push origin develop:main'
 
+# The migration block grammar is a contract between three skills: github-release writes it,
+# spai-update executes it, spai-doctor reports it. Drift in any one of them breaks the chain.
+for migration_block in migration-auto migration-manual; do
+  for migration_skill in github-release spai-update spai-doctor; do
+    require_text "dist/claude-code-plugin/spai/skills/$migration_skill/SKILL.md" "spai:start $migration_block"
+  done
+done
+
 if find dist -name "SKILL.*.md" ! -name "SKILL.md" | grep -q .; then
   fail "dist must contain only resolved SKILL.md files: solo-cli is the only flow"
 fi

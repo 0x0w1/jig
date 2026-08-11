@@ -16,7 +16,25 @@ Each CLI updates on its own path; there is no combined update.
 - For codex and antigravity, the installed version and skill selection are stamped inside the SPAI managed block as `<!-- spai:version vX.Y.Z skills=<a,b,c> -->` in `AGENTS.md` or `GEMINI.md`. A stamp without `skills=` means the full default skill set.
 - The latest version is the latest GitHub release tag of `0x0w1/spai`.
 - Repository-side convergence (branch protection, legacy file and label cleanup) is handled by the `github-sync` skill after the update, and is idempotent across skipped versions.
-- A `major` version jump means the release flow or repository policy changed; read the `### Migration` sections of the release notes before updating.
+
+## Migration Blocks
+
+Release notes carry migration work as marker blocks, not prose. Collect them from every release in the range and merge them in release order.
+
+```md
+<!-- spai:start migration-auto -->
+- `rm -f .github/workflows/drafter.yaml`
+<!-- spai:end migration-auto -->
+
+<!-- spai:start migration-manual -->
+- Decide whether `develop` keeps its required status checks.
+<!-- spai:end migration-manual -->
+```
+
+- **`migration-auto`**: execute unattended. Items are idempotent, so an already-absent target counts as done, and replaying a skipped version is safe. Report each item as applied, already satisfied, or failed.
+- **`migration-manual`**: never execute without approval. Present every item, ask, and apply only what the user approves. Leave the rest listed as pending in the report.
+- Text outside these blocks is context for the user, not instructions to run.
+- A release with a `migration-manual` block is graded `major`; treat it as a signal to slow down and confirm before touching repository state.
 
 ## Safety Rules
 
@@ -25,7 +43,8 @@ Each CLI updates on its own path; there is no combined update.
 - Do not delete branches, labels, or files without explicit confirmation; leave `*.bak` backups in place.
 - Do not create releases or tags.
 - Do not uninstall the plugin as part of an update.
-- Stop and report if the installer fails or the version stamp does not update.
+- Do not run a `migration-manual` item without explicit approval for that item, and do not run anything that is not inside a migration block.
+- Stop and report if the installer fails, the version stamp does not update, or a `migration-auto` item fails.
 - Preserve unrelated user changes.
 
 ## Procedure
@@ -40,8 +59,8 @@ Each CLI updates on its own path; there is no combined update.
 4. Collect the release notes between the installed version and the latest:
    - `gh release list --repo 0x0w1/spai --limit 20`
    - `gh release view <tag> --repo 0x0w1/spai` for each release newer than the installed version.
-   - Extract any `### Migration` sections.
-5. Report the version delta with a short Korean summary of the changes and highlight migration steps. Ask for approval before applying, unless the user already asked for the update to be executed end to end.
+   - Extract the `migration-auto` and `migration-manual` blocks from each and merge them in release order.
+5. Report the version delta with a short Korean summary of the changes, the count of auto and manual migration items, and the full text of every manual item. Ask for approval before applying, unless the user already asked for the update to be executed end to end. Approval to update never implies approval for manual migration items; ask for those separately.
 6. Detect the installed targets:
    - `spai@spai` in `claude plugin list` or in `.claude/settings.json` → claude-code (plugin)
    - `./AGENTS.md` with SPAI markers → codex
@@ -55,9 +74,11 @@ Each CLI updates on its own path; there is no combined update.
    - `curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh | sh -s -- --target <target> --scope project --github-account <account> --version <latest> --skills <stamped skills>`
    - When the stamp has no `skills=`, omit `--skills` so the installer applies the defaults.
 9. Verify the `AGENTS.md` or `GEMINI.md` stamp now shows the latest version. Claude Code has no stamp to verify.
-10. Run the `github-sync` skill to converge branch protection and report legacy files or labels; delete them only with explicit confirmation.
-11. Run the `spai-doctor` skill to confirm the updated installation is healthy; include its findings in the report.
-12. Report.
+10. Apply the merged `migration-auto` items in release order, after the payload is updated so the steps run against the new version. Each item is idempotent: record it as applied, already satisfied, or failed, and continue past already-satisfied items. Stop and report on the first failure rather than improvising a fix.
+11. Present the merged `migration-manual` items and apply only the ones the user approves. Anything not approved stays pending and is named in the report.
+12. Run the `github-sync` skill to converge branch protection and report legacy files or labels; delete them only with explicit confirmation.
+13. Run the `spai-doctor` skill to confirm the updated installation is healthy; include its findings in the report.
+14. Report.
 
 ## Final Report
 
@@ -66,7 +87,8 @@ Keep reports short and include:
 - Installed version before and after, per target
 - Releases applied and their key changes
 - Claude Code plugin state and whether `/reload-plugins` is still pending
-- Migration steps executed or still pending
+- `migration-auto` items applied, already satisfied, or failed
+- `migration-manual` items approved and applied, versus still pending
 - Files updated or backed up
 - Commands that could not run and why
 - User next actions, if any

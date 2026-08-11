@@ -40,11 +40,47 @@ SPAI의 `vX.Y.Z` bump는 **변경의 종류**가 아니라 **설치본이 실제
 
 `dist/` 레이아웃, `scripts/*`, 스킬 본문 내용, 버전 스탬프의 `version` 외 필드, 로그 문구, `README`·`docs` 구조
 
+## 기계 판독 마이그레이션
+
+`### Migration` 섹션은 자유 서술이 아니라 두 종류의 marker 블록으로 씁니다. 사람이 읽는 문단이 아니라 `spai-update`가 실행하는 입력이기 때문입니다.
+
+```md
+### Migration
+
+<!-- spai:start migration-auto -->
+- `rm -f .github/workflows/drafter.yaml`
+- `.agents/skills/github-sync/`가 있으면 `.agents/skills/spai-github-sync/`로 이동
+<!-- spai:end migration-auto -->
+
+<!-- spai:start migration-manual -->
+- `develop`의 required status check 유지 여부를 결정하세요. SPAI는 더 이상 설정하지 않습니다.
+<!-- spai:end migration-manual -->
+```
+
+| 블록 | 뜻 | 처리 |
+|---|---|---|
+| `migration-auto` | 에이전트가 무인으로 끝낼 수 있는 기계적 조치 | `spai-update`가 실행 |
+| `migration-manual` | 사람의 판단이 필요한 조치 | `spai-update`가 제시하고 **승인 전까지 실행하지 않음** |
+
+`auto` 항목은 **멱등**이어야 하고, 하나의 명령이거나 모호하지 않은 파일 조작이어야 합니다. 대상이 이미 없으면 통과로 처리됩니다. 판단·선택·되돌릴 수 없는 조치는 전부 `manual`입니다.
+
+### 버전이 노트에서 도출됩니다
+
+두 블록의 유무가 bump를 강제합니다. 등급은 취향이 아니라 노트에서 나오는 파생값입니다.
+
+| 노트에 있는 것 | 강제되는 bump |
+|---|---|
+| Migration 섹션 없음 | `patch` 또는 `minor` (판정 순서로 결정) |
+| `migration-auto`만 | 최소 `minor` |
+| `migration-manual`이 하나라도 | **`major`** |
+
+`github-release`는 노트를 쓴 뒤 이 검사를 수행하고, 판정과 요청 bump가 어긋나면 멈추고 보고합니다.
+
 ## 1.0 이전
 
 현재 `0.x`이므로 `major` 판정이 나와도 `v0.(Y+1).0`으로 올림합니다. 등급 판정 자체는 1.0 이후와 동일하게 수행하고 릴리즈 보고에 판정 결과를 남깁니다. 규칙이 구속력을 갖기 전에 미리 굽는 것이 목적입니다.
 
-사람의 결정이 필요해 `major`로 판정된 릴리즈는 자리 올림과 무관하게 노트에 `### Migration` 섹션을 담아야 합니다.
+자리 올림과 무관하게 `migration-manual` 블록은 그대로 실어야 합니다. 자리만 낮아지는 것이지 사용자가 할 일이 사라지는 게 아닙니다.
 
 ## 적용 예
 

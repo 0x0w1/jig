@@ -1,6 +1,6 @@
 ---
 name: spai-doctor
-description: "Use when diagnosing the SPAI installation in this repository: verify the Claude Code plugin is registered and enabled, compare the installed version stamp for codex and antigravity with the latest release, detect locally modified skill files, verify branch protection, and report leftovers. Read-only; fixes are delegated to spai-update and github-sync."
+description: "Use when diagnosing the SPAI installation in this repository: verify the Claude Code plugin is registered and enabled, compare the installed version stamp for codex and antigravity with the latest release, detect locally modified skill files, report pending migration items from newer releases, verify branch protection, and report leftovers. Read-only; fixes are delegated to spai-update and github-sync."
 ---
 
 # SPAI Doctor
@@ -27,9 +27,13 @@ Each CLI is installed on its own; there is no combined install.
    - codex: `curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/<stamp>/dist/codex/.agents/skills/spai-<skill>/SKILL.md | cmp -s - .agents/skills/spai-<skill>/SKILL.md`
    - antigravity: same with `dist/antigravity/.agents/skills/spai-<skill>/SKILL.md`
    - A `cmp` mismatch means the file was locally modified or partially updated. If the stamp is `main` or `custom`, drift cannot be judged against a fixed payload; report that instead.
-4. **Branch protection**: `gh api repos/<owner>/<repo>/branches/<branch>/protection` for `main` and `develop`. Expected on both branches: no required pull request reviews, no required status checks, `allow_force_pushes.enabled == false`, `allow_deletions.enabled == false`. A 404 means no protection is configured.
-5. **Branch state**: after `git fetch origin --prune`, run `git rev-list --left-right --count origin/main...origin/develop`. If `main` is ahead of `develop` (left count > 0), the next release cannot fast-forward; report it.
-6. **Legacy leftovers** (report existence only):
+4. **Pending migrations**: when the stamp is behind the latest release, read the notes of every release newer than the stamp (`gh release view <tag> --repo 0x0w1/spai`) and count the items inside `<!-- spai:start migration-auto -->` and `<!-- spai:start migration-manual -->` blocks.
+   - Report the counts and quote the manual items in full; those need a human decision and are what makes a release `major`.
+   - Do not evaluate whether an item was already applied and never run one. `spai-update` owns execution.
+   - Skip this check when there is no stamp or the stamp is already the latest.
+5. **Branch protection**: `gh api repos/<owner>/<repo>/branches/<branch>/protection` for `main` and `develop`. Expected on both branches: no required pull request reviews, no required status checks, `allow_force_pushes.enabled == false`, `allow_deletions.enabled == false`. A 404 means no protection is configured.
+6. **Branch state**: after `git fetch origin --prune`, run `git rev-list --left-right --count origin/main...origin/develop`. If `main` is ahead of `develop` (left count > 0), the next release cannot fast-forward; report it.
+7. **Legacy leftovers** (report existence only):
    - `.github/drafter-config.yaml`, `.github/workflows/drafter.yaml`, `.github/PULL_REQUEST_TEMPLATE.md`
    - labels `patch`, `minor`, `major`, `enhancement`, `fix`, `chore` (`gh label list`)
    - leftover backups: `find . -name "*.bak" -not -path "./.git/*"`
@@ -45,9 +49,10 @@ Each CLI is installed on its own; there is no combined install.
 ## Procedure
 
 1. Confirm context: `git rev-parse --is-inside-work-tree`, `gh repo view`, `gh auth status`, `command -v claude`. If a tool is unavailable, run only the checks that do not need it and list the skipped checks in the report.
-2. Run checks 1–6 in order and collect the results.
+2. Run checks 1–7 in order and collect the results.
 3. Compose the report. For every finding, name the fix owner:
-   - version behind, drifted files, or missing plugin → `spai-update`
+   - version behind, drifted files, missing plugin, or pending `migration-auto` items → `spai-update`
+   - pending `migration-manual` items → `spai-update`, but only after the user decides each item
    - protection mismatch or legacy leftovers → `github-sync` (deletions only with explicit confirmation)
    - branch state divergence → stop releases and reconcile manually; never force-push.
 
@@ -64,6 +69,9 @@ Each CLI is installed on its own; there is no combined install.
 
 ### 드리프트 (codex/antigravity)
 - 없음 | 불일치 파일 목록
+
+### 미처리 마이그레이션
+- auto: N건 | manual: N건 (항목 전문) | 해당 없음
 
 ### 브랜치 보호
 - main: OK | 항목별 불일치
