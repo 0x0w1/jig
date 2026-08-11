@@ -1,6 +1,6 @@
 ---
 name: spai-doctor
-description: "Use when diagnosing the SPAI installation in this repository: compare the installed version stamp with the latest release, verify the Claude Code plugin is registered and enabled, detect locally modified skill files for codex and antigravity, verify branch protection, and report legacy leftovers. Read-only; fixes are delegated to spai-update and github-sync."
+description: "Use when diagnosing the SPAI installation in this repository: compare the installed version stamp with the latest release, verify the Claude Code plugin is registered and enabled, detect locally modified skill files for codex and antigravity, verify branch protection, and report leftovers. Read-only; fixes are delegated to spai-update and github-sync."
 ---
 
 # SPAI Doctor
@@ -28,7 +28,6 @@ Use this repository skill to diagnose the installed SPAI state. This skill never
 4. **Branch protection**: `gh api repos/<owner>/<repo>/branches/<branch>/protection` for `main` and `develop`. Expected on both branches: no required pull request reviews, no required status checks, `allow_force_pushes.enabled == false`, `allow_deletions.enabled == false`. A 404 means no protection is configured.
 5. **Branch state**: after `git fetch origin --prune`, run `git rev-list --left-right --count origin/main...origin/develop`. If `main` is ahead of `develop` (left count > 0), the next release cannot fast-forward; report it.
 6. **Legacy leftovers** (report existence only):
-   - unprefixed SPAI skill directories from an installer-copy era: `.claude/skills/{github-sync,github-release,develop-task-flow,spai-update,spai-doctor}/`, and the same names under `.agents/skills/`. These are superseded by the plugin and the `spai-` prefixed directories.
    - `.github/drafter-config.yaml`, `.github/workflows/drafter.yaml`, `.github/PULL_REQUEST_TEMPLATE.md`
    - labels `patch`, `minor`, `major`, `enhancement`, `fix`, `chore` (`gh label list`)
    - leftover backups: `find . -name "*.bak" -not -path "./.git/*"`
