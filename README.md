@@ -1,3 +1,22 @@
+### Claude Code
+
+project scope:
+
+```text
+./CLAUDE.md
+.claude/
+  settings.json          # extraKnownMarketplaces + enabledPlugins (협업자와 공유)
+```
+
+global scope:
+
+```text
+~/.claude/CLAUDE.md
+~/.claude/settings.json
+```
+
+Claude Code는 스킬 파일을 복사하지 않습니다. `claude plugin install spai@spai --scope project|user`가 `settings.json`에 마켓플레이스와 플러그인을 기록하고, 실제 스킬은 Claude Code가 관리하는 플러그인 디렉토리에서 로드됩니다. `CLAUDE.md`에 이미 SPAI marker가 있으면 해당 managed block만 교체하고, marker가 없으면 기존 내용을 보존한 채 managed block을 뒤에 추가합니다. 기존 파일 전체를 SPAI 템플릿으로 교체하려면 `--force`를 사용합니다.
+
 # SPAI
 
 **Scaffolded Procedures for AI Agents** — AI 에이전트 CLI 환경에 저장소 운영 절차를 설치하는 하네스 설정 도구입니다.
@@ -13,7 +32,7 @@
 일반 스킬 모음과 달리 SPAI는 두 가지를 함께 관리합니다.
 
 1. **저장소 상태 수렴** — 스킬(세션 절차)만 배포하는 게 아니라, 브랜치 모델·branch protection·릴리즈 규율이라는 *저장소 상태*를 `github-sync`로 맞추고 `spai-doctor`로 진단합니다. 규칙 문서가 아니라 집행되는 규칙입니다.
-2. **에이전트 횡단 일관성 + 수명주기** — 하나의 절차 원본(`skills/`)을 여러 CLI 형식으로 렌더링해 배포하고, 버전 스탬프·`spai-update`·`spai-doctor`로 설치 이후를 관리합니다. 스킬 선택 설치(`manifest.tsv` 카탈로그)를 지원합니다.
+2. **에이전트 횡단 일관성 + 수명주기** — 하나의 절차 원본(`skills/`)을 여러 CLI 형식으로 렌더링해 배포하고, 버전 스탬프·`spai-update`·`spai-doctor`로 설치 이후를 관리합니다. 스킬 선택 설치(`manifest.tsv` 카탈로그)를 지원합니다. Claude Code는 플러그인으로, Codex/Antigravity는 `spai-` prefix 파일로 배포해 사용자 스킬과 섞이지 않습니다.
 
 제공 스킬:
 
@@ -47,24 +66,21 @@ curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
 
 #### Claude Code
 
-installer 방식 (`CLAUDE.md`, `.claude/skills/*`):
+Claude Code는 **플러그인**으로 설치합니다. installer가 `CLAUDE.md` 규칙 블록을 쓰고, 이어서 마켓플레이스 등록과 플러그인 설치를 수행합니다.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
   | sh -s -- --target claude-code --scope project --github-account 0x0w1
 ```
 
-플러그인 마켓플레이스 방식 (Claude Code 세션 안에서):
+`claude` CLI가 없으면 installer가 아래 두 명령을 안내만 하고 넘어갑니다. Claude Code 세션 안에서 직접 실행해도 동일합니다.
 
 ```text
 /plugin marketplace add 0x0w1/spai
 /plugin install spai@spai
 ```
 
-두 방식의 차이:
-
-- **installer**: 파일을 프로젝트에 복사(`CLAUDE.md` 규칙 + `.claude/skills/*` + 버전 스탬프). 업데이트는 재실행 또는 `spai-update`.
-- **플러그인**: 파일 복사 없이 세션에 스킬 로드(`spai:github-release`처럼 네임스페이스 호출). workflow 스킬 3종(`github-sync`, `github-release`, `develop-task-flow`)만 포함하고, 업데이트는 `/plugin update spai@spai`. 스탬프·`spai-update`·`spai-doctor`는 installer 방식 전용.
+플러그인 스킬은 호스트가 네임스페이스를 붙여 `/spai:github-release`처럼 호출합니다. **파일이 `.claude/skills/`에 복사되지 않으므로 직접 만든 스킬과 절대 충돌하지 않습니다.** 제거는 `/plugin uninstall spai@spai`입니다.
 
 #### Codex
 
@@ -111,7 +127,7 @@ installer는 기본적으로 최신 GitHub 릴리즈 태그를 조회해 해당 
 
 ## 업데이트
 
-Claude Code 플러그인 방식으로 설치했다면 `/plugin update spai@spai` 하나로 끝납니다. 아래는 installer 방식 기준입니다.
+Claude Code는 마켓플레이스 auto-update 또는 `/plugin marketplace update spai`로 갱신되고, 세션에 반영하려면 `/reload-plugins`를 실행합니다. 아래는 codex/antigravity installer 방식 기준입니다.
 
 설치된 프로젝트의 업데이트는 두 단계입니다.
 
@@ -170,11 +186,11 @@ project scope:
 ./AGENTS.md
 .agents/
   skills/
-    github-sync/
+    spai-github-sync/
       SKILL.md
-    github-release/
+    spai-github-release/
       SKILL.md
-    develop-task-flow/
+    spai-develop-task-flow/
       SKILL.md
     spai-update/
       SKILL.md
@@ -187,11 +203,11 @@ global scope:
 ```text
 ~/.codex/AGENTS.md
 ~/.agents/skills/
-  github-sync/
+  spai-github-sync/
     SKILL.md
-  github-release/
+  spai-github-release/
     SKILL.md
-  develop-task-flow/
+  spai-develop-task-flow/
     SKILL.md
   spai-update/
     SKILL.md
@@ -209,11 +225,11 @@ project scope:
 ./CLAUDE.md
 .claude/
   skills/
-    github-sync/
+    spai-github-sync/
       SKILL.md
-    github-release/
+    spai-github-release/
       SKILL.md
-    develop-task-flow/
+    spai-develop-task-flow/
       SKILL.md
     spai-update/
       SKILL.md
@@ -226,11 +242,11 @@ global scope:
 ```text
 ~/.claude/CLAUDE.md
 ~/.claude/skills/
-  github-sync/
+  spai-github-sync/
     SKILL.md
-  github-release/
+  spai-github-release/
     SKILL.md
-  develop-task-flow/
+  spai-develop-task-flow/
     SKILL.md
   spai-update/
     SKILL.md
@@ -248,11 +264,11 @@ project scope:
 ./GEMINI.md
 .agents/
   skills/
-    github-sync/
+    spai-github-sync/
       SKILL.md
-    github-release/
+    spai-github-release/
       SKILL.md
-    develop-task-flow/
+    spai-develop-task-flow/
       SKILL.md
     spai-update/
       SKILL.md
@@ -265,11 +281,11 @@ global scope:
 ```text
 ~/.gemini/GEMINI.md
 ~/.gemini/config/skills/
-  github-sync/
+  spai-github-sync/
     SKILL.md
-  github-release/
+  spai-github-release/
     SKILL.md
-  develop-task-flow/
+  spai-develop-task-flow/
     SKILL.md
   spai-update/
     SKILL.md
@@ -281,26 +297,33 @@ Antigravity CLI는 워크스페이스 루트 `GEMINI.md`를 규칙 파일로 읽
 
 ## 스킬 소유권과 이름 충돌
 
-SPAI가 설치하는 스킬은 **사용자가 직접 만든 커스텀 스킬과 독립적으로 관리**됩니다.
+SPAI가 설치하는 스킬은 **사용자가 직접 만든 커스텀 스킬과 독립적으로 관리**됩니다. 방식은 대상 CLI에 따라 다릅니다.
 
-**예약 이름** — SPAI는 아래 이름을 점유합니다. 커스텀 스킬에는 다른 이름을 쓰세요.
+**Claude Code — 플러그인 네임스페이스**
 
-`github-sync`, `github-release`, `develop-task-flow`, `spai-update`, `spai-doctor`
-
-**소유권 마커** — 배포되는 모든 스킬 payload는 frontmatter 바로 아래에 `<!-- spai:owned skill=<name> -->` 마커를 담고 있습니다. installer와 `spai-doctor`는 이 마커로 "SPAI가 설치한 파일"과 "사용자 파일"을 구분합니다.
-
-**충돌 처리** — 설치 대상 경로에 마커 없는 파일이 이미 있으면 installer는 **덮어쓰지 않고 건너뜁니다**. 경고와 함께 `Skipped skill files not managed by SPAI` 목록으로 보고하고, `GUIDE`에서 선택지를 안내합니다. 이름을 SPAI에 넘기려면 `--force`로 재실행하세요(기존 파일은 `.bak`로 백업됩니다).
+스킬 파일이 `.claude/skills/`에 복사되지 않습니다. Claude Code가 플러그인 스킬에 자동으로 네임스페이스를 붙여 `/spai:github-release`로 노출하므로, 사용자가 만든 `/github-release`와 **이름이 같아도 양쪽 모두 그대로 남습니다.** 설치·업데이트·삭제는 호스트가 담당합니다.
 
 ```text
-SPAI [warn] Skill conflict: .claude/skills/github-release/SKILL.md exists and is not managed by SPAI.
-            Skipping it to preserve your file; use --force to replace it.
+/plugin install spai@spai      # 설치
+/plugin uninstall spai@spai    # 완전 삭제
+/plugin disable spai@spai      # 비활성화만
 ```
 
-**기존 설치본 승계** — 마커가 도입되기 전에 설치된 파일은 managed block의 `<!-- spai:version ... skills=... -->` 스탬프를 소유권 대장으로 삼아 자동으로 승계됩니다. 따라서 기존 사용자의 업데이트는 그대로 동작합니다.
+**Codex / Antigravity — 이름 prefix**
 
-**고아 파일** — `--skills`에서 빠진 스킬의 파일이 디스크에 남아 있으면 `Orphan skill files from a previous SPAI selection`으로 보고합니다. installer는 **어떤 경우에도 스킬 파일을 삭제하지 않습니다**. 직접 지우거나, 다시 `--skills`에 넣어 관리 대상으로 되돌리세요.
+두 CLI에는 플러그인 시스템이 없어서 파일을 복사합니다. 대신 모든 SPAI 스킬 디렉토리와 frontmatter `name`에 `spai-` prefix를 붙입니다.
 
-**managed block** — `CLAUDE.md`/`AGENTS.md`/`GEMINI.md`의 SPAI 블록은 실제로 설치된 스킬만 안내합니다. `--skills`로 일부만 설치하면 나머지 스킬 항목은 블록에서 제외됩니다. 블록 바깥의 사용자 내용은 그대로 보존됩니다.
+```text
+.agents/skills/spai-github-sync/SKILL.md
+.agents/skills/spai-github-release/SKILL.md
+.agents/skills/spai-develop-task-flow/SKILL.md
+.agents/skills/spai-update/SKILL.md
+.agents/skills/spai-doctor/SKILL.md
+```
+
+**예약 이름** — SPAI는 `spai` 플러그인 이름과 `spai-` 로 시작하는 스킬 이름만 점유합니다. 커스텀 스킬에 `spai-` prefix만 쓰지 않으면 충돌하지 않습니다.
+
+**managed block** — `CLAUDE.md`/`AGENTS.md`/`GEMINI.md`의 SPAI 블록은 실제로 설치된 스킬만 안내합니다. `--skills`로 일부만 설치하면(codex/antigravity) 나머지 항목은 블록에서 제외됩니다. 블록 바깥의 사용자 내용은 그대로 보존됩니다.
 
 ## 개발자용: dist 재생성
 
@@ -324,8 +347,8 @@ sh scripts/validate-dist.sh
 - 설치 스크립트는 재실행 시 이미 반영된 작업을 `PASS` 처리하고, 필요한 작업만 입력받거나 실행합니다.
 - 기존 파일을 변경해야 할 때는 `.bak` 백업을 생성합니다.
 - `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`처럼 managed block을 쓰는 파일은 marker가 있으면 그 구간만 교체하고, marker가 없으면 기존 내용을 보존한 채 managed block을 추가합니다. 전체 템플릿으로 교체하려면 `--force`를 사용합니다.
-- 설치 대상 경로에 SPAI 소유권 마커가 없는 스킬 파일이 있으면 건너뛰고 보고합니다. 덮어쓰려면 `--force`가 필요합니다.
-- `--skills`에서 제외된 스킬 파일은 고아로 보고만 하며 삭제하지 않습니다.
+- `--skills`는 codex와 antigravity에만 적용됩니다. Claude Code 플러그인은 스킬 전체가 한 단위로 설치됩니다.
+- Claude Code 플러그인 설치에는 `claude` CLI가 필요합니다. 없으면 실행할 명령만 안내하고 나머지 설치는 계속 진행합니다.
 - `--dry-run`을 사용하면 실제 파일 시스템을 수정하지 않고 예정 작업을 출력하며, 파일과 managed block은 현재 내용과 비교해 missing/changed/PASS 상태를 구분합니다.
 - project scope 설치는 `--github-account <account>` 또는 `SPAI_GITHUB_ACCOUNT=<account>` 입력이 필요합니다.
 - `.git` repository가 없으면 GitHub Repository 설정 동기화를 건너뛰고 통과 로그를 출력합니다.

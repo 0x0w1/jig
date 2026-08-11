@@ -2,9 +2,9 @@
 
 Use these repo-scoped Codex skills:
 
-- Repository setup/sync: `github-sync` from `.agents/skills/github-sync/SKILL.md`.
-- Release: `github-release` from `.agents/skills/github-release/SKILL.md`.
-- Ordinary implementation tasks targeting `develop`: `develop-task-flow` from `.agents/skills/develop-task-flow/SKILL.md`.
+- Repository setup/sync: `spai-github-sync` from `.agents/skills/spai-github-sync/SKILL.md`.
+- Release: `spai-github-release` from `.agents/skills/spai-github-release/SKILL.md`.
+- Ordinary implementation tasks targeting `develop`: `spai-develop-task-flow` from `.agents/skills/spai-develop-task-flow/SKILL.md`.
 
 ## Repository Model
 
@@ -17,7 +17,7 @@ Use these repo-scoped Codex skills:
 ## Skill Copies
 
 - `skills/` is the source of truth for every skill and is built into `dist/` for distribution.
-- This repository keeps synced copies of its repo-scoped skills under `.agents/skills` (Codex) and `.claude/skills` (Claude Code). When a skill under `skills/` changes, update both copies in the same task.
+- This repository keeps synced copies of its repo-scoped skills under `.agents/skills` (Codex, `spai-` prefixed to match the shipped payload) and `.claude/skills` (Claude Code, unprefixed development copies). When a skill under `skills/` changes, update both copies in the same task.
 
 ## Safety Rules
 
@@ -34,7 +34,7 @@ Use these repo-scoped Codex skills:
 
 ## Develop Task Rules
 
-- Use `develop-task-flow` for normal code/config/docs work.
+- Use `spai-develop-task-flow` for normal code/config/docs work.
 - Create task branches from `origin/develop` using `feature/<slug>`, `fix/<slug>`, or `chore/<slug>`.
 - Run relevant tests before merging.
 - Finish by `git merge --squash` into `develop` and a single conventional commit, then push `develop`.

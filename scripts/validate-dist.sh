@@ -51,43 +51,43 @@ require_text dist/antigravity/GEMINI.md "spai:start github-release-setup"
 require_text dist/antigravity/GEMINI.md "spai:end github-release-setup"
 require_text dist/antigravity/GEMINI.md "<!-- spai:version dev -->"
 
+prefixed_skill_name() {
+  case "$1" in
+    spai-*) printf '%s' "$1" ;;
+    *) printf 'spai-%s' "$1" ;;
+  esac
+}
+
+if [ -d dist/claude-code/.claude ]; then
+  fail "claude-code no longer installs skill files: it ships the spai plugin instead"
+fi
+
 for skill in $SKILLS; do
   title=$(skill_title "$skill")
-  require_text "dist/claude-code/.claude/skills/$skill/SKILL.md" "<!-- spai:owned skill=$skill -->"
-  require_text "dist/codex/.agents/skills/$skill/SKILL.md" "<!-- spai:owned skill=$skill -->"
-  require_text "dist/antigravity/.agents/skills/$skill/SKILL.md" "<!-- spai:owned skill=$skill -->"
-  require_text dist/codex/AGENTS.md "<!-- spai:skill-start $skill -->"
-  require_text dist/codex/AGENTS.md "<!-- spai:skill-end $skill -->"
-  require_file "dist/claude-code/.claude/skills/$skill/SKILL.md"
-  require_file "dist/codex/.agents/skills/$skill/SKILL.md"
-  require_file "dist/antigravity/.agents/skills/$skill/SKILL.md"
-  require_text "dist/claude-code/.claude/skills/$skill/SKILL.md" "$title"
-  require_text "dist/codex/.agents/skills/$skill/SKILL.md" "$title"
-  require_text "dist/antigravity/.agents/skills/$skill/SKILL.md" "$title"
-  require_text dist/codex/AGENTS.md "$skill"
-  require_text dist/antigravity/GEMINI.md "$skill"
+  prefixed=$(prefixed_skill_name "$skill")
+
+  require_file "dist/codex/.agents/skills/$prefixed/SKILL.md"
+  require_file "dist/antigravity/.agents/skills/$prefixed/SKILL.md"
+  require_text "dist/codex/.agents/skills/$prefixed/SKILL.md" "$title"
+  require_text "dist/antigravity/.agents/skills/$prefixed/SKILL.md" "$title"
+  require_text "dist/codex/.agents/skills/$prefixed/SKILL.md" "name: $prefixed"
+  require_text "dist/antigravity/.agents/skills/$prefixed/SKILL.md" "name: $prefixed"
+
+  require_text dist/codex/AGENTS.md "\`$prefixed\`"
+  require_text dist/antigravity/GEMINI.md "\`$prefixed\`"
+  require_text dist/claude-code/CLAUDE.md "\`/spai:$skill\`"
+
+  require_file "dist/claude-code-plugin/spai/skills/$skill/SKILL.md"
+  require_text "dist/claude-code-plugin/spai/skills/$skill/SKILL.md" "$title"
 done
 
-require_text "dist/claude-code/.claude/skills/develop-task-flow/SKILL.md" "Documentation Rules"
-require_text "dist/codex/.agents/skills/develop-task-flow/SKILL.md" "Documentation Rules"
-require_text "dist/antigravity/.agents/skills/develop-task-flow/SKILL.md" "Documentation Rules"
-require_text dist/codex/AGENTS.md "Documentation Rules"
-
-require_text "dist/claude-code/.claude/skills/github-release/SKILL.md" "Develop-First Gate"
-require_text "dist/codex/.agents/skills/github-release/SKILL.md" "Develop-First Gate"
-require_text "dist/antigravity/.agents/skills/github-release/SKILL.md" "Develop-First Gate"
-require_text dist/codex/AGENTS.md "Develop-First Gate"
-
-require_text "dist/claude-code/.claude/skills/github-release/SKILL.md" 'git push origin develop:main'
-require_text "dist/codex/.agents/skills/github-release/SKILL.md" 'git push origin develop:main'
-require_text "dist/antigravity/.agents/skills/github-release/SKILL.md" 'git push origin develop:main'
-require_text dist/codex/AGENTS.md 'git push origin develop:main'
-
-require_text "dist/claude-code/.claude/skills/github-release/SKILL.md" 'gh release create'
-require_text "dist/antigravity/.agents/skills/github-release/SKILL.md" 'gh release create'
-require_text "dist/claude-code/.claude/skills/develop-task-flow/SKILL.md" 'git merge --squash'
-require_text "dist/codex/.agents/skills/develop-task-flow/SKILL.md" 'git merge --squash'
-require_text "dist/antigravity/.agents/skills/develop-task-flow/SKILL.md" 'git merge --squash'
+require_text "dist/codex/.agents/skills/spai-develop-task-flow/SKILL.md" "Documentation Rules"
+require_text "dist/antigravity/.agents/skills/spai-develop-task-flow/SKILL.md" "Documentation Rules"
+require_text "dist/codex/.agents/skills/spai-develop-task-flow/SKILL.md" 'git merge --squash'
+require_text "dist/antigravity/.agents/skills/spai-develop-task-flow/SKILL.md" 'git merge --squash'
+require_text "dist/codex/.agents/skills/spai-github-release/SKILL.md" "Develop-First Gate"
+require_text "dist/codex/.agents/skills/spai-github-release/SKILL.md" 'git push origin develop:main'
+require_text "dist/antigravity/.agents/skills/spai-github-release/SKILL.md" 'gh release create'
 
 require_text dist/codex/AGENTS.md "Scaffolded Procedures for AI Agents"
 require_text dist/antigravity/GEMINI.md "Scaffolded Procedures for AI Agents"
@@ -97,12 +97,6 @@ require_text .claude-plugin/marketplace.json '"./dist/claude-code-plugin/spai"'
 
 require_file "dist/claude-code-plugin/spai/.claude-plugin/plugin.json"
 require_text "dist/claude-code-plugin/spai/.claude-plugin/plugin.json" '"name": "spai"'
-for skill in github-sync github-release develop-task-flow; do
-  require_file "dist/claude-code-plugin/spai/skills/$skill/SKILL.md"
-done
-for skill in github-sync github-release develop-task-flow; do
-  require_text "dist/claude-code-plugin/spai/skills/$skill/SKILL.md" "<!-- spai:owned skill=$skill -->"
-done
 require_text "dist/claude-code-plugin/spai/skills/develop-task-flow/SKILL.md" 'git merge --squash'
 require_text "dist/claude-code-plugin/spai/skills/github-release/SKILL.md" 'git push origin develop:main'
 
@@ -112,6 +106,10 @@ fi
 
 if grep -R 'team-pr' dist .claude-plugin manifest.tsv >/dev/null 2>&1; then
   fail "team-pr is not a supported flow; see docs/roadmap.md"
+fi
+
+if grep -R 'spai:owned\|spai:skill-start' dist >/dev/null 2>&1; then
+  fail "dist must not carry ownership markers: namespacing replaced them"
 fi
 
 if grep -R 'agent-release-skill' dist >/dev/null 2>&1; then

@@ -1,9 +1,7 @@
 ---
-name: develop-task-flow
+name: spai-develop-task-flow
 description: Use for ordinary implementation tasks in this repository that should start from develop, create a feature/fix/chore branch, complete changes and tests, squash-merge the branch back into develop locally, and push develop. No pull requests.
 ---
-
-<!-- spai:owned skill=develop-task-flow -->
 
 # Develop Task Flow
 

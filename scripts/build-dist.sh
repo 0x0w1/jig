@@ -2,153 +2,92 @@
 set -eu
 
 SKILLS=$(awk -F '\t' '!/^#/ && NF >= 3 { printf "%s ", $1 }' manifest.tsv)
-PLUGIN_SKILLS="github-sync github-release develop-task-flow"
 
-skill_description() {
-  skill_file="$1"
-  sed -n 's/^description:[[:space:]]*//p' "$skill_file" | head -n 1 | sed 's/^"//; s/"$//'
+# Codex and Antigravity have no plugin system, so their skill directories carry a
+# spai- prefix to stay out of the way of skills the user wrote. Claude Code needs no
+# prefix: plugin skills are namespaced by the host as /spai:<skill>.
+prefixed_skill_name() {
+  case "$1" in
+    spai-*) printf '%s' "$1" ;;
+    *) printf 'spai-%s' "$1" ;;
+  esac
 }
 
-yaml_quote() {
-  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+skill_summary() {
+  case "$1" in
+    github-sync) printf '%s' "repository setup and synchronization; not for creating releases." ;;
+    github-release) printf '%s' "release execution promoting develop to main with a fast-forward push and a tagged GitHub release." ;;
+    develop-task-flow) printf '%s' "normal development tasks on feature/fix/chore branches squash-merged back into develop." ;;
+    spai-update) printf '%s' "update the installed SPAI skills to the latest SPAI release and converge repository settings." ;;
+    spai-doctor) printf '%s' "diagnose the installed SPAI state (version, protection, legacy); read-only." ;;
+    *) printf '%s' "SPAI procedure." ;;
+  esac
 }
 
-append_skill_body() {
-  skill_file="$1"
-  awk '
-    NR == 1 && $0 == "---" {
-      frontmatter = 1
-      next
-    }
-    frontmatter && $0 == "---" {
-      frontmatter = 0
-      next
-    }
-    !frontmatter {
-      print
-    }
-  ' "$skill_file"
-}
-
-copy_skill_payload() {
-  copy_skill_name="$1"
+# Copies a skill payload, rewriting the frontmatter name so it matches the prefixed
+# directory the installer creates.
+copy_prefixed_skill() {
+  copy_skill_id="$1"
   copy_skill_destination="$2"
-  awk -v marker="<!-- spai:owned skill=$copy_skill_name -->" '
+  copy_skill_display=$(prefixed_skill_name "$copy_skill_id")
+  awk -v name="$copy_skill_display" '
     NR == 1 && $0 == "---" { print; frontmatter = 1; next }
-    frontmatter && $0 == "---" { print; print ""; print marker; frontmatter = 0; next }
+    frontmatter && /^name:/ { print "name: " name; next }
+    frontmatter && $0 == "---" { print; frontmatter = 0; next }
     { print }
-  ' "skills/$copy_skill_name/SKILL.md" > "$copy_skill_destination"
+  ' "skills/$copy_skill_id/SKILL.md" > "$copy_skill_destination"
 }
 
-append_managed_header() {
-  cat <<'EOF'
-Scaffolded Procedures for AI Agents
-
-<!-- spai:start github-release-setup -->
-<!-- spai:version dev -->
-
-SPAI installs repository release and development workflows as durable instructions.
-
-Available procedures:
-
-- `github-sync`: repository setup and synchronization; not for creating releases.
-- `github-release`: release execution promoting develop to main with a fast-forward push and a tagged GitHub release.
-- `develop-task-flow`: normal development tasks on feature/fix/chore branches squash-merged back into develop.
-- `spai-update`: update the installed SPAI skills to the latest SPAI release and converge repository settings.
-- `spai-doctor`: diagnose the installed SPAI state (version, drift, protection, legacy); read-only.
-
-EOF
-}
-
-append_managed_footer() {
-  cat <<'EOF'
-
-<!-- spai:end github-release-setup -->
-EOF
-}
-
-append_all_skill_bodies() {
+append_skill_list() {
+  list_style="$1"
   for skill in $SKILLS; do
-    skill_file="skills/$skill/SKILL.md"
-    if [ ! -f "$skill_file" ]; then
-      echo "Missing $skill_file" >&2
-      exit 1
-    fi
-    printf '\n<!-- spai:skill-start %s -->\n## %s\n\n' "$skill" "$skill"
-    append_skill_body "$skill_file"
-    printf '<!-- spai:skill-end %s -->\n' "$skill"
+    case "$list_style" in
+      plugin) printf -- '- `/spai:%s`: %s\n' "$skill" "$(skill_summary "$skill")" ;;
+      prefixed) printf -- '- `%s`: %s\n' "$(prefixed_skill_name "$skill")" "$(skill_summary "$skill")" ;;
+    esac
   done
+}
+
+append_managed_block() {
+  block_intro="$1"
+  block_style="$2"
+
+  printf 'Scaffolded Procedures for AI Agents\n\n'
+  printf '<!-- spai:start github-release-setup -->\n'
+  printf '<!-- spai:version dev -->\n\n'
+  printf '%s\n\n' "$block_intro"
+  append_skill_list "$block_style"
+  printf '\n%s\n' "Use these skills when the matching workflow is requested. Preserve unrelated user changes, never force push, and never delete branches or labels without explicit confirmation."
+  printf '\n<!-- spai:end github-release-setup -->\n'
 }
 
 rm -rf dist
 
 mkdir -p \
-  dist/claude-code/.claude/skills \
+  dist/claude-code \
   dist/codex/.agents/skills \
   dist/antigravity/.agents/skills
 
 cp manifest.tsv dist/manifest.tsv
 
-cat > dist/claude-code/CLAUDE.md <<'EOF'
-Scaffolded Procedures for AI Agents
+append_managed_block \
+  "SPAI ships these repository workflow skills through the spai Claude Code plugin. Plugin skills are namespaced, so they never collide with skills you wrote yourself." \
+  plugin > dist/claude-code/CLAUDE.md
 
-<!-- spai:start github-release-setup -->
-<!-- spai:version dev -->
+append_managed_block \
+  "SPAI installs these repository workflow skills under .agents/skills. Every SPAI skill name carries the spai- prefix so it stays out of the way of skills you wrote yourself." \
+  prefixed > dist/codex/AGENTS.md
 
-SPAI installs reusable project skills for repository release and development workflows.
-
-Available Claude Code skills:
-
-- `/github-sync`: repository setup and synchronization; not for creating releases.
-- `/github-release`: release execution promoting develop to main with a fast-forward push and a tagged GitHub release.
-- `/develop-task-flow`: normal development tasks on feature/fix/chore branches squash-merged back into develop.
-- `/spai-update`: update the installed SPAI skills to the latest SPAI release and converge repository settings.
-- `/spai-doctor`: diagnose the installed SPAI state (version, drift, protection, legacy); read-only.
-
-Use these skills when the matching workflow is requested. Preserve unrelated user changes, never force push, and never delete branches or labels without explicit confirmation.
-
-<!-- spai:end github-release-setup -->
-EOF
+append_managed_block \
+  "SPAI installs these repository workflow skills under .agents/skills. Every SPAI skill name carries the spai- prefix so it stays out of the way of skills you wrote yourself." \
+  prefixed > dist/antigravity/GEMINI.md
 
 for skill in $SKILLS; do
-  mkdir -p "dist/claude-code/.claude/skills/$skill"
-  copy_skill_payload "$skill" "dist/claude-code/.claude/skills/$skill/SKILL.md"
-done
-
-for skill in $SKILLS; do
-  mkdir -p "dist/codex/.agents/skills/$skill"
-  copy_skill_payload "$skill" "dist/codex/.agents/skills/$skill/SKILL.md"
-done
-{
-  append_managed_header
-  append_all_skill_bodies
-  append_managed_footer
-} > dist/codex/AGENTS.md
-
-cat > dist/antigravity/GEMINI.md <<'EOF'
-Scaffolded Procedures for AI Agents
-
-<!-- spai:start github-release-setup -->
-<!-- spai:version dev -->
-
-SPAI installs reusable project skills for repository release and development workflows.
-
-Available Antigravity skills (discovered from .agents/skills):
-
-- `github-sync`: repository setup and synchronization; not for creating releases.
-- `github-release`: release execution promoting develop to main with a fast-forward push and a tagged GitHub release.
-- `develop-task-flow`: normal development tasks on feature/fix/chore branches squash-merged back into develop.
-- `spai-update`: update the installed SPAI skills to the latest SPAI release and converge repository settings.
-- `spai-doctor`: diagnose the installed SPAI state (version, drift, protection, legacy); read-only.
-
-Use these skills when the matching workflow is requested. Preserve unrelated user changes, never force push, and never delete branches or labels without explicit confirmation.
-
-<!-- spai:end github-release-setup -->
-EOF
-
-for skill in $SKILLS; do
-  mkdir -p "dist/antigravity/.agents/skills/$skill"
-  copy_skill_payload "$skill" "dist/antigravity/.agents/skills/$skill/SKILL.md"
+  prefixed=$(prefixed_skill_name "$skill")
+  for target_dir in dist/codex/.agents/skills dist/antigravity/.agents/skills; do
+    mkdir -p "$target_dir/$prefixed"
+    copy_prefixed_skill "$skill" "$target_dir/$prefixed/SKILL.md"
+  done
 done
 
 build_claude_plugin() {
@@ -158,15 +97,15 @@ build_claude_plugin() {
   cat > "$plugin_root/.claude-plugin/plugin.json" <<EOF
 {
   "name": "$plugin_name",
-  "description": "SPAI solo-cli workflow skills: github-sync, github-release, develop-task-flow",
+  "description": "SPAI repository workflow skills: develop task flow, CLI releases, and repository sync",
   "author": { "name": "0x0w1" },
   "homepage": "https://github.com/0x0w1/spai",
   "license": "MIT"
 }
 EOF
-  for skill in $PLUGIN_SKILLS; do
+  for skill in $SKILLS; do
     mkdir -p "$plugin_root/skills/$skill"
-    copy_skill_payload "$skill" "$plugin_root/skills/$skill/SKILL.md"
+    cp "skills/$skill/SKILL.md" "$plugin_root/skills/$skill/SKILL.md"
   done
 }
 

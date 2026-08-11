@@ -1,9 +1,7 @@
 ---
-name: github-release
+name: spai-github-release
 description: Use when releasing this repository from the CLI by promoting develop to main with a fast-forward push, computing the next patch/minor/major version from the latest tag, and publishing a GitHub release with agent-written notes. No release PR, no release-drafter.
 ---
-
-<!-- spai:owned skill=github-release -->
 
 # GitHub Release
 

@@ -16,7 +16,6 @@ REPO_RAW_BASE="${SPAI_REPO_RAW_BASE:-https://raw.githubusercontent.com/0x0w1/spa
 SPAI_RELEASES_API="${SPAI_RELEASES_API:-https://api.github.com/repos/0x0w1/spai/releases/latest}"
 REQUESTED_VERSION="${SPAI_VERSION:-}"
 SPAI_VERSION_STAMP="main"
-FLOW="${SPAI_FLOW:-solo-cli}"
 SKILLS_INPUT="${SPAI_SKILLS:-}"
 SELECTED_SKILLS=""
 MANIFEST_TMP=""
@@ -25,26 +24,26 @@ VERIFIED_GITHUB_ACCOUNT=""
 SYNCED_GIT_CONFIG=""
 SYNCED_BRANCHES=""
 VERIFIED_BRANCHES=""
-SKILL_CONFLICTS=""
-ORPHAN_SKILLS=""
-PREVIOUS_STAMP_FOUND=0
-PREVIOUS_SKILLS=""
-SPAI_OWNED_MARKER="<!-- spai:owned skill="
+MANUAL_PLUGIN_STEPS=""
+MARKETPLACE_SOURCE="${SPAI_MARKETPLACE_SOURCE:-0x0w1/spai}"
+MARKETPLACE_GIT_URL="${SPAI_MARKETPLACE_GIT_URL:-https://github.com/0x0w1/spai.git}"
+MARKETPLACE_REF=""
+PLUGIN_REF="${SPAI_PLUGIN_REF:-spai@spai}"
 
 print_help() {
   cat <<'EOF'
 SPAI - Scaffolded Procedures for AI Agents
 
 Usage:
-  sh install.sh [--target <target>] [--scope <scope>] [--github-account <account>] [--version vX.Y.Z] [--flow <flow>] [--skills a,b,c] [--configure-git-user] [--dry-run] [--force]
+  sh install.sh [--target <target>] [--scope <scope>] [--github-account <account>] [--version vX.Y.Z] [--skills a,b,c] [--configure-git-user] [--dry-run] [--force]
 
-Flow:
-  solo-cli is the only supported flow: local squash merge into develop, no pull requests.
-  --flow is accepted for compatibility and must be solo-cli.
+Merge flow:
+  Work branches squash-merge into develop locally and develop is pushed directly. No pull requests.
 
 Skills:
   Default: every skill marked default in dist/manifest.tsv.
   Use --skills a,b,c (or SPAI_SKILLS) to install a subset; names must exist in the manifest.
+  --skills applies to codex and antigravity only; the claude-code plugin installs as one unit.
 
 Targets:
   codex
@@ -84,8 +83,8 @@ Version:
   fails, it falls back to the main branch.
   Use --version vX.Y.Z (or SPAI_VERSION) to pin or roll back to a specific release.
   An explicit REPO_RAW_URL overrides version resolution entirely.
-  The installed version, flow, and skill selection are stamped as
-  <!-- spai:version vX.Y.Z flow=<flow> skills=<a,b,c> --> inside the SPAI managed block of
+  The installed version and skill selection are stamped as
+  <!-- spai:version vX.Y.Z skills=<a,b,c> --> inside the SPAI managed block of
   CLAUDE.md / AGENTS.md / GEMINI.md; the spai-update and spai-doctor skills read this stamp.
 
 GitHub account:
@@ -101,20 +100,19 @@ Managed files:
   Use --force to replace an existing managed file entirely when it does not already contain SPAI markers.
 
 Skill ownership:
-  Every skill payload carries a <!-- spai:owned skill=<name> --> marker.
-  An existing skill file without that marker is treated as yours: it is skipped, not overwritten.
-  Files recorded in a previous install stamp are adopted so updates of earlier installs keep working.
-  Use --force to let SPAI take over such a name.
-  Skills dropped from --skills are reported as orphans; the installer never deletes them.
+  claude-code installs the spai plugin, whose skills the host namespaces as /spai:<skill>.
+  They never collide with skills you wrote, and /plugin uninstall removes them.
+  codex and antigravity have no plugin system, so their skill directories carry a spai- prefix
+  (.agents/skills/spai-github-sync, ...) to stay clear of your own skill names.
 
 Project scope also syncs GitHub repository settings when gh is available:
   account: selected by --github-account or SPAI_GITHUB_ACCOUNT
   branches: develop creation from main when missing
 
 Target-specific project installs:
-  codex: AGENTS.md plus .agents/skills/*
-  claude-code: CLAUDE.md plus .claude/skills/*
-  antigravity: GEMINI.md plus .agents/skills/*
+  codex: AGENTS.md plus .agents/skills/spai-*
+  claude-code: CLAUDE.md plus the spai Claude Code plugin (claude plugin install spai@spai)
+  antigravity: GEMINI.md plus .agents/skills/spai-*
 EOF
 }
 
@@ -232,11 +230,20 @@ resolve_repo_raw_url() {
   log "SPAI payload source (fallback): $REPO_RAW_URL"
 }
 
+resolve_marketplace_ref() {
+  if is_valid_release_version "$SPAI_VERSION_STAMP"; then
+    MARKETPLACE_REF="$MARKETPLACE_GIT_URL#$SPAI_VERSION_STAMP"
+  else
+    MARKETPLACE_REF="$MARKETPLACE_SOURCE"
+  fi
+  log "Claude Code marketplace source: $MARKETPLACE_REF"
+}
+
 stamp_spai_version() {
   stamp_target="$1"
   stamp_tmp=$(mktemp)
   stamp_skills=$(printf '%s' "$SELECTED_SKILLS" | tr ' ' ',' | sed 's/^,*//; s/,*$//; s/,,*/,/g')
-  sed "s|<!-- spai:version dev -->|<!-- spai:version $SPAI_VERSION_STAMP flow=$FLOW skills=$stamp_skills -->|" "$stamp_target" > "$stamp_tmp"
+  sed "s|<!-- spai:version dev -->|<!-- spai:version $SPAI_VERSION_STAMP skills=$stamp_skills -->|" "$stamp_target" > "$stamp_tmp"
   mv "$stamp_tmp" "$stamp_target"
 }
 
@@ -249,6 +256,25 @@ manifest_default_skills() {
   awk -F '\t' '
     !/^#/ && NF >= 3 && $3 == "yes" { printf "%s ", $1 }
   ' "$MANIFEST_TMP"
+}
+
+skill_selected() {
+  for selected_skill in $SELECTED_SKILLS; do
+    [ "$selected_skill" = "$1" ] && return 0
+  done
+  return 1
+}
+
+prefixed_skill_name() {
+  case "$1" in
+    spai-*) printf '%s' "$1" ;;
+    *) printf 'spai-%s' "$1" ;;
+  esac
+}
+
+record_manual_plugin_step() {
+  MANUAL_PLUGIN_STEPS="${MANUAL_PLUGIN_STEPS}
+$1"
 }
 
 manifest_all_skills() {
@@ -303,84 +329,6 @@ record_verified_branch() {
 $1"
 }
 
-record_skill_conflict() {
-  SKILL_CONFLICTS="${SKILL_CONFLICTS}
-$1"
-}
-
-record_orphan_skill() {
-  ORPHAN_SKILLS="${ORPHAN_SKILLS}
-$1"
-}
-
-skill_selected() {
-  for selected_skill in $SELECTED_SKILLS; do
-    [ "$selected_skill" = "$1" ] && return 0
-  done
-  return 1
-}
-
-read_installed_stamp() {
-  stamp_source="$1"
-
-  PREVIOUS_STAMP_FOUND=0
-  PREVIOUS_SKILLS=""
-
-  [ -f "$stamp_source" ] || return 0
-
-  previous_stamp_line=$(grep -o '<!-- spai:version [^>]*-->' "$stamp_source" 2>/dev/null | head -n 1)
-  [ -n "$previous_stamp_line" ] || return 0
-
-  PREVIOUS_STAMP_FOUND=1
-  PREVIOUS_SKILLS=$(printf '%s' "$previous_stamp_line" | sed -n 's/.*skills=\([A-Za-z0-9_,-]*\).*/\1/p' | tr ',' ' ')
-}
-
-previous_skill_set() {
-  if [ -n "$PREVIOUS_SKILLS" ]; then
-    printf '%s' "$PREVIOUS_SKILLS"
-    return 0
-  fi
-  manifest_all_skills
-}
-
-previously_installed_skill() {
-  [ "$PREVIOUS_STAMP_FOUND" -eq 1 ] || return 1
-  for previous_skill in $(previous_skill_set); do
-    [ "$previous_skill" = "$1" ] && return 0
-  done
-  return 1
-}
-
-install_skill_file() {
-  skill_name="$1"
-  skill_source_url="$2"
-  skill_destination="$3"
-
-  if [ -f "$skill_destination" ] && [ "$FORCE" -eq 0 ] &&
-    ! grep -F "$SPAI_OWNED_MARKER" "$skill_destination" >/dev/null 2>&1 &&
-    ! previously_installed_skill "$skill_name"; then
-    warn "Skill conflict: $skill_destination exists and is not managed by SPAI. Skipping it to preserve your file; use --force to replace it."
-    record_skill_conflict "$skill_destination (not SPAI-managed)"
-    return 0
-  fi
-
-  copy_file_with_backup "$skill_source_url" "$skill_destination"
-}
-
-report_orphan_skills() {
-  orphan_base="$1"
-
-  [ "$PREVIOUS_STAMP_FOUND" -eq 1 ] || return 0
-
-  for previous_skill in $(previous_skill_set); do
-    skill_selected "$previous_skill" && continue
-    orphan_file="$orphan_base/$previous_skill/SKILL.md"
-    [ -f "$orphan_file" ] || continue
-    warn "Orphan skill: $orphan_file was installed by SPAI but is not part of the current selection."
-    record_orphan_skill "$orphan_file"
-  done
-}
-
 copy_file_with_backup() {
   copy_source_url="$1"
   copy_destination="$2"
@@ -427,11 +375,9 @@ filter_managed_block_skills() {
   for candidate_skill in $(manifest_all_skills); do
     skill_selected "$candidate_skill" && continue
     filter_tmp=$(mktemp)
-    awk -v skill="$candidate_skill" '
-      index($0, "<!-- spai:skill-start " skill " -->") { dropping = 1; next }
-      dropping && index($0, "<!-- spai:skill-end " skill " -->") { dropping = 0; next }
-      dropping { next }
-      $0 ~ ("^- `/?" skill "`") { next }
+    awk -v skill="$candidate_skill" -v prefixed="$(prefixed_skill_name "$candidate_skill")" '
+      $0 ~ ("^- `/spai:" skill "`") { next }
+      $0 ~ ("^- `" prefixed "`") { next }
       { print }
     ' "$filter_target" > "$filter_tmp"
     mv "$filter_tmp" "$filter_target"
@@ -828,7 +774,7 @@ sync_github_repository_settings() {
 }
 
 print_guide() {
-  if [ "$SCOPE" != "project" ] && [ -z "$SKILL_CONFLICTS" ] && [ -z "$ORPHAN_SKILLS" ]; then
+  if [ "$SCOPE" != "project" ] && [ -z "$MANUAL_PLUGIN_STEPS" ]; then
     return 0
   fi
 
@@ -840,31 +786,61 @@ print_guide() {
     printf '%s\n' '    - Use the installed `github-sync` skill to apply or verify this branch protection.'
   fi
 
-  if [ -n "$SKILL_CONFLICTS" ]; then
-    printf '%s\n' '    - Skill files above were left untouched because they carry no SPAI ownership marker.'
-    printf '%s\n' '      Rename your own skill, or re-run with --force to let SPAI take over the name.'
+  if [ -n "$MANUAL_PLUGIN_STEPS" ]; then
+    printf '%s\n' '    - Run the Claude Code plugin commands above, or install the plugin from a Claude Code session:'
+    printf '%s\n' '        /plugin marketplace add 0x0w1/spai'
+    printf '%s\n' '        /plugin install spai@spai'
+  fi
+}
+
+install_claude_plugin() {
+  if [ "$SCOPE" = "project" ]; then
+    plugin_scope="project"
+  else
+    plugin_scope="user"
   fi
 
-  if [ -n "$ORPHAN_SKILLS" ]; then
-    printf '%s\n' '    - Orphan skill files above are no longer part of the selection. SPAI never deletes them;'
-    printf '%s\n' '      remove them yourself, or re-run with the previous --skills selection to keep them managed.'
+  if [ "$DRY_RUN" -eq 1 ]; then
+    log "[dry-run] Would register Claude Code marketplace: $MARKETPLACE_REF"
+    log "[dry-run] Would install Claude Code plugin: $PLUGIN_REF (scope $plugin_scope)"
+    return 0
+  fi
+
+  if ! command -v claude >/dev/null 2>&1; then
+    warn "Claude Code CLI not found; the spai plugin was not installed."
+    record_manual_plugin_step "claude plugin marketplace add $MARKETPLACE_REF"
+    record_manual_plugin_step "claude plugin install $PLUGIN_REF --scope $plugin_scope"
+    return 0
+  fi
+
+  if claude plugin marketplace add "$MARKETPLACE_REF" >/dev/null 2>&1; then
+    log "Claude Code marketplace registered: $MARKETPLACE_REF"
+  else
+    pass_task "Claude Code marketplace already registered or unchanged: $MARKETPLACE_REF"
+  fi
+
+  if claude plugin install "$PLUGIN_REF" --scope "$plugin_scope" >/dev/null 2>&1; then
+    log "Claude Code plugin installed: $PLUGIN_REF (scope $plugin_scope)"
+    record_installed "Claude Code plugin $PLUGIN_REF (scope $plugin_scope)"
+  else
+    warn "Claude Code plugin install failed: $PLUGIN_REF"
+    record_manual_plugin_step "claude plugin install $PLUGIN_REF --scope $plugin_scope"
   fi
 }
 
 install_claude_code() {
   if [ "$SCOPE" = "project" ]; then
     memory_destination="./CLAUDE.md"
-    skill_base="./.claude/skills"
   else
     memory_destination="$HOME/.claude/CLAUDE.md"
-    skill_base="$HOME/.claude/skills"
   fi
-  read_installed_stamp "$memory_destination"
+
+  if [ -n "$SKILLS_INPUT" ]; then
+    warn "--skills does not apply to claude-code: the spai plugin installs every skill as one unit."
+  fi
+
   install_managed_block "$REPO_RAW_URL/dist/claude-code/CLAUDE.md" "$memory_destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
-  for skill in $SELECTED_SKILLS; do
-    install_skill_file "$skill" "$REPO_RAW_URL/dist/claude-code/.claude/skills/$skill/SKILL.md" "$skill_base/$skill/SKILL.md"
-  done
-  report_orphan_skills "$skill_base"
+  install_claude_plugin
 }
 
 install_codex() {
@@ -875,11 +851,10 @@ install_codex() {
     destination="$HOME/.codex/AGENTS.md"
     skill_base="$HOME/.agents/skills"
   fi
-  read_installed_stamp "$destination"
   for skill in $SELECTED_SKILLS; do
-    install_skill_file "$skill" "$REPO_RAW_URL/dist/codex/.agents/skills/$skill/SKILL.md" "$skill_base/$skill/SKILL.md"
+    prefixed=$(prefixed_skill_name "$skill")
+    copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/$prefixed/SKILL.md" "$skill_base/$prefixed/SKILL.md"
   done
-  report_orphan_skills "$skill_base"
   install_managed_block "$REPO_RAW_URL/dist/codex/AGENTS.md" "$destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
 }
 
@@ -891,11 +866,10 @@ install_antigravity() {
     destination="$HOME/.gemini/GEMINI.md"
     skill_base="$HOME/.gemini/config/skills"
   fi
-  read_installed_stamp "$destination"
   for skill in $SELECTED_SKILLS; do
-    install_skill_file "$skill" "$REPO_RAW_URL/dist/antigravity/.agents/skills/$skill/SKILL.md" "$skill_base/$skill/SKILL.md"
+    prefixed=$(prefixed_skill_name "$skill")
+    copy_file_with_backup "$REPO_RAW_URL/dist/antigravity/.agents/skills/$prefixed/SKILL.md" "$skill_base/$prefixed/SKILL.md"
   done
-  report_orphan_skills "$skill_base"
   install_managed_block "$REPO_RAW_URL/dist/antigravity/GEMINI.md" "$destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
 }
 
@@ -936,11 +910,6 @@ main() {
         shift
         [ "$#" -gt 0 ] || error "--version requires a value"
         REQUESTED_VERSION="$1"
-        ;;
-      --flow)
-        shift
-        [ "$#" -gt 0 ] || error "--flow requires a value"
-        FLOW="$1"
         ;;
       --skills)
         shift
@@ -989,17 +958,13 @@ main() {
     *) error "unsupported scope: $SCOPE" ;;
   esac
 
-  case "$FLOW" in
-    solo-cli) ;;
-    *) error "unsupported flow: $FLOW. solo-cli is the only supported flow; see docs/roadmap.md." ;;
-  esac
-
   if [ "$SCOPE" = "project" ] && [ -z "$GITHUB_ACCOUNT" ]; then
     error "project scope requires --github-account <account> or SPAI_GITHUB_ACCOUNT."
   fi
 
   need_downloader
   resolve_repo_raw_url
+  resolve_marketplace_ref
   load_manifest
   resolve_selected_skills
 
@@ -1027,8 +992,7 @@ main() {
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced local git config" "$SYNCED_GIT_CONFIG"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub branches" "$SYNCED_BRANCHES"
   [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub branches" "$VERIFIED_BRANCHES"
-  print_list "Skipped skill files not managed by SPAI" "$SKILL_CONFLICTS"
-  print_list "Orphan skill files from a previous SPAI selection" "$ORPHAN_SKILLS"
+  print_list "Claude Code plugin steps left to run" "$MANUAL_PLUGIN_STEPS"
   print_guide
 }
 

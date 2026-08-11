@@ -13,12 +13,12 @@ SPAI 초기 버전은 **개인 사이드 프로젝트의 CLI 에이전트 하네
 
 ## 현재 제공
 
-- installer: 최신 릴리즈 태그 고정 설치, `--version` 롤백, `--skills` 선택 설치(`manifest.tsv` 카탈로그)
+- installer: 최신 릴리즈 태그 고정 설치, `--version` 롤백, `--skills` 선택 설치(`manifest.tsv` 카탈로그, codex/antigravity 전용)
 - workflow 스킬 3종: `develop-task-flow`, `github-release`, `github-sync`
 - 수명주기 스킬 2종: `spai-update`, `spai-doctor`
-- Claude Code 플러그인 마켓플레이스 배포 (`spai`)
+- 배포 방식: Claude Code는 플러그인 마켓플레이스(`spai@spai`, 호스트가 `/spai:<skill>`로 네임스페이스), Codex/Antigravity는 `spai-` prefix 스킬 파일
 
-병합 흐름은 **solo-cli 하나**다: 로컬 `git merge --squash` → `develop` 직접 push, Pull Request 없음. 팀 흐름은 아래 C 후보로 보류돼 있다.
+병합 흐름은 **하나뿐이다**: 로컬 `git merge --squash` → `develop` 직접 push, Pull Request 없음. 팀 흐름은 아래 C 후보로 보류돼 있다.
 
 ## 방향 후보 (보류 중, 트리거 조건부)
 
@@ -29,11 +29,15 @@ SPAI 초기 버전은 **개인 사이드 프로젝트의 CLI 에이전트 하네
 | **C. 팀 도입 채널** | 온보딩(원라이너 1회 = 팀 규칙 동기화), 팀원별 드리프트 감시, CI 감사, 조직별 flow 파라미터(승인 수 등). PR 기반 병합 흐름(`team-pr`) 복원 포함 — 설계는 아래 기록 참조 | 실제 팀 사용자가 등장할 때. B가 CI 실행형이면 절반은 해결됨 |
 | **D. engine/content 분리 (registry)** | installer·manifest·수명주기(engine)와 스킬 내용(content)을 분리해 타 조직이 자기 절차를 SPAI 엔진으로 배포. `REPO_RAW_URL` 오버라이드가 이미 절반 — 남은 건 하드코딩 제거와 절차 저장소 스캐폴드 | 외부 수요 신호(fork, 이슈, 절차 배포 요청)가 보일 때 |
 
+## 설계 기록: 스킬 소유권 마커 (제거됨)
+
+v0.2.0 이전에는 배포 payload에 `<!-- spai:owned skill=<name> -->` 마커를 넣고, installer가 마커 없는 파일을 건너뛰고, 버전 스탬프를 소유권 대장으로 삼아 구버전을 승계하고, 선택에서 빠진 파일을 고아로 보고했다. 플러그인 네임스페이스(Claude Code)와 `spai-` prefix(Codex/Antigravity)로 대체하면서 전부 제거했다. 호스트가 제공하는 기능을 재구현하지 않는다는 원칙의 사례로 남긴다.
+
 ## 설계 기록: team-pr flow (제거됨, C 착수 시 복원 대상)
 
 한때 구현돼 있던 PR 기반 팀 흐름이다. 실제 팀 사용자가 없어 유지 비용만 발생해 제거했고, 복원에 필요한 설계만 여기 남긴다. 원본 파일은 git 히스토리에 있다.
 
-**flow 프로필 메커니즘**
+**flow 프로필 메커니즘** (v0.2.0에서 `--flow` 옵션과 스탬프의 `flow=` 필드까지 완전 제거됨)
 
 - installer가 `--flow <flow>`(`SPAI_FLOW`)를 받아 `manifest.tsv` 2열의 지원 flow 목록과 대조하고, 선택된 flow를 버전 스탬프에 `flow=<flow>`로 기록했다.
 - 스킬 원본은 `skills/<skill>/SKILL.md`(기본)와 `skills/<skill>/SKILL.<flow>.md`(변형)로 두고, 변형이 있으면 그것을, 없으면 기본을 배포했다. installer는 변형 payload가 404면 기본으로 폴백했다.

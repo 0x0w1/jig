@@ -17,7 +17,7 @@ Use these repo-scoped Claude Code skills:
 ## Skill Copies
 
 - `skills/` is the source of truth for every skill and is built into `dist/` for distribution.
-- This repository keeps synced copies of its repo-scoped skills under `.agents/skills` (Codex) and `.claude/skills` (Claude Code). When a skill under `skills/` changes, update both copies in the same task.
+- This repository keeps synced copies of its repo-scoped skills under `.agents/skills` (Codex, `spai-` prefixed to match the shipped payload) and `.claude/skills` (Claude Code, unprefixed development copies). When a skill under `skills/` changes, update both copies in the same task.
 
 ## Safety Rules
 

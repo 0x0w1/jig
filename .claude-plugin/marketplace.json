@@ -9,7 +9,7 @@
     {
       "name": "spai",
       "source": "./dist/claude-code-plugin/spai",
-      "description": "SPAI workflow skills: github-sync, github-release, develop-task-flow. Local squash merge into develop, CLI fast-forward releases, no pull requests."
+      "description": "SPAI repository workflow skills: develop task flow, CLI fast-forward releases, and repository sync. Skills are namespaced as /spai:<skill>."
     }
   ]
 }

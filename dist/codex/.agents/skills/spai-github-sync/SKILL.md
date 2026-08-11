@@ -1,9 +1,7 @@
 ---
-name: github-sync
+name: spai-github-sync
 description: "Use when synchronizing this repository's GitHub setup: main/develop branch existence and branch protection for the CLI release flow. Do not use for creating a release."
 ---
-
-<!-- spai:owned skill=github-sync -->
 
 # GitHub Sync
 
