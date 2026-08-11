@@ -53,6 +53,11 @@ require_text dist/antigravity/GEMINI.md "<!-- spai:version dev -->"
 
 for skill in $SKILLS; do
   title=$(skill_title "$skill")
+  require_text "dist/claude-code/.claude/skills/$skill/SKILL.md" "<!-- spai:owned skill=$skill -->"
+  require_text "dist/codex/.agents/skills/$skill/SKILL.md" "<!-- spai:owned skill=$skill -->"
+  require_text "dist/antigravity/.agents/skills/$skill/SKILL.md" "<!-- spai:owned skill=$skill -->"
+  require_text dist/codex/AGENTS.md "<!-- spai:skill-start $skill -->"
+  require_text dist/codex/AGENTS.md "<!-- spai:skill-end $skill -->"
   require_file "dist/claude-code/.claude/skills/$skill/SKILL.md"
   require_file "dist/codex/.agents/skills/$skill/SKILL.md"
   require_file "dist/antigravity/.agents/skills/$skill/SKILL.md"
@@ -94,6 +99,9 @@ require_file "dist/claude-code-plugin/spai/.claude-plugin/plugin.json"
 require_text "dist/claude-code-plugin/spai/.claude-plugin/plugin.json" '"name": "spai"'
 for skill in github-sync github-release develop-task-flow; do
   require_file "dist/claude-code-plugin/spai/skills/$skill/SKILL.md"
+done
+for skill in github-sync github-release develop-task-flow; do
+  require_text "dist/claude-code-plugin/spai/skills/$skill/SKILL.md" "<!-- spai:owned skill=$skill -->"
 done
 require_text "dist/claude-code-plugin/spai/skills/develop-task-flow/SKILL.md" 'git merge --squash'
 require_text "dist/claude-code-plugin/spai/skills/github-release/SKILL.md" 'git push origin develop:main'

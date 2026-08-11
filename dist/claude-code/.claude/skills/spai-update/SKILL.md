@@ -3,6 +3,8 @@ name: spai-update
 description: Use when updating the SPAI skills installed in this repository to the latest SPAI release by comparing the installed spai:version stamp with the latest GitHub release, summarizing the changes, re-running the installer pinned to the latest tag, and converging repository settings with github-sync.
 ---
 
+<!-- spai:owned skill=spai-update -->
+
 # SPAI Update
 
 Use this repository skill to update the installed SPAI procedures to the latest release.

@@ -25,6 +25,11 @@ VERIFIED_GITHUB_ACCOUNT=""
 SYNCED_GIT_CONFIG=""
 SYNCED_BRANCHES=""
 VERIFIED_BRANCHES=""
+SKILL_CONFLICTS=""
+ORPHAN_SKILLS=""
+PREVIOUS_STAMP_FOUND=0
+PREVIOUS_SKILLS=""
+SPAI_OWNED_MARKER="<!-- spai:owned skill="
 
 print_help() {
   cat <<'EOF'
@@ -94,6 +99,13 @@ Local git user:
 
 Managed files:
   Use --force to replace an existing managed file entirely when it does not already contain SPAI markers.
+
+Skill ownership:
+  Every skill payload carries a <!-- spai:owned skill=<name> --> marker.
+  An existing skill file without that marker is treated as yours: it is skipped, not overwritten.
+  Files recorded in a previous install stamp are adopted so updates of earlier installs keep working.
+  Use --force to let SPAI take over such a name.
+  Skills dropped from --skills are reported as orphans; the installer never deletes them.
 
 Project scope also syncs GitHub repository settings when gh is available:
   account: selected by --github-account or SPAI_GITHUB_ACCOUNT
@@ -239,6 +251,12 @@ manifest_default_skills() {
   ' "$MANIFEST_TMP"
 }
 
+manifest_all_skills() {
+  awk -F '\t' '
+    !/^#/ && NF >= 3 { printf "%s ", $1 }
+  ' "$MANIFEST_TMP"
+}
+
 manifest_has_skill() {
   awk -F '\t' -v name="$1" '
     !/^#/ && $1 == name { found = 1 }
@@ -285,6 +303,84 @@ record_verified_branch() {
 $1"
 }
 
+record_skill_conflict() {
+  SKILL_CONFLICTS="${SKILL_CONFLICTS}
+$1"
+}
+
+record_orphan_skill() {
+  ORPHAN_SKILLS="${ORPHAN_SKILLS}
+$1"
+}
+
+skill_selected() {
+  for selected_skill in $SELECTED_SKILLS; do
+    [ "$selected_skill" = "$1" ] && return 0
+  done
+  return 1
+}
+
+read_installed_stamp() {
+  stamp_source="$1"
+
+  PREVIOUS_STAMP_FOUND=0
+  PREVIOUS_SKILLS=""
+
+  [ -f "$stamp_source" ] || return 0
+
+  previous_stamp_line=$(grep -o '<!-- spai:version [^>]*-->' "$stamp_source" 2>/dev/null | head -n 1)
+  [ -n "$previous_stamp_line" ] || return 0
+
+  PREVIOUS_STAMP_FOUND=1
+  PREVIOUS_SKILLS=$(printf '%s' "$previous_stamp_line" | sed -n 's/.*skills=\([A-Za-z0-9_,-]*\).*/\1/p' | tr ',' ' ')
+}
+
+previous_skill_set() {
+  if [ -n "$PREVIOUS_SKILLS" ]; then
+    printf '%s' "$PREVIOUS_SKILLS"
+    return 0
+  fi
+  manifest_all_skills
+}
+
+previously_installed_skill() {
+  [ "$PREVIOUS_STAMP_FOUND" -eq 1 ] || return 1
+  for previous_skill in $(previous_skill_set); do
+    [ "$previous_skill" = "$1" ] && return 0
+  done
+  return 1
+}
+
+install_skill_file() {
+  skill_name="$1"
+  skill_source_url="$2"
+  skill_destination="$3"
+
+  if [ -f "$skill_destination" ] && [ "$FORCE" -eq 0 ] &&
+    ! grep -F "$SPAI_OWNED_MARKER" "$skill_destination" >/dev/null 2>&1 &&
+    ! previously_installed_skill "$skill_name"; then
+    warn "Skill conflict: $skill_destination exists and is not managed by SPAI. Skipping it to preserve your file; use --force to replace it."
+    record_skill_conflict "$skill_destination (not SPAI-managed)"
+    return 0
+  fi
+
+  copy_file_with_backup "$skill_source_url" "$skill_destination"
+}
+
+report_orphan_skills() {
+  orphan_base="$1"
+
+  [ "$PREVIOUS_STAMP_FOUND" -eq 1 ] || return 0
+
+  for previous_skill in $(previous_skill_set); do
+    skill_selected "$previous_skill" && continue
+    orphan_file="$orphan_base/$previous_skill/SKILL.md"
+    [ -f "$orphan_file" ] || continue
+    warn "Orphan skill: $orphan_file was installed by SPAI but is not part of the current selection."
+    record_orphan_skill "$orphan_file"
+  done
+}
+
 copy_file_with_backup() {
   copy_source_url="$1"
   copy_destination="$2"
@@ -325,6 +421,23 @@ copy_file_with_backup() {
   rm -f "$copy_tmp"
 }
 
+filter_managed_block_skills() {
+  filter_target="$1"
+
+  for candidate_skill in $(manifest_all_skills); do
+    skill_selected "$candidate_skill" && continue
+    filter_tmp=$(mktemp)
+    awk -v skill="$candidate_skill" '
+      index($0, "<!-- spai:skill-start " skill " -->") { dropping = 1; next }
+      dropping && index($0, "<!-- spai:skill-end " skill " -->") { dropping = 0; next }
+      dropping { next }
+      $0 ~ ("^- `/?" skill "`") { next }
+      { print }
+    ' "$filter_target" > "$filter_tmp"
+    mv "$filter_tmp" "$filter_target"
+  done
+}
+
 extract_managed_block() {
   extract_source="$1"
   extract_block="$2"
@@ -353,6 +466,7 @@ install_managed_block() {
   managed_new_tmp=$(mktemp)
   download_file "$managed_source_url" "$managed_source_tmp"
   stamp_spai_version "$managed_source_tmp"
+  filter_managed_block_skills "$managed_source_tmp"
   extract_managed_block "$managed_source_tmp" "$managed_block_tmp" "$managed_start_marker" "$managed_end_marker"
 
   if [ ! -f "$managed_destination" ]; then
@@ -714,14 +828,27 @@ sync_github_repository_settings() {
 }
 
 print_guide() {
-  if [ "$SCOPE" != "project" ]; then
+  if [ "$SCOPE" != "project" ] && [ -z "$SKILL_CONFLICTS" ] && [ -z "$ORPHAN_SKILLS" ]; then
     return 0
   fi
 
   printf '\nGUIDE\n'
   printf '%s\n' '  Remaining manual steps:'
-  printf '%s\n' '    - Protect `main` and `develop` against force pushes and deletion; do not require pull requests.'
-  printf '%s\n' '    - Use the installed `github-sync` skill to apply or verify this branch protection.'
+
+  if [ "$SCOPE" = "project" ]; then
+    printf '%s\n' '    - Protect `main` and `develop` against force pushes and deletion; do not require pull requests.'
+    printf '%s\n' '    - Use the installed `github-sync` skill to apply or verify this branch protection.'
+  fi
+
+  if [ -n "$SKILL_CONFLICTS" ]; then
+    printf '%s\n' '    - Skill files above were left untouched because they carry no SPAI ownership marker.'
+    printf '%s\n' '      Rename your own skill, or re-run with --force to let SPAI take over the name.'
+  fi
+
+  if [ -n "$ORPHAN_SKILLS" ]; then
+    printf '%s\n' '    - Orphan skill files above are no longer part of the selection. SPAI never deletes them;'
+    printf '%s\n' '      remove them yourself, or re-run with the previous --skills selection to keep them managed.'
+  fi
 }
 
 install_claude_code() {
@@ -732,10 +859,12 @@ install_claude_code() {
     memory_destination="$HOME/.claude/CLAUDE.md"
     skill_base="$HOME/.claude/skills"
   fi
+  read_installed_stamp "$memory_destination"
   install_managed_block "$REPO_RAW_URL/dist/claude-code/CLAUDE.md" "$memory_destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
   for skill in $SELECTED_SKILLS; do
-    copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/.claude/skills/$skill/SKILL.md" "$skill_base/$skill/SKILL.md"
+    install_skill_file "$skill" "$REPO_RAW_URL/dist/claude-code/.claude/skills/$skill/SKILL.md" "$skill_base/$skill/SKILL.md"
   done
+  report_orphan_skills "$skill_base"
 }
 
 install_codex() {
@@ -746,9 +875,11 @@ install_codex() {
     destination="$HOME/.codex/AGENTS.md"
     skill_base="$HOME/.agents/skills"
   fi
+  read_installed_stamp "$destination"
   for skill in $SELECTED_SKILLS; do
-    copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/$skill/SKILL.md" "$skill_base/$skill/SKILL.md"
+    install_skill_file "$skill" "$REPO_RAW_URL/dist/codex/.agents/skills/$skill/SKILL.md" "$skill_base/$skill/SKILL.md"
   done
+  report_orphan_skills "$skill_base"
   install_managed_block "$REPO_RAW_URL/dist/codex/AGENTS.md" "$destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
 }
 
@@ -760,9 +891,11 @@ install_antigravity() {
     destination="$HOME/.gemini/GEMINI.md"
     skill_base="$HOME/.gemini/config/skills"
   fi
+  read_installed_stamp "$destination"
   for skill in $SELECTED_SKILLS; do
-    copy_file_with_backup "$REPO_RAW_URL/dist/antigravity/.agents/skills/$skill/SKILL.md" "$skill_base/$skill/SKILL.md"
+    install_skill_file "$skill" "$REPO_RAW_URL/dist/antigravity/.agents/skills/$skill/SKILL.md" "$skill_base/$skill/SKILL.md"
   done
+  report_orphan_skills "$skill_base"
   install_managed_block "$REPO_RAW_URL/dist/antigravity/GEMINI.md" "$destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
 }
 
@@ -894,6 +1027,8 @@ main() {
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced local git config" "$SYNCED_GIT_CONFIG"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub branches" "$SYNCED_BRANCHES"
   [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub branches" "$VERIFIED_BRANCHES"
+  print_list "Skipped skill files not managed by SPAI" "$SKILL_CONFLICTS"
+  print_list "Orphan skill files from a previous SPAI selection" "$ORPHAN_SKILLS"
   print_guide
 }
 

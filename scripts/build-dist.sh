@@ -30,6 +30,16 @@ append_skill_body() {
   ' "$skill_file"
 }
 
+copy_skill_payload() {
+  copy_skill_name="$1"
+  copy_skill_destination="$2"
+  awk -v marker="<!-- spai:owned skill=$copy_skill_name -->" '
+    NR == 1 && $0 == "---" { print; frontmatter = 1; next }
+    frontmatter && $0 == "---" { print; print ""; print marker; frontmatter = 0; next }
+    { print }
+  ' "skills/$copy_skill_name/SKILL.md" > "$copy_skill_destination"
+}
+
 append_managed_header() {
   cat <<'EOF'
 Scaffolded Procedures for AI Agents
@@ -64,8 +74,9 @@ append_all_skill_bodies() {
       echo "Missing $skill_file" >&2
       exit 1
     fi
-    printf '\n## %s\n\n' "$skill"
+    printf '\n<!-- spai:skill-start %s -->\n## %s\n\n' "$skill" "$skill"
     append_skill_body "$skill_file"
+    printf '<!-- spai:skill-end %s -->\n' "$skill"
   done
 }
 
@@ -101,12 +112,12 @@ EOF
 
 for skill in $SKILLS; do
   mkdir -p "dist/claude-code/.claude/skills/$skill"
-  cp "skills/$skill/SKILL.md" "dist/claude-code/.claude/skills/$skill/"
+  copy_skill_payload "$skill" "dist/claude-code/.claude/skills/$skill/SKILL.md"
 done
 
 for skill in $SKILLS; do
   mkdir -p "dist/codex/.agents/skills/$skill"
-  cp "skills/$skill/SKILL.md" "dist/codex/.agents/skills/$skill/"
+  copy_skill_payload "$skill" "dist/codex/.agents/skills/$skill/SKILL.md"
 done
 {
   append_managed_header
@@ -137,7 +148,7 @@ EOF
 
 for skill in $SKILLS; do
   mkdir -p "dist/antigravity/.agents/skills/$skill"
-  cp "skills/$skill/SKILL.md" "dist/antigravity/.agents/skills/$skill/"
+  copy_skill_payload "$skill" "dist/antigravity/.agents/skills/$skill/SKILL.md"
 done
 
 build_claude_plugin() {
@@ -155,7 +166,7 @@ build_claude_plugin() {
 EOF
   for skill in $PLUGIN_SKILLS; do
     mkdir -p "$plugin_root/skills/$skill"
-    cp "skills/$skill/SKILL.md" "$plugin_root/skills/$skill/SKILL.md"
+    copy_skill_payload "$skill" "$plugin_root/skills/$skill/SKILL.md"
   done
 }
 
