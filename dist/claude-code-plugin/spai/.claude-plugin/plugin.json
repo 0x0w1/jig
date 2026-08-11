@@ -1,0 +1,7 @@
+{
+  "name": "spai",
+  "description": "SPAI solo-cli workflow skills: github-sync, github-release, develop-task-flow",
+  "author": { "name": "0x0w1" },
+  "homepage": "https://github.com/0x0w1/spai",
+  "license": "MIT"
+}

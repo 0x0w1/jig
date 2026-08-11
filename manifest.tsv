@@ -1,0 +1,5 @@
+github-sync	solo-cli,team-pr	yes
+github-release	solo-cli,team-pr	yes
+develop-task-flow	solo-cli,team-pr	yes
+spai-update	solo-cli,team-pr	yes
+spai-doctor	solo-cli,team-pr	yes

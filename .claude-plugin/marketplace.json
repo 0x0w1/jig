@@ -1,0 +1,20 @@
+{
+  "name": "spai",
+  "description": "Scaffolded Procedures for AI Agents: repository workflow skills for the develop/main CLI release flow.",
+  "owner": {
+    "name": "0x0w1",
+    "url": "https://github.com/0x0w1"
+  },
+  "plugins": [
+    {
+      "name": "spai",
+      "source": "./dist/claude-code-plugin/spai",
+      "description": "SPAI solo-cli workflow skills: github-sync, github-release, develop-task-flow. Local squash merge into develop, CLI fast-forward releases, no pull requests."
+    },
+    {
+      "name": "spai-team-pr",
+      "source": "./dist/claude-code-plugin/spai-team-pr",
+      "description": "SPAI team-pr workflow skills: github-sync, github-release, develop-task-flow. Squash-merged pull requests into develop, CLI fast-forward releases."
+    }
+  ]
+}

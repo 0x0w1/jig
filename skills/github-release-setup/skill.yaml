@@ -1,0 +1,22 @@
+id: github-release-setup
+name: GitHub Release Setup
+version: 0.3.0
+description: Configure a GitHub repository with main/develop branches protected against force pushes and deletion, a solo-cli or team-pr task flow profile, and CLI-managed tag releases.
+targets:
+  - claude-code
+  - codex
+  - antigravity
+triggers:
+  - github release setup
+  - repository release setup
+  - configure branch protection
+  - setup main develop release flow
+  - setup cli release flow
+  - setup team pr flow
+safety:
+  - Do not force push.
+  - Do not delete branches.
+  - Do not delete labels or files without explicit confirmation.
+  - Do not overwrite files with different content without explicit confirmation.
+  - Do not create or install AI skill directories while configuring the target repository.
+  - Do not create releases or tags during setup.
