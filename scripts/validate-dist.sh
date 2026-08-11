@@ -36,13 +36,6 @@ fi
 require_file dist/manifest.tsv
 require_text dist/manifest.tsv "develop-task-flow"
 
-require_file dist/claude-code/.claude/skills/develop-task-flow/SKILL.team-pr.md
-require_file dist/codex/.agents/skills/develop-task-flow/SKILL.team-pr.md
-require_file dist/antigravity/.agents/skills/develop-task-flow/SKILL.team-pr.md
-require_file dist/antigravity/.agents/skills/github-sync/SKILL.team-pr.md
-require_text "dist/claude-code/.claude/skills/develop-task-flow/SKILL.team-pr.md" "pull request"
-require_text "dist/claude-code/.claude/skills/github-sync/SKILL.team-pr.md" "required pull request reviews"
-
 require_file dist/claude-code/CLAUDE.md
 require_text dist/claude-code/CLAUDE.md "spai:start github-release-setup"
 require_text dist/claude-code/CLAUDE.md "spai:end github-release-setup"
@@ -96,22 +89,21 @@ require_text dist/antigravity/GEMINI.md "Scaffolded Procedures for AI Agents"
 
 require_file .claude-plugin/marketplace.json
 require_text .claude-plugin/marketplace.json '"./dist/claude-code-plugin/spai"'
-require_text .claude-plugin/marketplace.json '"./dist/claude-code-plugin/spai-team-pr"'
 
-for plugin in spai spai-team-pr; do
-  require_file "dist/claude-code-plugin/$plugin/.claude-plugin/plugin.json"
-  require_text "dist/claude-code-plugin/$plugin/.claude-plugin/plugin.json" "\"name\": \"$plugin\""
-  for skill in github-sync github-release develop-task-flow; do
-    require_file "dist/claude-code-plugin/$plugin/skills/$skill/SKILL.md"
-  done
+require_file "dist/claude-code-plugin/spai/.claude-plugin/plugin.json"
+require_text "dist/claude-code-plugin/spai/.claude-plugin/plugin.json" '"name": "spai"'
+for skill in github-sync github-release develop-task-flow; do
+  require_file "dist/claude-code-plugin/spai/skills/$skill/SKILL.md"
 done
 require_text "dist/claude-code-plugin/spai/skills/develop-task-flow/SKILL.md" 'git merge --squash'
-require_text "dist/claude-code-plugin/spai-team-pr/skills/develop-task-flow/SKILL.md" "pull request"
-require_text "dist/claude-code-plugin/spai-team-pr/skills/github-sync/SKILL.md" "required pull request reviews"
-require_text "dist/claude-code-plugin/spai-team-pr/skills/github-release/SKILL.md" 'git push origin develop:main'
+require_text "dist/claude-code-plugin/spai/skills/github-release/SKILL.md" 'git push origin develop:main'
 
-if find dist/claude-code-plugin -name "SKILL.*.md" | grep -q .; then
-  fail "plugin payloads must contain only resolved SKILL.md files"
+if find dist -name "SKILL.*.md" ! -name "SKILL.md" | grep -q .; then
+  fail "dist must contain only resolved SKILL.md files: solo-cli is the only flow"
+fi
+
+if grep -R 'team-pr' dist .claude-plugin manifest.tsv >/dev/null 2>&1; then
+  fail "team-pr is not a supported flow; see docs/roadmap.md"
 fi
 
 if grep -R 'agent-release-skill' dist >/dev/null 2>&1; then

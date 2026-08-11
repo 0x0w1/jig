@@ -13,7 +13,7 @@
 일반 스킬 모음과 달리 SPAI는 두 가지를 함께 관리합니다.
 
 1. **저장소 상태 수렴** — 스킬(세션 절차)만 배포하는 게 아니라, 브랜치 모델·branch protection·릴리즈 규율이라는 *저장소 상태*를 `github-sync`로 맞추고 `spai-doctor`로 진단합니다. 규칙 문서가 아니라 집행되는 규칙입니다.
-2. **에이전트 횡단 일관성 + 수명주기** — 하나의 절차 원본(`skills/`)을 여러 CLI 형식으로 렌더링해 배포하고, 버전 스탬프·`spai-update`·`spai-doctor`로 설치 이후를 관리합니다. flow 프로필(`solo-cli`/`team-pr`)과 스킬 선택 설치(`manifest.tsv` 카탈로그)를 지원합니다.
+2. **에이전트 횡단 일관성 + 수명주기** — 하나의 절차 원본(`skills/`)을 여러 CLI 형식으로 렌더링해 배포하고, 버전 스탬프·`spai-update`·`spai-doctor`로 설치 이후를 관리합니다. 스킬 선택 설치(`manifest.tsv` 카탈로그)를 지원합니다.
 
 제공 스킬:
 
@@ -32,19 +32,16 @@
 
 ## 설치 방법
 
-공통 형식은 하나이고, `--target`만 바꾸면 됩니다. 필요하면 `--flow`와 `--skills`로 flow 프로필과 스킬 구성을 고를 수 있습니다.
+공통 형식은 하나이고, `--target`만 바꾸면 됩니다. 필요하면 `--skills`로 설치할 스킬 구성을 고를 수 있습니다.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-  | sh -s -- --target <target> --scope project --github-account <account> [--flow <flow>] [--skills a,b]
+  | sh -s -- --target <target> --scope project --github-account <account> [--skills a,b]
 ```
 
-| flow | 작업 병합 | develop 보호 |
-|---|---|---|
-| `solo-cli` (기본) | 로컬 `git merge --squash` 후 직접 push | PR 불필요 |
-| `team-pr` | 브랜치 push 후 `develop` 대상 PR squash merge | PR 필수 |
+작업 병합 방식은 **solo-cli 하나**입니다: 작업 브랜치를 로컬에서 `git merge --squash`로 `develop`에 합치고 직접 push하며, Pull Request를 쓰지 않습니다. 팀 단위 PR 흐름은 [Roadmap](docs/roadmap.md)의 보류 후보입니다.
 
-`--skills`를 생략하면 선택한 flow의 기본 스킬 전부가 설치됩니다. 스킬 목록과 flow 지원 여부는 `manifest.tsv`가 원본입니다.
+`--skills`를 생략하면 기본 스킬 전부가 설치됩니다. 스킬 목록은 `manifest.tsv`가 원본입니다.
 
 ### CLI 설치 방법
 
@@ -61,8 +58,7 @@ curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
 
 ```text
 /plugin marketplace add 0x0w1/spai
-/plugin install spai@spai            # solo-cli flow
-/plugin install spai-team-pr@spai    # team-pr flow (둘 중 하나만)
+/plugin install spai@spai
 ```
 
 두 방식의 차이:
@@ -111,7 +107,7 @@ installer는 기본적으로 최신 GitHub 릴리즈 태그를 조회해 해당 
   ```
 
 - `REPO_RAW_URL`을 직접 지정하면 버전 해석을 건너뛰고 그 URL을 그대로 사용합니다.
-- 설치된 버전·flow·스킬 구성은 `CLAUDE.md`/`AGENTS.md`/`GEMINI.md`의 SPAI managed block 안에 `<!-- spai:version vX.Y.Z flow=<flow> skills=<a,b,c> -->`로 스탬프됩니다. `spai-update`가 이 스탬프를 읽어 같은 구성으로 업데이트하고, `spai-doctor`가 진단 기준으로 사용합니다.
+- 설치된 버전·스킬 구성은 `CLAUDE.md`/`AGENTS.md`/`GEMINI.md`의 SPAI managed block 안에 `<!-- spai:version vX.Y.Z flow=solo-cli skills=<a,b,c> -->`로 스탬프됩니다. `spai-update`가 이 스탬프를 읽어 같은 구성으로 업데이트하고, `spai-doctor`가 진단 기준으로 사용합니다.
 
 ## 업데이트
 

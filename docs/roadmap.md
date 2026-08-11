@@ -13,10 +13,12 @@ SPAI 초기 버전은 **개인 사이드 프로젝트의 CLI 에이전트 하네
 
 ## 현재 제공
 
-- installer: 최신 릴리즈 태그 고정 설치, `--version` 롤백, `--skills` 선택 설치(`manifest.tsv` 카탈로그), `--flow solo-cli|team-pr` 프로필
+- installer: 최신 릴리즈 태그 고정 설치, `--version` 롤백, `--skills` 선택 설치(`manifest.tsv` 카탈로그)
 - workflow 스킬 3종: `develop-task-flow`, `github-release`, `github-sync`
 - 수명주기 스킬 2종: `spai-update`, `spai-doctor`
-- Claude Code 플러그인 마켓플레이스 배포 (`spai`, `spai-team-pr`)
+- Claude Code 플러그인 마켓플레이스 배포 (`spai`)
+
+병합 흐름은 **solo-cli 하나**다: 로컬 `git merge --squash` → `develop` 직접 push, Pull Request 없음. 팀 흐름은 아래 C 후보로 보류돼 있다.
 
 ## 방향 후보 (보류 중, 트리거 조건부)
 
@@ -24,8 +26,30 @@ SPAI 초기 버전은 **개인 사이드 프로젝트의 CLI 에이전트 하네
 |---|---|---|
 | **A. 절차 확장** | 같은 도메인의 절차 추가: `hotfix-flow`(main 긴급 수정→develop 역반영), `issue-triage`, `dependency-update`, `repo-hygiene`(doctor 확장 감사) 등 | 실사용에서 반복 행동이 관찰될 때, 한 번에 1개씩. 선제작 금지 (스킬 분량 최소화 원칙) |
 | **B. 절차 준수 검증 (conformance)** | 에이전트가 절차를 실제로 따랐는지 기계 검증. 릴리즈 후 커밋·태그·노트가 규칙대로인지 사후 감사. CI에서도 실행 가능한 검사 스크립트 형태로 설계하면 C의 CI 감사 요소를 겸함 | 절차 위반 사례가 실사용에서 축적될 때 |
-| **C. 팀 도입 채널** | 온보딩(원라이너 1회 = 팀 규칙 동기화), 팀원별 드리프트 감시, CI 감사, 조직별 flow 파라미터(승인 수 등). 새 스킬 증가 거의 없음 — 기존 도구의 실행 맥락 확장 | 실제 팀 사용자가 등장할 때. B가 CI 실행형이면 절반은 해결됨 |
+| **C. 팀 도입 채널** | 온보딩(원라이너 1회 = 팀 규칙 동기화), 팀원별 드리프트 감시, CI 감사, 조직별 flow 파라미터(승인 수 등). PR 기반 병합 흐름(`team-pr`) 복원 포함 — 설계는 아래 기록 참조 | 실제 팀 사용자가 등장할 때. B가 CI 실행형이면 절반은 해결됨 |
 | **D. engine/content 분리 (registry)** | installer·manifest·수명주기(engine)와 스킬 내용(content)을 분리해 타 조직이 자기 절차를 SPAI 엔진으로 배포. `REPO_RAW_URL` 오버라이드가 이미 절반 — 남은 건 하드코딩 제거와 절차 저장소 스캐폴드 | 외부 수요 신호(fork, 이슈, 절차 배포 요청)가 보일 때 |
+
+## 설계 기록: team-pr flow (제거됨, C 착수 시 복원 대상)
+
+한때 구현돼 있던 PR 기반 팀 흐름이다. 실제 팀 사용자가 없어 유지 비용만 발생해 제거했고, 복원에 필요한 설계만 여기 남긴다. 원본 파일은 git 히스토리에 있다.
+
+**flow 프로필 메커니즘**
+
+- installer가 `--flow <flow>`(`SPAI_FLOW`)를 받아 `manifest.tsv` 2열의 지원 flow 목록과 대조하고, 선택된 flow를 버전 스탬프에 `flow=<flow>`로 기록했다.
+- 스킬 원본은 `skills/<skill>/SKILL.md`(기본)와 `skills/<skill>/SKILL.<flow>.md`(변형)로 두고, 변형이 있으면 그것을, 없으면 기본을 배포했다. installer는 변형 payload가 404면 기본으로 폴백했다.
+- Claude Code 플러그인은 flow별로 하나씩 빌드했다(`spai`, `spai-team-pr`). 플러그인 payload 안에서는 변형이 `SKILL.md`로 해소된 상태여야 했다.
+- `spai-doctor`는 스탬프의 flow에 맞는 payload와 `cmp`해 드리프트를 판정하고, flow별로 다른 branch protection 기대값을 검사했다.
+
+**team-pr가 solo-cli와 달랐던 지점**
+
+- `develop-task-flow`: 로컬 squash merge 대신 브랜치 push → `develop` 대상 PR 생성 → 체크 통과 시 `gh pr merge --squash`. PR 본문은 `## Summary`(한국어 릴리즈 노트용 불릿) / `## Details` / `## Tests` 구성. `develop` 직접 push 금지. 병합이 막히면 PR을 열어둔 채 차단 사유를 보고.
+- `github-sync`: `develop`에 `required_pull_request_reviews` 적용(승인 수는 팀 정책, `0` 허용), `main`은 릴리즈 fast-forward를 위해 직접 push 허용. 양쪽 모두 force push·삭제 차단.
+- `github-release`: 차이 없음. 릴리즈는 두 flow 모두 CLI 주도(`develop:main` fast-forward + 태그 + `gh release create`).
+
+**복원 시 주의**
+
+- 복원하면 스킬 원본이 flow마다 갈라져 유지 비용이 두 배가 된다. C 후보의 "조직별 flow 파라미터"처럼 하나의 절차를 파라미터로 분기하는 설계를 먼저 검토할 것.
+- `validate-dist.sh`에 flow 변형과 `team-pr` 문자열을 막는 가드가 있다. 복원 시 함께 풀어야 한다.
 
 ## 다음 단계
 

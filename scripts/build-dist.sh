@@ -101,12 +101,12 @@ EOF
 
 for skill in $SKILLS; do
   mkdir -p "dist/claude-code/.claude/skills/$skill"
-  cp "skills/$skill"/SKILL*.md "dist/claude-code/.claude/skills/$skill/"
+  cp "skills/$skill/SKILL.md" "dist/claude-code/.claude/skills/$skill/"
 done
 
 for skill in $SKILLS; do
   mkdir -p "dist/codex/.agents/skills/$skill"
-  cp "skills/$skill"/SKILL*.md "dist/codex/.agents/skills/$skill/"
+  cp "skills/$skill/SKILL.md" "dist/codex/.agents/skills/$skill/"
 done
 {
   append_managed_header
@@ -137,18 +137,17 @@ EOF
 
 for skill in $SKILLS; do
   mkdir -p "dist/antigravity/.agents/skills/$skill"
-  cp "skills/$skill"/SKILL*.md "dist/antigravity/.agents/skills/$skill/"
+  cp "skills/$skill/SKILL.md" "dist/antigravity/.agents/skills/$skill/"
 done
 
 build_claude_plugin() {
   plugin_name="$1"
-  plugin_flow="$2"
   plugin_root="dist/claude-code-plugin/$plugin_name"
   mkdir -p "$plugin_root/.claude-plugin"
   cat > "$plugin_root/.claude-plugin/plugin.json" <<EOF
 {
   "name": "$plugin_name",
-  "description": "SPAI $plugin_flow workflow skills: github-sync, github-release, develop-task-flow",
+  "description": "SPAI solo-cli workflow skills: github-sync, github-release, develop-task-flow",
   "author": { "name": "0x0w1" },
   "homepage": "https://github.com/0x0w1/spai",
   "license": "MIT"
@@ -156,14 +155,11 @@ build_claude_plugin() {
 EOF
   for skill in $PLUGIN_SKILLS; do
     mkdir -p "$plugin_root/skills/$skill"
-    plugin_skill_file="skills/$skill/SKILL.$plugin_flow.md"
-    [ -f "$plugin_skill_file" ] || plugin_skill_file="skills/$skill/SKILL.md"
-    cp "$plugin_skill_file" "$plugin_root/skills/$skill/SKILL.md"
+    cp "skills/$skill/SKILL.md" "$plugin_root/skills/$skill/SKILL.md"
   done
 }
 
-build_claude_plugin spai solo-cli
-build_claude_plugin spai-team-pr team-pr
+build_claude_plugin spai
 
 echo "Generated dist files:"
 find dist -type f | sort

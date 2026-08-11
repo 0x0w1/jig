@@ -32,11 +32,9 @@ SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 
 
 ## 권장 branch protection
 
-설치된 `github-sync` 스킬이 flow에 맞는 적용을 대신 수행할 수 있습니다. 두 flow 모두 force push와 branch deletion은 금지합니다.
+설치된 `github-sync` 스킬이 적용을 대신 수행할 수 있습니다. `main`과 `develop` 모두 force push와 branch deletion을 금지합니다.
 
-### solo-cli (기본)
-
-`main`과 `develop`에 같은 정책: Pull Request 불필요, required status check 없음.
+`main`과 `develop`에 같은 정책: Pull Request 불필요, required status check 없음. `develop`에도 같은 body로 `branches/develop/protection`에 적용합니다.
 
 ```bash
 gh api -X PUT "repos/<owner>/<repo>/branches/main/protection" --input - <<'EOF'
@@ -44,26 +42,6 @@ gh api -X PUT "repos/<owner>/<repo>/branches/main/protection" --input - <<'EOF'
   "required_status_checks": null,
   "enforce_admins": false,
   "required_pull_request_reviews": null,
-  "restrictions": null,
-  "allow_force_pushes": false,
-  "allow_deletions": false,
-  "required_conversation_resolution": false
-}
-EOF
-```
-
-### team-pr
-
-`develop`은 PR 필수(squash merge), `main`은 릴리즈 fast-forward push를 위해 PR 불필요.
-
-`develop`용:
-
-```bash
-gh api -X PUT "repos/<owner>/<repo>/branches/develop/protection" --input - <<'EOF'
-{
-  "required_status_checks": null,
-  "enforce_admins": false,
-  "required_pull_request_reviews": { "required_approving_review_count": 0 },
   "restrictions": null,
   "allow_force_pushes": false,
   "allow_deletions": false,

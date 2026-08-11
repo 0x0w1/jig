@@ -33,12 +33,12 @@ SPAI - Scaffolded Procedures for AI Agents
 Usage:
   sh install.sh [--target <target>] [--scope <scope>] [--github-account <account>] [--version vX.Y.Z] [--flow <flow>] [--skills a,b,c] [--configure-git-user] [--dry-run] [--force]
 
-Flows:
-  solo-cli (default): local squash merge into develop, no pull requests
-  team-pr: work branches merge into develop through squash-merged pull requests
+Flow:
+  solo-cli is the only supported flow: local squash merge into develop, no pull requests.
+  --flow is accepted for compatibility and must be solo-cli.
 
 Skills:
-  Default: every skill marked default for the chosen flow in dist/manifest.tsv.
+  Default: every skill marked default in dist/manifest.tsv.
   Use --skills a,b,c (or SPAI_SKILLS) to install a subset; names must exist in the manifest.
 
 Targets:
@@ -68,7 +68,6 @@ Examples:
 Environment:
   REPO_RAW_URL=https://raw.githubusercontent.com/my-org/spai/main SPAI_GITHUB_ACCOUNT=0x0w1 sh install.sh
   SPAI_VERSION=v0.1.0 SPAI_GITHUB_ACCOUNT=0x0w1 sh install.sh --target all --scope project
-  SPAI_FLOW=team-pr SPAI_GITHUB_ACCOUNT=0x0w1 sh install.sh --target all --scope project
   SPAI_SKILLS=github-release,develop-task-flow SPAI_GITHUB_ACCOUNT=0x0w1 sh install.sh --target all --scope project
   SPAI_GITHUB_ACCOUNT=0x0w1 sh install.sh --target all --scope project
   SPAI_GITHUB_HOST=github.example.com SPAI_GITHUB_ACCOUNT=monalisa sh install.sh --target all --scope project
@@ -235,14 +234,14 @@ load_manifest() {
 }
 
 manifest_default_skills() {
-  awk -F '\t' -v flow="$FLOW" '
-    !/^#/ && NF >= 3 && $3 == "yes" && ("," $2 ",") ~ ("," flow ",") { printf "%s ", $1 }
+  awk -F '\t' '
+    !/^#/ && NF >= 3 && $3 == "yes" { printf "%s ", $1 }
   ' "$MANIFEST_TMP"
 }
 
 manifest_has_skill() {
-  awk -F '\t' -v name="$1" -v flow="$FLOW" '
-    !/^#/ && $1 == name && ("," $2 ",") ~ ("," flow ",") { found = 1 }
+  awk -F '\t' -v name="$1" '
+    !/^#/ && $1 == name { found = 1 }
     END { exit found ? 0 : 1 }
   ' "$MANIFEST_TMP"
 }
@@ -253,31 +252,12 @@ resolve_selected_skills() {
   else
     SELECTED_SKILLS=""
     for requested_skill in $(printf '%s' "$SKILLS_INPUT" | tr ',' ' '); do
-      manifest_has_skill "$requested_skill" || error "unknown skill for flow $FLOW: $requested_skill"
+      manifest_has_skill "$requested_skill" || error "unknown skill: $requested_skill"
       SELECTED_SKILLS="$SELECTED_SKILLS $requested_skill"
     done
   fi
-  [ -n "${SELECTED_SKILLS# }" ] || error "no skills selected for flow: $FLOW"
-  log "Selected flow: $FLOW"
+  [ -n "${SELECTED_SKILLS# }" ] || error "no skills selected."
   log "Selected skills:$(printf ' %s' $SELECTED_SKILLS)"
-}
-
-skill_source_name() {
-  if [ "$FLOW" = "solo-cli" ]; then
-    printf 'SKILL.md'
-    return 0
-  fi
-  printf 'SKILL.%s.md' "$FLOW"
-}
-
-skill_payload_exists() {
-  probe_tmp=$(mktemp)
-  if download_file "$1" "$probe_tmp" 2>/dev/null; then
-    rm -f "$probe_tmp"
-    return 0
-  fi
-  rm -f "$probe_tmp"
-  return 1
 }
 
 record_installed() {
@@ -754,12 +734,7 @@ install_claude_code() {
   fi
   install_managed_block "$REPO_RAW_URL/dist/claude-code/CLAUDE.md" "$memory_destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
   for skill in $SELECTED_SKILLS; do
-    variant_name=$(skill_source_name)
-    source_url="$REPO_RAW_URL/dist/claude-code/.claude/skills/$skill/$variant_name"
-    if [ "$variant_name" != "SKILL.md" ] && ! skill_payload_exists "$source_url"; then
-      source_url="$REPO_RAW_URL/dist/claude-code/.claude/skills/$skill/SKILL.md"
-    fi
-    copy_file_with_backup "$source_url" "$skill_base/$skill/SKILL.md"
+    copy_file_with_backup "$REPO_RAW_URL/dist/claude-code/.claude/skills/$skill/SKILL.md" "$skill_base/$skill/SKILL.md"
   done
 }
 
@@ -772,12 +747,7 @@ install_codex() {
     skill_base="$HOME/.agents/skills"
   fi
   for skill in $SELECTED_SKILLS; do
-    variant_name=$(skill_source_name)
-    source_url="$REPO_RAW_URL/dist/codex/.agents/skills/$skill/$variant_name"
-    if [ "$variant_name" != "SKILL.md" ] && ! skill_payload_exists "$source_url"; then
-      source_url="$REPO_RAW_URL/dist/codex/.agents/skills/$skill/SKILL.md"
-    fi
-    copy_file_with_backup "$source_url" "$skill_base/$skill/SKILL.md"
+    copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/$skill/SKILL.md" "$skill_base/$skill/SKILL.md"
   done
   install_managed_block "$REPO_RAW_URL/dist/codex/AGENTS.md" "$destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
 }
@@ -791,12 +761,7 @@ install_antigravity() {
     skill_base="$HOME/.gemini/config/skills"
   fi
   for skill in $SELECTED_SKILLS; do
-    variant_name=$(skill_source_name)
-    source_url="$REPO_RAW_URL/dist/antigravity/.agents/skills/$skill/$variant_name"
-    if [ "$variant_name" != "SKILL.md" ] && ! skill_payload_exists "$source_url"; then
-      source_url="$REPO_RAW_URL/dist/antigravity/.agents/skills/$skill/SKILL.md"
-    fi
-    copy_file_with_backup "$source_url" "$skill_base/$skill/SKILL.md"
+    copy_file_with_backup "$REPO_RAW_URL/dist/antigravity/.agents/skills/$skill/SKILL.md" "$skill_base/$skill/SKILL.md"
   done
   install_managed_block "$REPO_RAW_URL/dist/antigravity/GEMINI.md" "$destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
 }
@@ -892,8 +857,8 @@ main() {
   esac
 
   case "$FLOW" in
-    solo-cli|team-pr) ;;
-    *) error "unsupported flow: $FLOW" ;;
+    solo-cli) ;;
+    *) error "unsupported flow: $FLOW. solo-cli is the only supported flow; see docs/roadmap.md." ;;
   esac
 
   if [ "$SCOPE" = "project" ] && [ -z "$GITHUB_ACCOUNT" ]; then

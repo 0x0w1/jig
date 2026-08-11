@@ -9,7 +9,7 @@ Use this repository skill to update the installed SPAI procedures to the latest 
 
 ## Update Model
 
-- The installed version, flow, and skill selection are stamped inside the SPAI managed block as `<!-- spai:version vX.Y.Z flow=<flow> skills=<a,b,c> -->` in `CLAUDE.md`, `AGENTS.md`, or `GEMINI.md`. A legacy stamp without `flow=` means `flow=solo-cli` with the full default skill set.
+- The installed version and skill selection are stamped inside the SPAI managed block as `<!-- spai:version vX.Y.Z flow=solo-cli skills=<a,b,c> -->` in `CLAUDE.md`, `AGENTS.md`, or `GEMINI.md`. A stamp without `skills=` means the full default skill set. `solo-cli` is the only flow; a stamp naming another flow comes from a removed profile and updates to the current defaults.
 - The latest version is the latest GitHub release tag of `0x0w1/spai`.
 - An update re-runs `install.sh` pinned to the latest tag. The installer is idempotent: unchanged files pass, changed files are backed up as `*.bak`, and managed blocks are replaced in place.
 - Repository-side convergence (branch protection, legacy release-drafter file and label cleanup) is handled by the `github-sync` skill after the file update, and is idempotent across skipped versions.
@@ -44,8 +44,8 @@ Use this repository skill to update the installed SPAI procedures to the latest 
    - `./AGENTS.md` with SPAI markers → `codex`
    - `./GEMINI.md` with SPAI markers → `antigravity`
    - Command per target, preserving the stamped selection:
-     `curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh | sh -s -- --target <target> --scope project --github-account <account> --version <latest> --flow <stamped flow> --skills <stamped skills>`
-   - When the stamp has no `flow=`/`skills=`, omit `--flow` and `--skills` so the installer applies the solo-cli defaults.
+     `curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh | sh -s -- --target <target> --scope project --github-account <account> --version <latest> --skills <stamped skills>`
+   - When the stamp has no `skills=`, omit `--skills` so the installer applies the defaults. Never pass `--flow` with a value other than `solo-cli`; the installer rejects it.
 8. Verify the stamp now shows the latest version.
 9. Run the `github-sync` skill to converge branch protection and report legacy release-drafter files or labels; delete them only with explicit confirmation.
 10. Run the `spai-doctor` skill to confirm the updated installation is healthy; include its findings in the report.
