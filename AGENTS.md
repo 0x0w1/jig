@@ -44,7 +44,9 @@ Use these repo-scoped Codex skills:
 ## Release Rules
 
 - Release only when the user explicitly asks for a release.
-- Compute the next version from the latest `vX.Y.Z` tag using the requested bump type (`patch` default, `minor`, `major`); an explicit `vX.Y.Z` from the user overrides it.
+- Grade the bump by what installed projects pay, not by the kind of change: `patch` when the public interface is unchanged, `minor` for new capability or a break that fails loudly and names its own fix, `major` when a human decision is needed or behavior changes silently. A silent behavior change is always `major`. The full policy is `docs/versioning.md`.
+- While the major version is `0`, a `major` grade raises the minor position (`v0.Y.Z` → `v0.(Y+1).0`).
+- Compute the next version from the latest `vX.Y.Z` tag using the graded bump type; an explicit `vX.Y.Z` from the user overrides it. If the grade exceeds the requested bump, report the reason and ask before continuing.
 - Verify a clean worktree, `develop` synced with `origin/develop`, and a non-existing tag before promoting.
 - Promote with `git push origin develop:main` (fast-forward only), tag the released commit, and publish with `gh release create`.
 - Write the release notes from `git log <previous>..<version> --no-merges`: categorized `## Changes` sections plus a Korean `### Summary`.

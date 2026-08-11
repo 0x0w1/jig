@@ -30,6 +30,7 @@
 ## 문서
 
 - [설치 가이드](docs/installation.md): CLI별로 무엇이 어디에 설치되고, 이후 어떻게 관리·제거되는지 설명합니다.
+- [버전 정책](docs/versioning.md): `patch`/`minor`/`major`를 설치본이 치르는 비용으로 판정하는 기준과 공개 인터페이스 목록입니다.
 - [GitHub Repository Settings](docs/github-repository-settings.md): installer가 project scope에서 적용하는 GitHub 설정과, 수동으로 안내하는 branch protection입니다.
 - [Roadmap](docs/roadmap.md): SPAI의 정체성과 방향 후보(트리거 조건부) 기록입니다.
 
