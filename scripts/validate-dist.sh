@@ -102,6 +102,12 @@ for migration_block in migration-auto migration-manual; do
   done
 done
 
+# Markers are only markers on their own line. Every skill that reads them must say so,
+# or a marker named in release-note prose gets counted as a block.
+for migration_skill in github-release spai-update spai-doctor; do
+  require_text "dist/claude-code-plugin/spai/skills/$migration_skill/SKILL.md" '^<!-- spai:'
+done
+
 if find dist -name "SKILL.*.md" ! -name "SKILL.md" | grep -q .; then
   fail "dist must contain only resolved SKILL.md files: solo-cli is the only flow"
 fi

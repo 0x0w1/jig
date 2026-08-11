@@ -28,6 +28,7 @@ Each CLI is installed on its own; there is no combined install.
    - antigravity: same with `dist/antigravity/.agents/skills/spai-<skill>/SKILL.md`
    - A `cmp` mismatch means the file was locally modified or partially updated. If the stamp is `main` or `custom`, drift cannot be judged against a fixed payload; report that instead.
 4. **Pending migrations**: when the stamp is behind the latest release, read the notes of every release newer than the stamp (`gh release view <tag> --repo 0x0w1/spai`) and count the items inside `<!-- spai:start migration-auto -->` and `<!-- spai:start migration-manual -->` blocks.
+   - Count **line-anchored markers only** (`^<!-- spai:start migration-auto -->$`); notes often name these markers in prose, and a substring search would count those mentions as blocks.
    - Report the counts and quote the manual items in full; those need a human decision and are what makes a release `major`.
    - Do not evaluate whether an item was already applied and never run one. `spai-update` owns execution.
    - Skip this check when there is no stamp or the stamp is already the latest.

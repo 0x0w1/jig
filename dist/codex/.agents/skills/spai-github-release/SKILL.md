@@ -61,6 +61,8 @@ The `### Migration` section is not prose. It is the input `spai-update` executes
 
 When in doubt, an item is `manual`. Either block may be omitted; omit the whole section when neither applies.
 
+**A marker counts only when it is the entire line**, matching `^<!-- spai:(start|end) migration-(auto|manual) -->$`. Release notes routinely name these markers in prose, so a mention inside backticks or mid-sentence is text, not a marker. Keep marker lines flush left with nothing else on them, and always close a block with its matching end marker.
+
 ### The Notes Decide the Version
 
 The presence of these blocks forces the bump, so the grade is derived rather than chosen:
@@ -129,9 +131,10 @@ The full policy with worked examples lives in `docs/versioning.md`; keep the two
    - One `- <commit subject without type prefix>` line per commit.
    - `### Summary`: Korean user-perspective bullet items the agent writes from the commit subjects and bodies, release-note ready, with technical terms in backticks.
    - `### Migration`: only when installed projects must take repository-side action that re-running the update does not cover. Write it as `migration-auto` and `migration-manual` marker blocks per Migration Blocks; `spai-update` executes the first and gates the second.
-6. Re-check the bump against the composed notes:
+6. Re-check the bump against the composed notes, counting **line-anchored markers only** (`grep -cE '^<!-- spai:start migration-manual -->$'`; a bare substring search also matches prose that names the marker):
    - a `migration-manual` block requires `major`
    - a `migration-auto` block requires at least `minor`
+   - an opened block with no matching end marker is a defect; fix the notes before publishing
    - if this raises the grade from step 3, go back to step 3 and resolve it with the user. Never weaken the notes to fit a version.
 7. Compute the new version from the settled bump type, or validate the explicit version. The version must match `^v[0-9]+\.[0-9]+\.[0-9]+$` and must not exist as a tag or release. Before 1.0, a `major` grade raises the minor position.
 8. Run repository validation when available (for this repository: `sh scripts/validate-dist.sh`).
