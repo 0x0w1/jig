@@ -36,11 +36,6 @@ fi
 require_file dist/manifest.tsv
 require_text dist/manifest.tsv "develop-task-flow"
 
-require_file dist/claude-code/CLAUDE.md
-require_text dist/claude-code/CLAUDE.md "spai:start github-release-setup"
-require_text dist/claude-code/CLAUDE.md "spai:end github-release-setup"
-require_text dist/claude-code/CLAUDE.md "<!-- spai:version dev -->"
-
 require_file dist/codex/AGENTS.md
 require_text dist/codex/AGENTS.md "spai:start github-release-setup"
 require_text dist/codex/AGENTS.md "spai:end github-release-setup"
@@ -58,8 +53,8 @@ prefixed_skill_name() {
   esac
 }
 
-if [ -d dist/claude-code/.claude ]; then
-  fail "claude-code no longer installs skill files: it ships the spai plugin instead"
+if [ -e dist/claude-code ]; then
+  fail "install.sh does not target claude-code: it ships the spai plugin under dist/claude-code-plugin instead"
 fi
 
 for skill in $SKILLS; do
@@ -75,7 +70,6 @@ for skill in $SKILLS; do
 
   require_text dist/codex/AGENTS.md "\`$prefixed\`"
   require_text dist/antigravity/GEMINI.md "\`$prefixed\`"
-  require_text dist/claude-code/CLAUDE.md "\`/spai:$skill\`"
 
   require_file "dist/claude-code-plugin/spai/skills/$skill/SKILL.md"
   require_text "dist/claude-code-plugin/spai/skills/$skill/SKILL.md" "$title"

@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-TARGET="all"
+TARGET=""
 SCOPE="project"
 DRY_RUN=0
 FORCE=0
@@ -24,18 +24,19 @@ VERIFIED_GITHUB_ACCOUNT=""
 SYNCED_GIT_CONFIG=""
 SYNCED_BRANCHES=""
 VERIFIED_BRANCHES=""
-MANUAL_PLUGIN_STEPS=""
-MARKETPLACE_SOURCE="${SPAI_MARKETPLACE_SOURCE:-0x0w1/spai}"
-MARKETPLACE_GIT_URL="${SPAI_MARKETPLACE_GIT_URL:-https://github.com/0x0w1/spai.git}"
-MARKETPLACE_REF=""
-PLUGIN_REF="${SPAI_PLUGIN_REF:-spai@spai}"
 
 print_help() {
   cat <<'EOF'
 SPAI - Scaffolded Procedures for AI Agents
 
+This installer covers the CLIs that have no plugin system. Claude Code is not a target:
+it installs the spai plugin from the Claude Code marketplace instead.
+
+  /plugin marketplace add 0x0w1/spai
+  /plugin install spai@spai
+
 Usage:
-  sh install.sh [--target <target>] [--scope <scope>] [--github-account <account>] [--version vX.Y.Z] [--skills a,b,c] [--configure-git-user] [--dry-run] [--force]
+  sh install.sh --target <target> [--scope <scope>] [--github-account <account>] [--version vX.Y.Z] [--skills a,b,c] [--configure-git-user] [--dry-run] [--force]
 
 Merge flow:
   Work branches squash-merge into develop locally and develop is pushed directly. No pull requests.
@@ -43,39 +44,33 @@ Merge flow:
 Skills:
   Default: every skill marked default in dist/manifest.tsv.
   Use --skills a,b,c (or SPAI_SKILLS) to install a subset; names must exist in the manifest.
-  --skills applies to codex and antigravity only; the claude-code plugin installs as one unit.
 
 Targets:
   codex
-  claude-code
   antigravity
-  all
+
+  --target is required and takes exactly one target. Install one CLI per run.
 
 Scopes:
   project
   global
 
 Defaults:
-  --target all
   --scope project
 
 Examples:
   wget -qO- https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-    | sh -s -- --target codex --scope project --github-account 0x0w1
+    | sh -s -- --target codex --scope project --github-account your-account
 
   curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-    | sh -s -- --target claude-code --scope project --github-account 0x0w1
-
-  curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-    | sh -s -- --target all --scope project --github-account 0x0w1
+    | sh -s -- --target antigravity --scope project --github-account your-account
 
 Environment:
-  REPO_RAW_URL=https://raw.githubusercontent.com/my-org/spai/main SPAI_GITHUB_ACCOUNT=0x0w1 sh install.sh
-  SPAI_VERSION=v0.1.0 SPAI_GITHUB_ACCOUNT=0x0w1 sh install.sh --target all --scope project
-  SPAI_SKILLS=github-release,develop-task-flow SPAI_GITHUB_ACCOUNT=0x0w1 sh install.sh --target all --scope project
-  SPAI_GITHUB_ACCOUNT=0x0w1 sh install.sh --target all --scope project
-  SPAI_GITHUB_HOST=github.example.com SPAI_GITHUB_ACCOUNT=monalisa sh install.sh --target all --scope project
-  SPAI_GIT_USER_NAME="Mona Lisa" SPAI_GIT_USER_EMAIL=monalisa@example.com sh install.sh --target all --scope project --github-account monalisa
+  REPO_RAW_URL=https://raw.githubusercontent.com/my-org/spai/main SPAI_GITHUB_ACCOUNT=your-account sh install.sh --target codex
+  SPAI_VERSION=v0.1.0 SPAI_GITHUB_ACCOUNT=your-account sh install.sh --target codex --scope project
+  SPAI_SKILLS=github-release,develop-task-flow SPAI_GITHUB_ACCOUNT=your-account sh install.sh --target codex --scope project
+  SPAI_GITHUB_HOST=github.example.com SPAI_GITHUB_ACCOUNT=monalisa sh install.sh --target codex --scope project
+  SPAI_GIT_USER_NAME="Mona Lisa" SPAI_GIT_USER_EMAIL=monalisa@example.com sh install.sh --target codex --scope project --github-account monalisa
 
 Version:
   By default the installer resolves the latest GitHub release tag and installs the payload
@@ -85,7 +80,7 @@ Version:
   An explicit REPO_RAW_URL overrides version resolution entirely.
   The installed version and skill selection are stamped as
   <!-- spai:version vX.Y.Z skills=<a,b,c> --> inside the SPAI managed block of
-  CLAUDE.md / AGENTS.md / GEMINI.md; the spai-update and spai-doctor skills read this stamp.
+  AGENTS.md / GEMINI.md; the spai-update and spai-doctor skills read this stamp.
 
 GitHub account:
   Project scope requires --github-account <account> or SPAI_GITHUB_ACCOUNT.
@@ -100,8 +95,6 @@ Managed files:
   Use --force to replace an existing managed file entirely when it does not already contain SPAI markers.
 
 Skill ownership:
-  claude-code installs the spai plugin, whose skills the host namespaces as /spai:<skill>.
-  They never collide with skills you wrote, and /plugin uninstall removes them.
   codex and antigravity have no plugin system, so their skill directories carry a spai- prefix
   (.agents/skills/spai-github-sync, ...) to stay clear of your own skill names.
 
@@ -111,7 +104,6 @@ Project scope also syncs GitHub repository settings when gh is available:
 
 Target-specific project installs:
   codex: AGENTS.md plus .agents/skills/spai-*
-  claude-code: CLAUDE.md plus the spai Claude Code plugin (claude plugin install spai@spai)
   antigravity: GEMINI.md plus .agents/skills/spai-*
 EOF
 }
@@ -230,15 +222,6 @@ resolve_repo_raw_url() {
   log "SPAI payload source (fallback): $REPO_RAW_URL"
 }
 
-resolve_marketplace_ref() {
-  if is_valid_release_version "$SPAI_VERSION_STAMP"; then
-    MARKETPLACE_REF="$MARKETPLACE_GIT_URL#$SPAI_VERSION_STAMP"
-  else
-    MARKETPLACE_REF="$MARKETPLACE_SOURCE"
-  fi
-  log "Claude Code marketplace source: $MARKETPLACE_REF"
-}
-
 stamp_spai_version() {
   stamp_target="$1"
   stamp_tmp=$(mktemp)
@@ -270,11 +253,6 @@ prefixed_skill_name() {
     spai-*) printf '%s' "$1" ;;
     *) printf 'spai-%s' "$1" ;;
   esac
-}
-
-record_manual_plugin_step() {
-  MANUAL_PLUGIN_STEPS="${MANUAL_PLUGIN_STEPS}
-$1"
 }
 
 manifest_all_skills() {
@@ -375,8 +353,7 @@ filter_managed_block_skills() {
   for candidate_skill in $(manifest_all_skills); do
     skill_selected "$candidate_skill" && continue
     filter_tmp=$(mktemp)
-    awk -v skill="$candidate_skill" -v prefixed="$(prefixed_skill_name "$candidate_skill")" '
-      $0 ~ ("^- `/spai:" skill "`") { next }
+    awk -v prefixed="$(prefixed_skill_name "$candidate_skill")" '
       $0 ~ ("^- `" prefixed "`") { next }
       { print }
     ' "$filter_target" > "$filter_tmp"
@@ -774,73 +751,14 @@ sync_github_repository_settings() {
 }
 
 print_guide() {
-  if [ "$SCOPE" != "project" ] && [ -z "$MANUAL_PLUGIN_STEPS" ]; then
+  if [ "$SCOPE" != "project" ]; then
     return 0
   fi
 
   printf '\nGUIDE\n'
   printf '%s\n' '  Remaining manual steps:'
-
-  if [ "$SCOPE" = "project" ]; then
-    printf '%s\n' '    - Protect `main` and `develop` against force pushes and deletion; do not require pull requests.'
-    printf '%s\n' '    - Use the installed `github-sync` skill to apply or verify this branch protection.'
-  fi
-
-  if [ -n "$MANUAL_PLUGIN_STEPS" ]; then
-    printf '%s\n' '    - Run the Claude Code plugin commands above, or install the plugin from a Claude Code session:'
-    printf '%s\n' '        /plugin marketplace add 0x0w1/spai'
-    printf '%s\n' '        /plugin install spai@spai'
-  fi
-}
-
-install_claude_plugin() {
-  if [ "$SCOPE" = "project" ]; then
-    plugin_scope="project"
-  else
-    plugin_scope="user"
-  fi
-
-  if [ "$DRY_RUN" -eq 1 ]; then
-    log "[dry-run] Would register Claude Code marketplace: $MARKETPLACE_REF"
-    log "[dry-run] Would install Claude Code plugin: $PLUGIN_REF (scope $plugin_scope)"
-    return 0
-  fi
-
-  if ! command -v claude >/dev/null 2>&1; then
-    warn "Claude Code CLI not found; the spai plugin was not installed."
-    record_manual_plugin_step "claude plugin marketplace add $MARKETPLACE_REF"
-    record_manual_plugin_step "claude plugin install $PLUGIN_REF --scope $plugin_scope"
-    return 0
-  fi
-
-  if claude plugin marketplace add "$MARKETPLACE_REF" >/dev/null 2>&1; then
-    log "Claude Code marketplace registered: $MARKETPLACE_REF"
-  else
-    pass_task "Claude Code marketplace already registered or unchanged: $MARKETPLACE_REF"
-  fi
-
-  if claude plugin install "$PLUGIN_REF" --scope "$plugin_scope" >/dev/null 2>&1; then
-    log "Claude Code plugin installed: $PLUGIN_REF (scope $plugin_scope)"
-    record_installed "Claude Code plugin $PLUGIN_REF (scope $plugin_scope)"
-  else
-    warn "Claude Code plugin install failed: $PLUGIN_REF"
-    record_manual_plugin_step "claude plugin install $PLUGIN_REF --scope $plugin_scope"
-  fi
-}
-
-install_claude_code() {
-  if [ "$SCOPE" = "project" ]; then
-    memory_destination="./CLAUDE.md"
-  else
-    memory_destination="$HOME/.claude/CLAUDE.md"
-  fi
-
-  if [ -n "$SKILLS_INPUT" ]; then
-    warn "--skills does not apply to claude-code: the spai plugin installs every skill as one unit."
-  fi
-
-  install_managed_block "$REPO_RAW_URL/dist/claude-code/CLAUDE.md" "$memory_destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
-  install_claude_plugin
+  printf '%s\n' '    - Protect `main` and `develop` against force pushes and deletion; do not require pull requests.'
+  printf '%s\n' '    - Use the installed `spai-github-sync` skill to apply or verify this branch protection.'
 }
 
 install_codex() {
@@ -875,7 +793,6 @@ install_antigravity() {
 
 install_target() {
   case "$1" in
-    claude-code) install_claude_code ;;
     codex) install_codex ;;
     antigravity) install_antigravity ;;
     *) error "unsupported target: $1" ;;
@@ -949,7 +866,9 @@ main() {
   done
 
   case "$TARGET" in
-    claude-code|codex|antigravity|all) ;;
+    codex|antigravity) ;;
+    "") error "--target is required. Supported targets: codex, antigravity. Claude Code installs the spai plugin instead: /plugin marketplace add 0x0w1/spai then /plugin install spai@spai." ;;
+    claude-code|all) error "unsupported target: $TARGET. Install one of codex or antigravity per run. Claude Code installs the spai plugin instead: /plugin marketplace add 0x0w1/spai then /plugin install spai@spai." ;;
     *) error "unsupported target: $TARGET" ;;
   esac
 
@@ -964,17 +883,10 @@ main() {
 
   need_downloader
   resolve_repo_raw_url
-  resolve_marketplace_ref
   load_manifest
   resolve_selected_skills
 
-  if [ "$TARGET" = "all" ]; then
-    install_target codex
-    install_target claude-code
-    install_target antigravity
-  else
-    install_target "$TARGET"
-  fi
+  install_target "$TARGET"
 
   sync_local_git_user_config
   sync_github_repository_settings
@@ -992,7 +904,6 @@ main() {
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced local git config" "$SYNCED_GIT_CONFIG"
   [ "$DRY_RUN" -eq 1 ] || print_list "Synced GitHub branches" "$SYNCED_BRANCHES"
   [ "$DRY_RUN" -eq 1 ] || print_list "Verified GitHub branches" "$VERIFIED_BRANCHES"
-  print_list "Claude Code plugin steps left to run" "$MANUAL_PLUGIN_STEPS"
   print_guide
 }
 

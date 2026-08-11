@@ -39,24 +39,21 @@ copy_prefixed_skill() {
 }
 
 append_skill_list() {
-  list_style="$1"
   for skill in $SKILLS; do
-    case "$list_style" in
-      plugin) printf -- '- `/spai:%s`: %s\n' "$skill" "$(skill_summary "$skill")" ;;
-      prefixed) printf -- '- `%s`: %s\n' "$(prefixed_skill_name "$skill")" "$(skill_summary "$skill")" ;;
-    esac
+    printf -- '- `%s`: %s\n' "$(prefixed_skill_name "$skill")" "$(skill_summary "$skill")"
   done
 }
 
+# Only codex and antigravity get a managed block. Claude Code loads the plugin's skills
+# natively, so a rules-file skill list there would only duplicate the plugin metadata.
 append_managed_block() {
   block_intro="$1"
-  block_style="$2"
 
   printf 'Scaffolded Procedures for AI Agents\n\n'
   printf '<!-- spai:start github-release-setup -->\n'
   printf '<!-- spai:version dev -->\n\n'
   printf '%s\n\n' "$block_intro"
-  append_skill_list "$block_style"
+  append_skill_list
   printf '\n%s\n' "Use these skills when the matching workflow is requested. Preserve unrelated user changes, never force push, and never delete branches or labels without explicit confirmation."
   printf '\n<!-- spai:end github-release-setup -->\n'
 }
@@ -64,23 +61,18 @@ append_managed_block() {
 rm -rf dist
 
 mkdir -p \
-  dist/claude-code \
   dist/codex/.agents/skills \
   dist/antigravity/.agents/skills
 
 cp manifest.tsv dist/manifest.tsv
 
 append_managed_block \
-  "SPAI ships these repository workflow skills through the spai Claude Code plugin. Plugin skills are namespaced, so they never collide with skills you wrote yourself." \
-  plugin > dist/claude-code/CLAUDE.md
+  "SPAI installs these repository workflow skills under .agents/skills. Every SPAI skill name carries the spai- prefix so it stays out of the way of skills you wrote yourself." \
+  > dist/codex/AGENTS.md
 
 append_managed_block \
   "SPAI installs these repository workflow skills under .agents/skills. Every SPAI skill name carries the spai- prefix so it stays out of the way of skills you wrote yourself." \
-  prefixed > dist/codex/AGENTS.md
-
-append_managed_block \
-  "SPAI installs these repository workflow skills under .agents/skills. Every SPAI skill name carries the spai- prefix so it stays out of the way of skills you wrote yourself." \
-  prefixed > dist/antigravity/GEMINI.md
+  > dist/antigravity/GEMINI.md
 
 for skill in $SKILLS; do
   prefixed=$(prefixed_skill_name "$skill")
