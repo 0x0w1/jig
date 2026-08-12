@@ -96,6 +96,10 @@ build_claude_plugin() {
   "license": "MIT"
 }
 EOF
+  mkdir -p "$plugin_root/hooks"
+  cp hooks/hooks.json "$plugin_root/hooks/hooks.json"
+  cp hooks/guard-push.sh "$plugin_root/hooks/guard-push.sh"
+  chmod +x "$plugin_root/hooks/guard-push.sh"
   for skill in $SKILLS; do
     mkdir -p "$plugin_root/skills/$skill"
     cp "skills/$skill/SKILL.md" "$plugin_root/skills/$skill/SKILL.md"

@@ -49,6 +49,7 @@ If the task is large, split it into phases:
 ## Safety Rules
 
 - Do not force push.
+- Do not bypass git hooks: never pass `--no-verify` to `git push`.
 - Do not delete branches without explicit user confirmation; merged task branches may remain.
 - Do not push directly to `main`; `main` only updates through `github-release`.
 - Do not modify or revert unrelated user changes.

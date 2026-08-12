@@ -95,6 +95,15 @@ require_text "dist/claude-code-plugin/spai/.claude-plugin/plugin.json" '"name": 
 require_text "dist/claude-code-plugin/spai/skills/develop-task-flow/SKILL.md" 'git merge --squash'
 require_text "dist/claude-code-plugin/spai/skills/github-release/SKILL.md" 'git push origin develop:main'
 
+require_file "dist/claude-code-plugin/spai/hooks/hooks.json"
+require_file "dist/claude-code-plugin/spai/hooks/guard-push.sh"
+require_text "dist/claude-code-plugin/spai/hooks/hooks.json" '"PreToolUse"'
+require_text "dist/claude-code-plugin/spai/hooks/hooks.json" 'CLAUDE_PLUGIN_ROOT'
+require_text "dist/claude-code-plugin/spai/hooks/guard-push.sh" "spai:guard-push v1"
+require_text "dist/claude-code-plugin/spai/skills/github-sync/SKILL.md" "spai:pre-push v1"
+require_text "dist/codex/.agents/skills/spai-github-sync/SKILL.md" "spai:pre-push v1"
+require_text "dist/antigravity/.agents/skills/spai-github-sync/SKILL.md" "spai:pre-push v1"
+
 # The migration block grammar is a contract between three skills: github-release writes it,
 # spai-update executes it, spai-doctor reports it. Drift in any one of them breaks the chain.
 for migration_block in migration-auto migration-manual; do

@@ -105,3 +105,13 @@ GitHub에 연결된 git repository 안에서 project scope로 실행하면 지�
 ```bash
 sh install.sh --target codex --scope project --github-account your-account
 ```
+
+## 로컬 pre-push 가드
+
+서버측 branch protection과 별개로, `github-sync`가 `.git/hooks/pre-push`에 로컬 가드를 설치합니다. clone마다 로컬에만 존재하므로 새 clone에서는 `github-sync`를 다시 실행해야 합니다.
+
+- `main`/`develop` 대상 force push(non-fast-forward) 차단
+- `main`/`develop` 원격 삭제 차단
+- `develop:main` fast-forward(릴리즈) 이외의 `main` 직접 push 차단
+
+`--no-verify`로 우회할 수 있는 것이 git hook의 한계입니다. SPAI 스킬은 우회를 금지하며, Claude Code에서는 `spai` 플러그인의 PreToolUse hook이 `--no-verify`를 포함한 위반 push 명령을 실행 전에 차단합니다. 최종 방어는 서버측 branch protection입니다. 진단은 `spai-doctor`, 재설치·갱신은 `github-sync`가 담당합니다.

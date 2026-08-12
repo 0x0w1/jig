@@ -96,6 +96,7 @@ The full policy with worked examples lives in `docs/versioning.md`; keep the two
 ## Safety Rules
 
 - Do not force push.
+- Do not bypass git hooks: never pass `--no-verify` to `git push`.
 - If `git push origin develop:main` would not fast-forward, stop and report that `main` has commits `develop` lacks; never resolve this by force-pushing.
 - Do not release while the worktree has uncommitted changes to tracked files.
 - Do not create a tag that already exists locally or on `origin`.

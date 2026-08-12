@@ -21,7 +21,7 @@
 |---|---|
 | `develop-task-flow` | `feature/fix/chore` 브랜치에서 작업 후 `develop`에 squash merge |
 | `github-release` | `develop`을 `main`으로 fast-forward 승격, 버전 계산 후 태그·릴리즈 생성 |
-| `github-sync` | `main`/`develop` 브랜치와 branch protection 동기화 |
+| `github-sync` | `main`/`develop` 브랜치·branch protection 동기화, 로컬 `pre-push` 가드 설치 |
 | `spai-update` | 설치본을 최신 SPAI 릴리즈로 업데이트 |
 | `spai-doctor` | 설치 상태 진단(버전·드리프트·보호 규칙·레거시), read-only |
 | `readme` | 프로젝트 타입 판정 후 `README.md` 생성, 기존 README는 코드와 대조해 드리프트 수정 |

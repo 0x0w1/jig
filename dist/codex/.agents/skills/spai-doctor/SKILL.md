@@ -38,6 +38,11 @@ Each CLI is installed on its own; there is no combined install.
    - `.github/drafter-config.yaml`, `.github/workflows/drafter.yaml`, `.github/PULL_REQUEST_TEMPLATE.md`
    - labels `patch`, `minor`, `major`, `enhancement`, `fix`, `chore` (`gh label list`)
    - leftover backups: `find . -name "*.bak" -not -path "./.git/*"`
+8. **Local pre-push guard**: inspect `.git/hooks/pre-push`.
+   - Missing file, or line 2 not matching `# spai:pre-push v<N>`: the guard is not installed (an unmarked file is the user's own hook — never report it as drift).
+   - Marked but `<N>` lower than the latest guard version (`v1`): outdated.
+   - Marked but missing `merge-base --is-ancestor` or `refs/heads/main`, or not executable: locally modified or broken.
+   - Fix owner is `github-sync`; report, never modify.
 
 ## Safety Rules
 
@@ -50,11 +55,12 @@ Each CLI is installed on its own; there is no combined install.
 ## Procedure
 
 1. Confirm context: `git rev-parse --is-inside-work-tree`, `gh repo view`, `gh auth status`, `command -v claude`. If a tool is unavailable, run only the checks that do not need it and list the skipped checks in the report.
-2. Run checks 1–7 in order and collect the results.
+2. Run checks 1–8 in order and collect the results.
 3. Compose the report. For every finding, name the fix owner:
    - version behind, drifted files, missing plugin, or pending `migration-auto` items → `spai-update`
    - pending `migration-manual` items → `spai-update`, but only after the user decides each item
    - protection mismatch or legacy leftovers → `github-sync` (deletions only with explicit confirmation)
+   - local guard missing, outdated, or modified → `github-sync`
    - branch state divergence → stop releases and reconcile manually; never force-push.
 
 ## Final Report
@@ -83,6 +89,9 @@ Each CLI is installed on its own; there is no combined install.
 
 ### 레거시
 - 없음 | 발견 항목 목록
+
+### 로컬 가드
+- pre-push: OK vN | 미설치 | 구버전 (vN → vM) | 수정됨/실행권한 없음 | 사용자 훅 존재
 
 ### 권장 조치
 - <fix owner>: <명령 또는 스킬>
