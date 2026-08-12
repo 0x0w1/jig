@@ -6,7 +6,7 @@
 
 사이드 프로젝트마다 AI 에이전트(Claude Code, Codex, Antigravity CLI)를 쓰다 보면, 브랜치 규칙·커밋 규칙·릴리즈 절차를 프로젝트마다·에이전트마다 다시 알려줘야 합니다. SPAI는 이 반복을 없앱니다: 같은 절차 스킬 세트를 어느 에이전트 환경에나 설치하고, 설치 이후의 업데이트와 상태 진단까지 관리합니다.
 
-지원 대상: **Claude Code**, **Codex**, **Antigravity CLI**
+지원 대상: **Claude Code**(권장), **Codex**, **Antigravity CLI**
 
 ## 제공하는 가치
 
@@ -39,7 +39,9 @@
 
 CLI마다 설치 방식이 다릅니다. **쓰는 CLI 하나만 골라 실행하세요.** 각 방식이 무엇을 설치하는지는 [설치 가이드](docs/installation.md)에 있습니다.
 
-### Claude Code
+### Claude Code (권장)
+
+SPAI를 가장 완전하게 지원하는 권장 경로입니다. 플러그인 호스트가 설치·업데이트·삭제를 관리하고, push 명령을 실행 전에 검사하는 `PreToolUse` 가드 hook은 Claude Code 플러그인에만 포함됩니다.
 
 Claude Code 세션 안에서 실행합니다.
 
