@@ -24,6 +24,7 @@
 | `github-sync` | `main`/`develop` 브랜치와 branch protection 동기화 |
 | `spai-update` | 설치본을 최신 SPAI 릴리즈로 업데이트 |
 | `spai-doctor` | 설치 상태 진단(버전·드리프트·보호 규칙·레거시), read-only |
+| `readme` | 프로젝트 타입 판정 후 `README.md` 생성, 기존 README는 코드와 대조해 드리프트 수정 |
 
 작업 병합 방식은 **solo-cli 하나**입니다: 작업 브랜치를 로컬에서 `git merge --squash`로 `develop`에 합치고 직접 push하며, Pull Request를 쓰지 않습니다. 팀 단위 PR 흐름은 [Roadmap](docs/roadmap.md)의 보류 후보입니다.
 
@@ -83,6 +84,7 @@ SPAI가 설치하는 스킬은 **사용자가 직접 만든 커스텀 스킬과 
 .agents/skills/spai-develop-task-flow/SKILL.md
 .agents/skills/spai-update/SKILL.md
 .agents/skills/spai-doctor/SKILL.md
+.agents/skills/spai-readme/SKILL.md
 ```
 
 **예약 이름** — SPAI는 `spai` 플러그인 이름과 `spai-` 로 시작하는 스킬 이름만 점유합니다. 커스텀 스킬에 `spai-` prefix만 쓰지 않으면 충돌하지 않습니다.

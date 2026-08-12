@@ -39,6 +39,7 @@ project scope로 설치하면 저장소에 남는 파일은 설정 하나뿐입�
 /spai:github-release
 /spai:spai-update
 /spai:spai-doctor
+/spai:readme
 ```
 
 이름이 같은 커스텀 스킬(`/github-release`)이 있어도 **양쪽 모두 그대로 남습니다.** 네임스페이스가 다르기 때문입니다.
@@ -83,6 +84,7 @@ project scope:
   spai-develop-task-flow/SKILL.md
   spai-update/SKILL.md
   spai-doctor/SKILL.md
+  spai-readme/SKILL.md
 ```
 
 global scope:
@@ -112,7 +114,8 @@ installer는 파일을 지우지 않습니다. 직접 지웁니다.
 
 ```bash
 rm -rf .agents/skills/spai-github-sync .agents/skills/spai-github-release \
-  .agents/skills/spai-develop-task-flow .agents/skills/spai-update .agents/skills/spai-doctor
+  .agents/skills/spai-develop-task-flow .agents/skills/spai-update .agents/skills/spai-doctor \
+  .agents/skills/spai-readme
 ```
 
 `AGENTS.md`에서는 `<!-- spai:start ... -->`와 `<!-- spai:end ... -->` 사이 구간만 지우면 됩니다. 블록 바깥 내용은 SPAI가 건드린 적이 없습니다.

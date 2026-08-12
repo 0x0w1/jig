@@ -3,3 +3,4 @@ github-release	solo-cli	yes
 develop-task-flow	solo-cli	yes
 spai-update	solo-cli	yes
 spai-doctor	solo-cli	yes
+readme	solo-cli	yes

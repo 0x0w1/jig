@@ -16,6 +16,7 @@ SPAI 초기 버전은 **개인 사이드 프로젝트의 CLI 에이전트 하네
 - installer: 최신 릴리즈 태그 고정 설치, `--version` 롤백, `--skills` 선택 설치(`manifest.tsv` 카탈로그, codex/antigravity 전용)
 - workflow 스킬 3종: `develop-task-flow`, `github-release`, `github-sync`
 - 수명주기 스킬 2종: `spai-update`, `spai-doctor`
+- 문서 스킬 1종: `readme` (README 생성·갱신)
 - 배포 방식: Claude Code는 플러그인 마켓플레이스(`spai@spai`, 호스트가 `/spai:<skill>`로 네임스페이스), Codex/Antigravity는 `spai-` prefix 스킬 파일
 
 병합 흐름은 **하나뿐이다**: 로컬 `git merge --squash` → `develop` 직접 push, Pull Request 없음. 팀 흐름은 아래 C 후보로 보류돼 있다.

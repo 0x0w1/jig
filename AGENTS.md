@@ -5,6 +5,7 @@ Use these repo-scoped Codex skills:
 - Repository setup/sync: `spai-github-sync` from `.agents/skills/spai-github-sync/SKILL.md`.
 - Release: `spai-github-release` from `.agents/skills/spai-github-release/SKILL.md`.
 - Ordinary implementation tasks targeting `develop`: `spai-develop-task-flow` from `.agents/skills/spai-develop-task-flow/SKILL.md`.
+- README writing/updating: `spai-readme` from `.agents/skills/spai-readme/SKILL.md`.
 
 ## Repository Model
 

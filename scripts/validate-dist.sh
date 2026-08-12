@@ -25,6 +25,7 @@ skill_title() {
     develop-task-flow) printf '%s\n' "# Develop Task Flow" ;;
     spai-update) printf '%s\n' "# SPAI Update" ;;
     spai-doctor) printf '%s\n' "# SPAI Doctor" ;;
+    readme) printf '%s\n' "# README" ;;
     *) fail "unknown skill: $1" ;;
   esac
 }

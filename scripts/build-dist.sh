@@ -20,6 +20,7 @@ skill_summary() {
     develop-task-flow) printf '%s' "normal development tasks on feature/fix/chore branches squash-merged back into develop." ;;
     spai-update) printf '%s' "update the installed SPAI skills to the latest SPAI release and converge repository settings." ;;
     spai-doctor) printf '%s' "diagnose the installed SPAI state (version, protection, legacy); read-only." ;;
+    readme) printf '%s' "write or update the project README from the repository state; drafts one when missing, fixes drift when present." ;;
     *) printf '%s' "SPAI procedure." ;;
   esac
 }

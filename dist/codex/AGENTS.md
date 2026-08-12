@@ -10,6 +10,7 @@ SPAI installs these repository workflow skills under .agents/skills. Every SPAI 
 - `spai-develop-task-flow`: normal development tasks on feature/fix/chore branches squash-merged back into develop.
 - `spai-update`: update the installed SPAI skills to the latest SPAI release and converge repository settings.
 - `spai-doctor`: diagnose the installed SPAI state (version, protection, legacy); read-only.
+- `spai-readme`: write or update the project README from the repository state; drafts one when missing, fixes drift when present.
 
 Use these skills when the matching workflow is requested. Preserve unrelated user changes, never force push, and never delete branches or labels without explicit confirmation.
 
