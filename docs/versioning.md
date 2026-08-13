@@ -30,7 +30,7 @@ SPAI의 `vX.Y.Z` bump는 **변경의 종류**가 아니라 **설치본이 실제
 
 **공개 — 여기가 깨지면 최소 `minor`**
 
-1. curl 원라이너의 형태: `--target`, `--scope`, `--github-account`
+1. curl 원라이너와 GitHub 프로필 계약: `--target`, `--scope`, `--github-profile`/`--github-account`, `SPAI_GITHUB_PROFILE`, `spai.githubProfile`
 2. 스킬 호출 이름: `/spai:github-release`, `spai-github-release`
 3. 플러그인·마켓플레이스 이름: `spai@spai`, `0x0w1/spai`
 4. managed block marker 문자열: `<!-- spai:start ... -->`, `<!-- spai:end ... -->`

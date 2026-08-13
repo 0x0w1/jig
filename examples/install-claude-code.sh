@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
 set -eu
 
-curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-  | sh -s -- --target claude-code --scope project --github-account 0x0w1
+claude plugin marketplace add 0x0w1/spai --scope project
+claude plugin install spai@spai --scope project

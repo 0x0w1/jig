@@ -23,6 +23,7 @@ skill_title() {
     github-sync) printf '%s\n' "# GitHub Sync" ;;
     github-release) printf '%s\n' "# GitHub Release" ;;
     develop-task-flow) printf '%s\n' "# Develop Task Flow" ;;
+    project-setup) printf '%s\n' "# Project Setup" ;;
     spai-update) printf '%s\n' "# SPAI Update" ;;
     spai-doctor) printf '%s\n' "# SPAI Doctor" ;;
     readme) printf '%s\n' "# README" ;;
@@ -36,6 +37,16 @@ fi
 
 require_file dist/manifest.tsv
 require_text dist/manifest.tsv "develop-task-flow"
+require_text install.sh "spai.githubProfile"
+require_text install.sh "gh auth token"
+
+if ! sh -n install.sh; then
+  fail "install.sh has invalid shell syntax"
+fi
+
+if grep -F 'gh auth switch' install.sh >/dev/null 2>&1; then
+  fail "install.sh must select a GitHub profile per command, not mutate the global active account"
+fi
 
 require_file dist/codex/AGENTS.md
 require_text dist/codex/AGENTS.md "spai:start github-release-setup"
@@ -103,6 +114,9 @@ require_text "dist/claude-code-plugin/spai/hooks/guard-push.sh" "spai:guard-push
 require_text "dist/claude-code-plugin/spai/skills/github-sync/SKILL.md" "spai:pre-push v1"
 require_text "dist/codex/.agents/skills/spai-github-sync/SKILL.md" "spai:pre-push v1"
 require_text "dist/antigravity/.agents/skills/spai-github-sync/SKILL.md" "spai:pre-push v1"
+require_text "dist/claude-code-plugin/spai/skills/project-setup/SKILL.md" "spai.githubProfile"
+require_text "dist/codex/.agents/skills/spai-project-setup/SKILL.md" "SPAI_GITHUB_PROFILE"
+require_text "dist/antigravity/.agents/skills/spai-project-setup/SKILL.md" "Do not use \`gh auth switch\`"
 
 # The migration block grammar is a contract between three skills: github-release writes it,
 # spai-update executes it, spai-doctor reports it. Drift in any one of them breaks the chain.

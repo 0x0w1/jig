@@ -2,7 +2,7 @@
 
 이 문서는 `install.sh`(Codex, Antigravity CLI 대상)의 GitHub 동작을 설명합니다. Claude Code는 플러그인으로 설치되어 installer를 거치지 않으므로, 저장소 설정 수렴은 설치 후 `/spai:github-sync`를 실행해 처리합니다.
 
-SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 지정한 `gh` 계정을 사용합니다. 해당 계정이 로그인되어 있지 않으면 `gh auth login`을 실행하고, 로그인되어 있으면 active account가 맞는지 검증합니다. `gh`가 설치되어 있고 현재 디렉터리가 GitHub repository에 연결된 git repository일 때 일부 GitHub Repository 설정을 동기화할 수 있습니다.
+SPAI project scope 설치는 `SPAI_GITHUB_PROFILE`, 로컬 `git config`의 `spai.githubProfile`, 또는 `--github-profile`로 지정한 `gh` 프로필을 사용합니다. 해당 프로필이 로그인되어 있지 않으면 `gh auth login`을 실행합니다. credential은 명령별 환경으로 전달하며 전역 active account를 바꾸지 않습니다. `gh`가 설치되어 있고 현재 디렉터리가 GitHub repository에 연결된 git repository일 때 일부 GitHub Repository 설정을 동기화할 수 있습니다.
 
 ## Repository 운영 규칙
 
@@ -13,12 +13,13 @@ SPAI project scope 설치는 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 
 
 ## install.sh가 적용하는 항목
 
-`install.sh --target <codex|antigravity> --scope project --github-account <account>`는 Agent 스킬/룰 파일을 먼저 설치한 뒤, 가능한 경우 다음 GitHub 작업을 시도합니다.
+`install.sh --target <codex|antigravity> --scope project --github-profile <profile>`는 Agent 스킬/룰 파일을 먼저 설치한 뒤, 가능한 경우 다음 GitHub 작업을 시도합니다.
 
 - GitHub CLI 계정 선택:
-  - `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`로 입력 받은 계정을 사용합니다.
+  - `--github-profile` → `SPAI_GITHUB_PROFILE` → 로컬 `spai.githubProfile` 순서로 프로필을 확정합니다.
+  - `--github-account`와 `SPAI_GITHUB_ACCOUNT`는 호환 alias로 유지합니다.
   - 입력 받은 계정이 `gh`에 없으면 `gh auth login`을 실행합니다.
-  - GitHub 작업 전에 `gh auth switch --user <account>`를 실행하고 active account를 검증합니다.
+  - `gh auth token --user <profile>`로 credential을 읽어 각 `gh` 명령에만 전달합니다. 토큰은 출력하거나 파일에 저장하지 않습니다.
   - GitHub Enterprise 호스트는 `--github-host` 또는 `SPAI_GITHUB_HOST`로 지정할 수 있습니다.
 - 로컬 git user 설정:
   - `--configure-git-user`를 사용하면 `user.name`, `user.email`을 입력 받아 `git config --local`에 저장합니다.
@@ -54,9 +55,9 @@ EOF
 
 ## 중단되는 경우
 
-installer는 project scope에서 `--github-account` 또는 `SPAI_GITHUB_ACCOUNT`가 없으면 GitHub 작업 계정을 확정할 수 없으므로 즉시 중단합니다.
+installer는 project scope에서 환경변수, 로컬 config, 또는 옵션으로 GitHub 프로필을 확정할 수 없으면 즉시 중단합니다.
 
-지정한 GitHub 계정으로 `gh auth login` 또는 `gh auth switch`를 완료하지 못한 경우에도 중단합니다.
+지정한 GitHub 프로필의 `gh auth login` 또는 credential 검증을 완료하지 못한 경우에도 중단합니다.
 
 ## 건너뛰는 경우
 
@@ -97,13 +98,13 @@ installer는 다음 상황에서 GitHub Repository 설정 작업을 건너뛰고
 파일이나 GitHub 설정을 수정하지 않고 예정 작업만 보려면 dry-run mode를 사용합니다.
 
 ```bash
-sh install.sh --target codex --scope project --github-account your-account --dry-run
+sh install.sh --target codex --scope project --github-profile your-account --dry-run
 ```
 
 GitHub에 연결된 git repository 안에서 project scope로 실행하면 지정한 `gh` 계정으로 로그인/선택을 검증하고, `develop` 브랜치가 없으면 생성한 뒤 가능한 범위에서 검증합니다. branch protection은 `GUIDE`로 수동 안내합니다.
 
 ```bash
-sh install.sh --target codex --scope project --github-account your-account
+sh install.sh --target codex --scope project --github-profile your-account
 ```
 
 ## 로컬 pre-push 가드

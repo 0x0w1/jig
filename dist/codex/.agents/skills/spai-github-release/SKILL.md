@@ -19,6 +19,10 @@ Use this repository skill for release execution.
 - The release tag and GitHub release are created from the CLI with `git tag` and `gh release create`.
 - Release notes are written by the agent from the commits in `<previous tag>..<new tag>`, categorized by conventional commit prefix.
 
+## GitHub Profile
+
+Before any `gh` command, resolve the host from `SPAI_GITHUB_HOST`, local `spai.githubHost`, then `github.com`, and resolve the profile from `SPAI_GITHUB_PROFILE`, then local `spai.githubProfile`. If a profile is configured, read its credential with `gh auth token --hostname <host> --user <profile>` without printing it and run every `gh` command with that credential through `GH_TOKEN` (`github.com` or `*.ghe.com`) or `GH_ENTERPRISE_TOKEN` (other hosts). Verify `gh api user --jq .login` matches the profile. Do not use `gh auth switch`; fall back to the globally active account only when neither the environment nor local config selects a profile.
+
 ## Version Policy
 
 The bump is decided by what an installed project actually pays, not by the kind of change. The primary consumer of a release note is the `spai-update` skill, so a break an agent repairs unattended is not the same cost as one a human must decide.
@@ -79,7 +83,7 @@ If the composed notes and the intended bump disagree, one of them is wrong. Stop
 
 A break here counts as a break. Anything else is internal and stays `patch`.
 
-1. The installer one-liner shape: `--target`, `--scope`, `--github-account`
+1. The installer and GitHub profile contract: `--target`, `--scope`, `--github-profile`/`--github-account`, `SPAI_GITHUB_PROFILE`, `spai.githubProfile`
 2. Skill invocation names: `/spai:<skill>`, `spai-<skill>`
 3. Plugin and marketplace names: `spai@spai`, `0x0w1/spai`
 4. Managed block markers: `<!-- spai:start ... -->`, `<!-- spai:end ... -->`

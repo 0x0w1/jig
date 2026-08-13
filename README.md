@@ -22,6 +22,7 @@
 | `develop-task-flow` | `feature/fix/chore` 브랜치에서 작업 후 `develop`에 squash merge |
 | `github-release` | `develop`을 `main`으로 fast-forward 승격, 버전 계산 후 태그·릴리즈 생성 |
 | `github-sync` | `main`/`develop` 브랜치·branch protection 동기화, 로컬 `pre-push` 가드 설치 |
+| `project-setup` | SPAI 설치·복구와 저장소별 GitHub CLI 프로필 설정 |
 | `spai-update` | 설치본을 최신 SPAI 릴리즈로 업데이트 |
 | `spai-doctor` | 설치 상태 진단(버전·드리프트·보호 규칙·레거시), read-only |
 | `readme` | 프로젝트 타입 판정 후 `README.md` 생성, 기존 README는 코드와 대조해 드리프트 수정 |
@@ -54,19 +55,35 @@ Claude Code 세션 안에서 실행합니다.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-  | sh -s -- --target codex --scope project --github-account your-account
+  | sh -s -- --target codex --scope project --github-profile your-account
 ```
 
 ### Antigravity CLI
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-  | sh -s -- --target antigravity --scope project --github-account your-account
+  | sh -s -- --target antigravity --scope project --github-profile your-account
 ```
+
+### Installer 주요 옵션
+
+| 옵션 | 설명 |
+|---|---|
+| `--target codex\|antigravity` | 설치할 CLI 하나를 지정(필수) |
+| `--scope project\|global` | 설치 범위 지정, 기본값은 `project` |
+| `--github-profile <profile>` | 저장소에서 사용할 GitHub CLI 프로필 지정 |
+| `--github-host <host>` | GitHub Enterprise 호스트 지정 |
+| `--version vX.Y.Z` | 특정 SPAI 릴리즈로 설치·롤백 |
+| `--skills a,b,c` | manifest에서 선택한 스킬만 설치 |
+| `--configure-git-user` | 로컬 `user.name`·`user.email` 설정 |
+| `--dry-run` | 파일을 변경하지 않고 예정 작업 확인 |
+| `--force` | SPAI marker가 없는 기존 managed 파일 전체 교체 |
 
 ### 설치 후
 
-`github-sync` 스킬을 실행해 저장소를 SPAI 브랜치 모델에 수렴시킵니다. Claude Code는 `/spai:github-sync`, Codex/Antigravity는 `spai-github-sync`입니다.
+`project-setup` 스킬을 실행하면 설치 상태를 확인하고 저장소별 GitHub 프로필을 설정한 뒤 `github-sync`와 `spai-doctor`까지 이어서 실행합니다. Claude Code는 `/spai:project-setup`, Codex/Antigravity는 `spai-project-setup`입니다.
+
+프로필은 토큰이 아니라 로그인 이름만 저장합니다. `SPAI_GITHUB_PROFILE`이 있으면 세션 override로 사용하고, 없으면 `git config --local spai.githubProfile your-account`에 저장합니다. 이후 SPAI 스킬은 해당 프로필의 `gh` 보안 저장소 credential을 명령별로 사용하므로 전역 active account를 바꾸지 않습니다.
 
 ## 스킬 소유권과 이름 충돌
 
@@ -84,6 +101,7 @@ SPAI가 설치하는 스킬은 **사용자가 직접 만든 커스텀 스킬과 
 .agents/skills/spai-github-sync/SKILL.md
 .agents/skills/spai-github-release/SKILL.md
 .agents/skills/spai-develop-task-flow/SKILL.md
+.agents/skills/spai-project-setup/SKILL.md
 .agents/skills/spai-update/SKILL.md
 .agents/skills/spai-doctor/SKILL.md
 .agents/skills/spai-readme/SKILL.md
@@ -124,7 +142,7 @@ sh scripts/validate-dist.sh
 - installer는 Codex와 Antigravity 전용입니다. Claude Code는 플러그인 호스트가 설치·업데이트·삭제를 전담합니다.
 - 설치 스크립트는 기본 설치 중에는 로컬 git user 변경 prompt를 띄우지 않습니다. `gh` 로그인이 필요하거나 `--configure-git-user`를 사용하면 터미널 입력이 필요할 수 있습니다.
 - 기존 파일을 변경해야 할 때는 `.bak` 백업을 생성합니다. `--dry-run`으로 변경 없이 예정 작업만 확인할 수 있습니다.
-- project scope 설치는 `--github-account <account>` 또는 `SPAI_GITHUB_ACCOUNT=<account>` 입력이 필요합니다.
+- project scope 설치는 `--github-profile <profile>`, `SPAI_GITHUB_PROFILE=<profile>`, 또는 로컬 `spai.githubProfile` 설정이 필요합니다. 기존 `--github-account`와 `SPAI_GITHUB_ACCOUNT`도 호환됩니다.
 - `.git` repository가 없으면 GitHub Repository 설정 동기화를 건너뛰고 통과 로그를 출력합니다.
 - 이전 버전이 설치한 `.github/PULL_REQUEST_TEMPLATE.md`, `.github/drafter-config.yaml`, `.github/workflows/drafter.yaml`, 그리고 릴리즈 라벨 6종은 더 이상 사용하지 않습니다. 정리는 `github-sync` 스킬이 확인 후 안내합니다.
 

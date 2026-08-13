@@ -17,6 +17,10 @@ Each CLI updates on its own path; there is no combined update.
 - The latest version is the latest GitHub release tag of `0x0w1/spai`.
 - Repository-side convergence (branch protection, legacy file and label cleanup) is handled by the `github-sync` skill after the update, and is idempotent across skipped versions.
 
+## GitHub Profile
+
+Before any `gh` command, resolve the host from `SPAI_GITHUB_HOST`, local `spai.githubHost`, then `github.com`, and resolve the profile from `SPAI_GITHUB_PROFILE`, then local `spai.githubProfile`. If a profile is configured, read its credential with `gh auth token --hostname <host> --user <profile>` without printing it and run every `gh` command with that credential through `GH_TOKEN` (`github.com` or `*.ghe.com`) or `GH_ENTERPRISE_TOKEN` (other hosts). Verify `gh api user --jq .login` matches the profile. Do not use `gh auth switch`; fall back to the globally active account only when neither the environment nor local config selects a profile.
+
 ## Migration Blocks
 
 Release notes carry migration work as marker blocks, not prose. Collect them from every release in the range and merge them in release order.
@@ -72,8 +76,8 @@ Release notes carry migration work as marker blocks, not prose. Collect them fro
    - Confirm `claude plugin list` still shows `spai@spai` as enabled.
    - To pin a specific release instead of tracking the default branch, re-add the marketplace at that tag: `/plugin marketplace add https://github.com/0x0w1/spai.git#<latest>`.
    - Tell the user to run `/reload-plugins` in their Claude Code session for the new version to take effect.
-8. Update codex and antigravity, when those targets are installed. Run the installer once per target. Determine the GitHub account first (`gh api user --jq .login`) or ask the user:
-   - `curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh | sh -s -- --target <target> --scope project --github-account <account> --version <latest> --skills <stamped skills>`
+8. Update codex and antigravity, when those targets are installed. Run the installer once per target using the resolved profile:
+   - `curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh | SPAI_GITHUB_PROFILE=<profile> SPAI_GITHUB_HOST=<host> sh -s -- --target <target> --scope project --version <latest> --skills <stamped skills>`
    - When the stamp has no `skills=`, omit `--skills` so the installer applies the defaults.
 9. Verify the `AGENTS.md` or `GEMINI.md` stamp now shows the latest version. Claude Code has no stamp to verify.
 10. Apply the merged `migration-auto` items in release order, after the payload is updated so the steps run against the new version. Each item is idempotent: record it as applied, already satisfied, or failed, and continue past already-satisfied items. Stop and report on the first failure rather than improvising a fix.

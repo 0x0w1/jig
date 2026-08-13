@@ -16,6 +16,7 @@ SPAI 초기 버전은 **개인 사이드 프로젝트의 CLI 에이전트 하네
 - installer: 최신 릴리즈 태그 고정 설치, `--version` 롤백, `--skills` 선택 설치(`manifest.tsv` 카탈로그, codex/antigravity 전용)
 - workflow 스킬 3종: `develop-task-flow`, `github-release`, `github-sync`
 - 수명주기 스킬 2종: `spai-update`, `spai-doctor`
+- 온보딩 스킬 1종: `project-setup` (설치·복구와 저장소별 GitHub 프로필 선택)
 - 문서 스킬 1종: `readme` (README 생성·갱신)
 - 로컬 가드 2층: `github-sync`가 설치하는 git `pre-push` hook(전 CLI 공통) + Claude Code 플러그인 PreToolUse hook(`--no-verify` 우회 차단)
 - 배포 방식: Claude Code는 플러그인 마켓플레이스(`spai@spai`, 호스트가 `/spai:<skill>`로 네임스페이스), Codex/Antigravity는 `spai-` prefix 스킬 파일

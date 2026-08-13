@@ -37,6 +37,7 @@ project scope로 설치하면 저장소에 남는 파일은 설정 하나뿐입�
 /spai:github-sync
 /spai:develop-task-flow
 /spai:github-release
+/spai:project-setup
 /spai:spai-update
 /spai:spai-doctor
 /spai:readme
@@ -82,6 +83,7 @@ project scope:
   spai-github-sync/SKILL.md
   spai-github-release/SKILL.md
   spai-develop-task-flow/SKILL.md
+  spai-project-setup/SKILL.md
   spai-update/SKILL.md
   spai-doctor/SKILL.md
   spai-readme/SKILL.md
@@ -103,7 +105,7 @@ global scope:
 설치 버전과 스킬 구성은 managed block 안에 스탬프됩니다.
 
 ```text
-<!-- spai:version v0.2.0 skills=github-sync,github-release,develop-task-flow,spai-update,spai-doctor -->
+<!-- spai:version v0.2.0 skills=github-sync,github-release,develop-task-flow,project-setup,spai-update,spai-doctor -->
 ```
 
 `spai-update` 스킬이 이 스탬프를 읽어 같은 구성으로 최신 릴리즈에 재설치하고, `spai-doctor`가 진단 기준으로 씁니다. 업데이트는 같은 명령을 다시 실행하면 됩니다 — installer는 멱등이라 변경된 파일만 갱신합니다.
@@ -115,7 +117,7 @@ installer는 파일을 지우지 않습니다. 직접 지웁니다.
 ```bash
 rm -rf .agents/skills/spai-github-sync .agents/skills/spai-github-release \
   .agents/skills/spai-develop-task-flow .agents/skills/spai-update .agents/skills/spai-doctor \
-  .agents/skills/spai-readme
+  .agents/skills/spai-project-setup .agents/skills/spai-readme
 ```
 
 `AGENTS.md`에서는 `<!-- spai:start ... -->`와 `<!-- spai:end ... -->` 사이 구간만 지우면 됩니다. 블록 바깥 내용은 SPAI가 건드린 적이 없습니다.
@@ -187,25 +189,42 @@ installer는 쓰기 전에 현재 상태를 먼저 확인하고, 이미 원하�
 
 project scope에서 `gh`를 쓸 수 있으면 installer가 추가로 수행합니다.
 
-1. `--github-account`로 지정한 계정이 `gh`에 로그인돼 있는지 확인하고, 필요하면 `gh auth login` 후 `gh auth switch`로 active account를 맞춥니다.
+1. `SPAI_GITHUB_PROFILE`, 로컬 `spai.githubProfile`, 또는 `--github-profile`로 프로필을 정하고, 필요하면 `gh auth login`을 실행합니다. 선택한 프로필의 credential을 명령별로 사용하며 전역 active account는 바꾸지 않습니다.
 2. 원격에 `develop` 브랜치가 없으면 `main`의 현재 commit에서 만듭니다.
 
 `.git` repository가 없거나 GitHub 저장소에 연결돼 있지 않으면 이 단계를 건너뛰고 통과 로그를 남깁니다.
 
 **branch protection은 installer가 설정하지 않습니다.** 종료 시 `GUIDE`로 안내만 하고, 실제 적용은 `github-sync` 스킬이 담당합니다. 자세한 조건은 [GitHub Repository Settings](github-repository-settings.md)를 참고하세요.
 
+### 저장소별 GitHub 프로필
+
+지속 설정은 저장소의 `.git/config`에 로그인 이름과 호스트만 저장합니다. OAuth token은 `gh` credential store에 그대로 둡니다.
+
+```bash
+git config --local spai.githubProfile your-account
+git config --local spai.githubHost github.com
+```
+
+일회성 또는 세션별 override는 에이전트를 시작하는 환경에 지정합니다.
+
+```bash
+SPAI_GITHUB_PROFILE=your-account SPAI_GITHUB_HOST=github.com <agent-command>
+```
+
+환경변수가 로컬 config보다 우선합니다. 어느 방식이든 SPAI 스킬은 `gh auth switch`를 실행하지 않습니다.
+
 ### 로컬 git 작성자
 
 기본 설치에서는 묻지 않습니다. 필요할 때만 옵션으로 켭니다.
 
 ```bash
-sh install.sh --target codex --scope project --github-account your-account --configure-git-user
+sh install.sh --target codex --scope project --github-profile your-account --configure-git-user
 ```
 
 비대화식으로 값을 직접 넘길 수도 있습니다.
 
 ```bash
-sh install.sh --target codex --scope project --github-account your-account \
+sh install.sh --target codex --scope project --github-profile your-account \
   --git-user-name "Your Name" --git-user-email "your@email.com"
 ```
 
@@ -213,9 +232,9 @@ sh install.sh --target codex --scope project --github-account your-account \
 
 ## 설치 후 첫 단계
 
-어느 CLI로 설치했든 처음 할 일은 같습니다. `github-sync` 스킬을 실행해 저장소를 SPAI 브랜치 모델에 수렴시킵니다.
+어느 CLI로 설치했든 처음 할 일은 같습니다. `project-setup` 스킬을 실행해 설치와 GitHub 프로필을 검증하고 저장소를 SPAI 브랜치 모델에 수렴시킵니다.
 
-- Claude Code: `/spai:github-sync`
-- Codex / Antigravity: `spai-github-sync`
+- Claude Code: `/spai:project-setup`
+- Codex / Antigravity: `spai-project-setup`
 
-이 스킬이 `develop` 브랜치를 확인·생성하고, `main`과 `develop`에 force push·삭제를 금지하는 branch protection을 적용합니다. 상태 점검은 `spai-doctor`, 업데이트는 `spai-update`가 담당합니다.
+이 스킬은 토큰을 저장하지 않고 `SPAI_GITHUB_PROFILE` 또는 로컬 `git config`의 프로필 이름만 사용합니다. 이어서 `github-sync`가 `develop` 브랜치와 branch protection을 수렴시키고, `spai-doctor`가 상태를 점검합니다.

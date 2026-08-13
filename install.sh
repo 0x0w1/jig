@@ -5,8 +5,15 @@ TARGET=""
 SCOPE="project"
 DRY_RUN=0
 FORCE=0
-GITHUB_ACCOUNT="${SPAI_GITHUB_ACCOUNT:-}"
-GITHUB_HOST="${SPAI_GITHUB_HOST:-github.com}"
+GITHUB_ACCOUNT="${SPAI_GITHUB_PROFILE:-${SPAI_GITHUB_ACCOUNT:-}}"
+GITHUB_HOST="${SPAI_GITHUB_HOST:-}"
+GITHUB_AUTH_TOKEN=""
+GITHUB_PROFILE_SOURCE=""
+if [ -n "${SPAI_GITHUB_PROFILE:-}" ]; then
+  GITHUB_PROFILE_SOURCE="SPAI_GITHUB_PROFILE"
+elif [ -n "${SPAI_GITHUB_ACCOUNT:-}" ]; then
+  GITHUB_PROFILE_SOURCE="SPAI_GITHUB_ACCOUNT"
+fi
 CONFIGURE_GIT_USER="${SPAI_CONFIGURE_GIT_USER:-0}"
 GIT_USER_NAME="${SPAI_GIT_USER_NAME:-}"
 GIT_USER_EMAIL="${SPAI_GIT_USER_EMAIL:-}"
@@ -36,7 +43,7 @@ it installs the spai plugin from the Claude Code marketplace instead.
   /plugin install spai@spai
 
 Usage:
-  sh install.sh --target <target> [--scope <scope>] [--github-account <account>] [--version vX.Y.Z] [--skills a,b,c] [--configure-git-user] [--dry-run] [--force]
+  sh install.sh --target <target> [--scope <scope>] [--github-profile <profile>] [--version vX.Y.Z] [--skills a,b,c] [--configure-git-user] [--dry-run] [--force]
 
 Merge flow:
   Work branches squash-merge into develop locally and develop is pushed directly. No pull requests.
@@ -60,17 +67,18 @@ Defaults:
 
 Examples:
   wget -qO- https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-    | sh -s -- --target codex --scope project --github-account your-account
+    | sh -s -- --target codex --scope project --github-profile your-account
 
   curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-    | sh -s -- --target antigravity --scope project --github-account your-account
+    | sh -s -- --target antigravity --scope project --github-profile your-account
 
 Environment:
-  REPO_RAW_URL=https://raw.githubusercontent.com/my-org/spai/main SPAI_GITHUB_ACCOUNT=your-account sh install.sh --target codex
-  SPAI_VERSION=v0.1.0 SPAI_GITHUB_ACCOUNT=your-account sh install.sh --target codex --scope project
-  SPAI_SKILLS=github-release,develop-task-flow SPAI_GITHUB_ACCOUNT=your-account sh install.sh --target codex --scope project
-  SPAI_GITHUB_HOST=github.example.com SPAI_GITHUB_ACCOUNT=monalisa sh install.sh --target codex --scope project
-  SPAI_GIT_USER_NAME="Mona Lisa" SPAI_GIT_USER_EMAIL=monalisa@example.com sh install.sh --target codex --scope project --github-account monalisa
+  SPAI_GITHUB_PROFILE=your-account sh install.sh --target codex --scope project
+  REPO_RAW_URL=https://raw.githubusercontent.com/my-org/spai/main SPAI_GITHUB_PROFILE=your-account sh install.sh --target codex
+  SPAI_VERSION=v0.1.0 SPAI_GITHUB_PROFILE=your-account sh install.sh --target codex --scope project
+  SPAI_SKILLS=github-release,develop-task-flow SPAI_GITHUB_PROFILE=your-account sh install.sh --target codex --scope project
+  SPAI_GITHUB_HOST=github.example.com SPAI_GITHUB_PROFILE=your-account sh install.sh --target codex --scope project
+  SPAI_GIT_USER_NAME="Your Name" SPAI_GIT_USER_EMAIL=your@email.com sh install.sh --target codex --scope project --github-profile your-account
 
 Version:
   By default the installer resolves the latest GitHub release tag and installs the payload
@@ -82,10 +90,11 @@ Version:
   <!-- spai:version vX.Y.Z skills=<a,b,c> --> inside the SPAI managed block of
   AGENTS.md / GEMINI.md; the spai-update and spai-doctor skills read this stamp.
 
-GitHub account:
-  Project scope requires --github-account <account> or SPAI_GITHUB_ACCOUNT.
+GitHub profile:
+  Project scope resolves --github-profile, SPAI_GITHUB_PROFILE, then local git config spai.githubProfile.
+  --github-account and SPAI_GITHUB_ACCOUNT remain supported aliases.
   Use --github-host <host> or SPAI_GITHUB_HOST for GitHub Enterprise hosts.
-  The installer logs in with gh when needed, then switches gh to that account before GitHub branch sync.
+  The installer logs in with gh when needed and uses that profile per command without changing the globally active account.
 
 Local git user:
   Use --configure-git-user to prompt for local user.name and user.email.
@@ -99,7 +108,7 @@ Skill ownership:
   (.agents/skills/spai-github-sync, ...) to stay clear of your own skill names.
 
 Project scope also syncs GitHub repository settings when gh is available:
-  account: selected by --github-account or SPAI_GITHUB_ACCOUNT
+  profile: selected by --github-profile, SPAI_GITHUB_PROFILE, or local git config
   branches: develop creation from main when missing
 
 Target-specific project installs:
@@ -305,6 +314,20 @@ $1"
 record_verified_branch() {
   VERIFIED_BRANCHES="${VERIFIED_BRANCHES}
 $1"
+}
+
+resolve_github_profile_config() {
+  if [ "$SCOPE" = "project" ] && command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    if [ -z "$GITHUB_ACCOUNT" ]; then
+      GITHUB_ACCOUNT=$(git config --local --get spai.githubProfile 2>/dev/null || true)
+      [ -z "$GITHUB_ACCOUNT" ] || GITHUB_PROFILE_SOURCE="local git config"
+    fi
+    if [ -z "$GITHUB_HOST" ]; then
+      GITHUB_HOST=$(git config --local --get spai.githubHost 2>/dev/null || true)
+    fi
+  fi
+
+  [ -n "$GITHUB_HOST" ] || GITHUB_HOST="github.com"
 }
 
 copy_file_with_backup() {
@@ -583,12 +606,19 @@ sync_local_git_user_config() {
   fi
 }
 
-github_active_account() {
-  gh auth status --active --hostname "$GITHUB_HOST" --json hosts --jq '.hosts | to_entries[0].value[0].login' 2>/dev/null || true
+gh_with_profile() {
+  case "$GITHUB_HOST" in
+    github.com|*.ghe.com)
+      GH_TOKEN="$GITHUB_AUTH_TOKEN" GH_HOST="$GITHUB_HOST" gh "$@"
+      ;;
+    *)
+      GH_ENTERPRISE_TOKEN="$GITHUB_AUTH_TOKEN" GH_HOST="$GITHUB_HOST" gh "$@"
+      ;;
+  esac
 }
 
 ensure_github_login() {
-  if gh auth switch --hostname "$GITHUB_HOST" --user "$GITHUB_ACCOUNT" >/dev/null 2>&1; then
+  if GITHUB_AUTH_TOKEN=$(gh auth token --hostname "$GITHUB_HOST" --user "$GITHUB_ACCOUNT" 2>/dev/null); then
     return 0
   fi
 
@@ -598,8 +628,8 @@ ensure_github_login() {
     error "GitHub CLI login failed for $GITHUB_HOST."
   fi
 
-  if ! gh auth switch --hostname "$GITHUB_HOST" --user "$GITHUB_ACCOUNT" >/dev/null 2>&1; then
-    error "GitHub account selection failed after login: $GITHUB_ACCOUNT@$GITHUB_HOST"
+  if ! GITHUB_AUTH_TOKEN=$(gh auth token --hostname "$GITHUB_HOST" --user "$GITHUB_ACCOUNT" 2>/dev/null); then
+    error "GitHub profile is unavailable after login: $GITHUB_ACCOUNT@$GITHUB_HOST"
   fi
 }
 
@@ -611,17 +641,17 @@ select_github_account() {
   fi
 
   if [ -z "$GITHUB_ACCOUNT" ]; then
-    error "GitHub account is required for $context_action. Pass --github-account <account> or set SPAI_GITHUB_ACCOUNT."
+    error "GitHub profile is required for $context_action. Pass --github-profile <profile>, set SPAI_GITHUB_PROFILE, or configure spai.githubProfile locally."
   fi
 
   ensure_github_login
 
-  active_account=$(github_active_account)
-  if [ "$active_account" != "$GITHUB_ACCOUNT" ]; then
-    error "GitHub account verification failed: expected $GITHUB_ACCOUNT on $GITHUB_HOST, got ${active_account:-unknown}."
+  verified_account=$(gh_with_profile api user --jq .login 2>/dev/null || true)
+  if [ "$verified_account" != "$GITHUB_ACCOUNT" ]; then
+    error "GitHub profile verification failed: expected $GITHUB_ACCOUNT on $GITHUB_HOST, got ${verified_account:-unknown}."
   fi
 
-  log "GitHub CLI account selected: $GITHUB_ACCOUNT@$GITHUB_HOST"
+  log "GitHub CLI profile selected without changing the global active account: $GITHUB_ACCOUNT@$GITHUB_HOST"
   record_verified_github_account "$GITHUB_ACCOUNT@$GITHUB_HOST"
 }
 
@@ -647,7 +677,7 @@ project_github_context_ready() {
   fi
   log "Git repository check passed"
 
-  if ! gh repo view >/dev/null 2>&1; then
+  if ! gh_with_profile repo view >/dev/null 2>&1; then
     warn "GitHub repository check failed: current directory is not connected to a GitHub repository. Skipping $context_action."
     return 1
   fi
@@ -657,11 +687,11 @@ project_github_context_ready() {
 }
 
 github_repo_slug() {
-  gh repo view --json nameWithOwner --jq .nameWithOwner
+  gh_with_profile repo view --json nameWithOwner --jq .nameWithOwner
 }
 
 github_repo_visibility() {
-  repo_visibility=$(gh repo view --json visibility --jq .visibility 2>/dev/null || true)
+  repo_visibility=$(gh_with_profile repo view --json visibility --jq .visibility 2>/dev/null || true)
   if [ -n "$repo_visibility" ]; then
     printf '%s\n' "$repo_visibility"
   else
@@ -670,7 +700,7 @@ github_repo_visibility() {
 }
 
 github_repo_viewer_permission() {
-  repo_viewer_permission=$(gh repo view --json viewerPermission --jq .viewerPermission 2>/dev/null || true)
+  repo_viewer_permission=$(gh_with_profile repo view --json viewerPermission --jq .viewerPermission 2>/dev/null || true)
   if [ -n "$repo_viewer_permission" ]; then
     printf '%s\n' "$repo_viewer_permission"
   else
@@ -681,13 +711,13 @@ github_repo_viewer_permission() {
 github_branch_exists() {
   repo_slug="$1"
   branch_name="$2"
-  gh api "repos/$repo_slug/branches/$branch_name" >/dev/null 2>&1
+  gh_with_profile api "repos/$repo_slug/branches/$branch_name" >/dev/null 2>&1
 }
 
 github_branch_sha() {
   repo_slug="$1"
   branch_name="$2"
-  gh api "repos/$repo_slug/branches/$branch_name" --jq .commit.sha 2>/dev/null || true
+  gh_with_profile api "repos/$repo_slug/branches/$branch_name" --jq .commit.sha 2>/dev/null || true
 }
 
 ensure_github_branch() {
@@ -707,7 +737,7 @@ ensure_github_branch() {
     return 0
   fi
 
-  if gh api -X POST "repos/$repo_slug/git/refs" -f ref="refs/heads/$branch_name" -f sha="$source_sha" >/dev/null 2>&1; then
+  if gh_with_profile api -X POST "repos/$repo_slug/git/refs" -f ref="refs/heads/$branch_name" -f sha="$source_sha" >/dev/null 2>&1; then
     log "GitHub branch created: $branch_name from $source_branch"
     record_branch "$branch_name (created from $source_branch)"
   elif github_branch_exists "$repo_slug" "$branch_name"; then
@@ -812,11 +842,12 @@ main() {
         [ "$#" -gt 0 ] || error "--scope requires a value"
         SCOPE="$1"
         ;;
-      --github-account|--git-account)
+      --github-profile|--github-account|--git-account)
         github_account_option="$1"
         shift
         [ "$#" -gt 0 ] || error "$github_account_option requires a value"
         GITHUB_ACCOUNT="$1"
+        GITHUB_PROFILE_SOURCE="$github_account_option"
         ;;
       --github-host)
         shift
@@ -877,8 +908,13 @@ main() {
     *) error "unsupported scope: $SCOPE" ;;
   esac
 
+  resolve_github_profile_config
+
   if [ "$SCOPE" = "project" ] && [ -z "$GITHUB_ACCOUNT" ]; then
-    error "project scope requires --github-account <account> or SPAI_GITHUB_ACCOUNT."
+    error "project scope requires --github-profile <profile>, SPAI_GITHUB_PROFILE, or local git config spai.githubProfile."
+  fi
+  if [ "$SCOPE" = "project" ]; then
+    log "GitHub profile source: ${GITHUB_PROFILE_SOURCE:-explicit input}"
   fi
 
   need_downloader

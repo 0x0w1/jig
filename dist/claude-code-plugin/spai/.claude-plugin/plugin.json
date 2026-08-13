@@ -1,6 +1,6 @@
 {
   "name": "spai",
-  "description": "SPAI repository workflow skills: develop task flow, CLI releases, and repository sync",
+  "description": "SPAI repository workflow skills: project setup, develop flow, CLI releases, repository sync, and lifecycle management",
   "author": { "name": "0x0w1" },
   "homepage": "https://github.com/0x0w1/spai",
   "license": "MIT"

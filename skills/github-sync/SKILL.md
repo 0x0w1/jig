@@ -15,6 +15,10 @@ Use this repository skill only for setup and synchronization of GitHub repositor
 - No release-drafter files, no pull request template, no label sync; the release flow is CLI-driven (`github-release`) and does not use pull requests.
 - Sync is convergent and idempotent: one run aligns the repository with the current model even when several SPAI versions were skipped. `spai-update` runs it after updating installed files.
 
+## GitHub Profile
+
+Before any `gh` command, resolve the host from `SPAI_GITHUB_HOST`, local `spai.githubHost`, then `github.com`, and resolve the profile from `SPAI_GITHUB_PROFILE`, then local `spai.githubProfile`. If a profile is configured, read its credential with `gh auth token --hostname <host> --user <profile>` without printing it and run every `gh` command with that credential through `GH_TOKEN` (`github.com` or `*.ghe.com`) or `GH_ENTERPRISE_TOKEN` (other hosts). Verify `gh api user --jq .login` matches the profile. Do not use `gh auth switch`; fall back to the globally active account only when neither the environment nor local config selects a profile.
+
 ## Phase Rules
 
 For broad sync work, split into phases:

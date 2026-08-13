@@ -6,6 +6,7 @@ Use these repo-scoped Claude Code skills:
 - Release: `github-release` from `.claude/skills/github-release/SKILL.md`.
 - Ordinary implementation tasks targeting `develop`: `develop-task-flow` from `.claude/skills/develop-task-flow/SKILL.md`.
 - README writing/updating: `readme` from `.claude/skills/readme/SKILL.md`.
+- SPAI project installation and GitHub profile setup: `project-setup` from `.claude/skills/project-setup/SKILL.md`.
 - SPAI installation updates: `spai-update` from `.claude/skills/spai-update/SKILL.md`.
 - SPAI installation diagnostics: `spai-doctor` from `.claude/skills/spai-doctor/SKILL.md`.
 

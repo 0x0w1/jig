@@ -18,8 +18,9 @@ skill_summary() {
     github-sync) printf '%s' "repository setup and synchronization; not for creating releases." ;;
     github-release) printf '%s' "release execution promoting develop to main with a fast-forward push and a tagged GitHub release." ;;
     develop-task-flow) printf '%s' "normal development tasks on feature/fix/chore branches squash-merged back into develop." ;;
+    project-setup) printf '%s' "install SPAI for a repository and select its GitHub CLI profile without changing the global active account." ;;
     spai-update) printf '%s' "update the installed SPAI skills to the latest SPAI release and converge repository settings." ;;
-    spai-doctor) printf '%s' "diagnose the installed SPAI state (version, protection, legacy); read-only." ;;
+    spai-doctor) printf '%s' "diagnose the installed SPAI state (profile, version, protection, legacy); read-only." ;;
     readme) printf '%s' "write or update the project README from the repository state; drafts one when missing, fixes drift when present." ;;
     *) printf '%s' "SPAI procedure." ;;
   esac
@@ -90,7 +91,7 @@ build_claude_plugin() {
   cat > "$plugin_root/.claude-plugin/plugin.json" <<EOF
 {
   "name": "$plugin_name",
-  "description": "SPAI repository workflow skills: develop task flow, CLI releases, and repository sync",
+  "description": "SPAI repository workflow skills: project setup, develop flow, CLI releases, repository sync, and lifecycle management",
   "author": { "name": "0x0w1" },
   "homepage": "https://github.com/0x0w1/spai",
   "license": "MIT"

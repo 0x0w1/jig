@@ -1,6 +1,6 @@
 ---
 name: spai-doctor
-description: "Use when diagnosing the SPAI installation in this repository: verify the Claude Code plugin is registered and enabled, compare the installed version stamp for codex and antigravity with the latest release, detect locally modified skill files, report pending migration items from newer releases, verify branch protection, and report leftovers. Read-only; fixes are delegated to spai-update and github-sync."
+description: "Use when diagnosing the SPAI installation in this repository: verify the Claude Code plugin, GitHub profile selection, installed version and skill drift, pending migrations, branch protection, local guard, and legacy leftovers. Read-only; fixes are delegated to project-setup, spai-update, and github-sync."
 ---
 
 # SPAI Doctor
@@ -13,6 +13,10 @@ Each CLI is installed on its own; there is no combined install.
 
 - **Claude Code** installs the `spai` plugin from the Claude Code marketplace. Its skills are namespaced by the host as `/spai:<skill>` and live under the plugin directory, never under `.claude/skills`. There is no installer, no `CLAUDE.md` managed block, and no version stamp: the host owns install, update, and removal.
 - **Codex and Antigravity** have no plugin system, so `install.sh` copies `spai-` prefixed skill directories under `.agents/skills` and writes a managed block with a `<!-- spai:version ... -->` stamp into `AGENTS.md` or `GEMINI.md`.
+
+## GitHub Profile
+
+Before any `gh` command, resolve the host from `SPAI_GITHUB_HOST`, local `spai.githubHost`, then `github.com`, and resolve the profile from `SPAI_GITHUB_PROFILE`, then local `spai.githubProfile`. If a profile is configured, read its credential with `gh auth token --hostname <host> --user <profile>` without printing it and run every `gh` command with that credential through `GH_TOKEN` (`github.com` or `*.ghe.com`) or `GH_ENTERPRISE_TOKEN` (other hosts). Verify `gh api user --jq .login` matches the profile. Do not use `gh auth switch`; fall back to the globally active account only when neither the environment nor local config selects a profile.
 
 ## Checks
 
@@ -43,6 +47,7 @@ Each CLI is installed on its own; there is no combined install.
    - Marked but `<N>` lower than the latest guard version (`v1`): outdated.
    - Marked but missing `merge-base --is-ancestor` or `refs/heads/main`, or not executable: locally modified or broken.
    - Fix owner is `github-sync`; report, never modify.
+9. **GitHub profile**: report whether the profile came from `SPAI_GITHUB_PROFILE`, local `spai.githubProfile`, or the globally active fallback. When a profile is configured, verify its stored credential and `gh api user` identity without printing the token. A missing credential, identity mismatch, or missing local profile for a multi-account host is a `project-setup` finding.
 
 ## Safety Rules
 
@@ -55,12 +60,13 @@ Each CLI is installed on its own; there is no combined install.
 ## Procedure
 
 1. Confirm context: `git rev-parse --is-inside-work-tree`, `gh repo view`, `gh auth status`, `command -v claude`. If a tool is unavailable, run only the checks that do not need it and list the skipped checks in the report.
-2. Run checks 1–8 in order and collect the results.
+2. Run checks 1–9 in order and collect the results.
 3. Compose the report. For every finding, name the fix owner:
    - version behind, drifted files, missing plugin, or pending `migration-auto` items → `spai-update`
    - pending `migration-manual` items → `spai-update`, but only after the user decides each item
    - protection mismatch or legacy leftovers → `github-sync` (deletions only with explicit confirmation)
    - local guard missing, outdated, or modified → `github-sync`
+   - GitHub profile missing, ambiguous, or invalid → `project-setup`
    - branch state divergence → stop releases and reconcile manually; never force-push.
 
 ## Final Report
@@ -92,6 +98,9 @@ Each CLI is installed on its own; there is no combined install.
 
 ### 로컬 가드
 - pre-push: OK vN | 미설치 | 구버전 (vN → vM) | 수정됨/실행권한 없음 | 사용자 훅 존재
+
+### GitHub 프로필
+- <source>: <profile>@<host> → OK | credential 누락 | identity 불일치 | 전역 active fallback
 
 ### 권장 조치
 - <fix owner>: <명령 또는 스킬>
