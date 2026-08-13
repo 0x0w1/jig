@@ -76,13 +76,14 @@ Release notes carry migration work as marker blocks, not prose. Collect them fro
    - Confirm `claude plugin list` still shows `spai@spai` as enabled.
    - To pin a specific release instead of tracking the default branch, re-add the marketplace at that tag: `/plugin marketplace add https://github.com/0x0w1/spai.git#<latest>`.
    - Tell the user to run `/reload-plugins` in their Claude Code session for the new version to take effect.
-8. Update codex and antigravity, when those targets are installed. Run the installer once per target using the resolved profile:
-   - `curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh | SPAI_GITHUB_PROFILE=<profile> SPAI_GITHUB_HOST=<host> sh -s -- --target <target> --scope project --version <latest> --skills <stamped skills>`
+8. Update codex and antigravity, when those targets are installed. Run the installer once per target; a GitHub profile is optional for the file update:
+   - `curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh | sh -s -- --target <target> --scope project --version <latest> --skills <stamped skills>`
+   - When a profile is configured, the installer resolves it from the environment or local git config and also converges GitHub settings. Otherwise it updates the files and defers GitHub convergence to `project-setup`.
    - When the stamp has no `skills=`, omit `--skills` so the installer applies the defaults.
 9. Verify the `AGENTS.md` or `GEMINI.md` stamp now shows the latest version. Claude Code has no stamp to verify.
 10. Apply the merged `migration-auto` items in release order, after the payload is updated so the steps run against the new version. Each item is idempotent: record it as applied, already satisfied, or failed, and continue past already-satisfied items. Stop and report on the first failure rather than improvising a fix.
 11. Present the merged `migration-manual` items and apply only the ones the user approves. Anything not approved stays pending and is named in the report.
-12. Run the `github-sync` skill to converge branch protection and report legacy files or labels; delete them only with explicit confirmation.
+12. When a GitHub profile is configured, run the `github-sync` skill to converge branch protection and report legacy files or labels; delete them only with explicit confirmation. Otherwise recommend `project-setup` and leave GitHub convergence pending.
 13. Run the `spai-doctor` skill to confirm the updated installation is healthy; include its findings in the report.
 14. Report.
 

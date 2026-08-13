@@ -187,12 +187,12 @@ installer는 쓰기 전에 현재 상태를 먼저 확인하고, 이미 원하�
 
 ### GitHub 설정 동기화
 
-project scope에서 `gh`를 쓸 수 있으면 installer가 추가로 수행합니다.
+project scope에서 GitHub 프로필이 이미 설정되어 있고 `gh`를 쓸 수 있으면 installer가 추가로 수행합니다.
 
 1. `SPAI_GITHUB_PROFILE`, 로컬 `spai.githubProfile`, 또는 `--github-profile`로 프로필을 정하고, 필요하면 `gh auth login`을 실행합니다. 선택한 프로필의 credential을 명령별로 사용하며 전역 active account는 바꾸지 않습니다.
 2. 원격에 `develop` 브랜치가 없으면 `main`의 현재 commit에서 만듭니다.
 
-`.git` repository가 없거나 GitHub 저장소에 연결돼 있지 않으면 이 단계를 건너뛰고 통과 로그를 남깁니다.
+프로필이 없으면 스킬 파일 설치는 그대로 완료하고 이 단계만 `project-setup` 이후로 미룹니다. `.git` repository가 없거나 GitHub 저장소에 연결돼 있지 않아도 이 단계를 건너뛰고 통과 로그를 남깁니다.
 
 **branch protection은 installer가 설정하지 않습니다.** 종료 시 `GUIDE`로 안내만 하고, 실제 적용은 `github-sync` 스킬이 담당합니다. 자세한 조건은 [GitHub Repository Settings](github-repository-settings.md)를 참고하세요.
 
@@ -218,13 +218,13 @@ SPAI_GITHUB_PROFILE=your-account SPAI_GITHUB_HOST=github.com <agent-command>
 기본 설치에서는 묻지 않습니다. 필요할 때만 옵션으로 켭니다.
 
 ```bash
-sh install.sh --target codex --scope project --github-profile your-account --configure-git-user
+sh install.sh --target codex --scope project --configure-git-user
 ```
 
 비대화식으로 값을 직접 넘길 수도 있습니다.
 
 ```bash
-sh install.sh --target codex --scope project --github-profile your-account \
+sh install.sh --target codex --scope project \
   --git-user-name "Your Name" --git-user-email "your@email.com"
 ```
 
@@ -232,7 +232,7 @@ sh install.sh --target codex --scope project --github-profile your-account \
 
 ## 설치 후 첫 단계
 
-어느 CLI로 설치했든 처음 할 일은 같습니다. `project-setup` 스킬을 실행해 설치와 GitHub 프로필을 검증하고 저장소를 SPAI 브랜치 모델에 수렴시킵니다.
+어느 CLI로 설치했든 GitHub 프로필은 설치가 끝난 뒤 설정할 수 있습니다. `project-setup` 스킬을 실행해 설치 상태와 프로필을 검증하고 저장소를 SPAI 브랜치 모델에 수렴시킵니다.
 
 - Claude Code: `/spai:project-setup`
 - Codex / Antigravity: `spai-project-setup`

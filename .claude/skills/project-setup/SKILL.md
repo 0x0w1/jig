@@ -1,11 +1,11 @@
 ---
 name: project-setup
-description: Use when onboarding SPAI into a repository, installing or repairing the SPAI skill set for Claude Code, Codex, or Antigravity, and selecting the GitHub CLI profile for that repository through SPAI_GITHUB_PROFILE or local git config without changing the globally active gh account.
+description: Use after installing SPAI for Claude Code, Codex, or Antigravity to select and verify the repository GitHub CLI profile through SPAI_GITHUB_PROFILE or local git config, finish GitHub repository convergence, or repair an incomplete SPAI installation without changing the globally active gh account.
 ---
 
 # Project Setup
 
-Install the requested SPAI target and bind GitHub operations to a repository profile. Store only the profile login and host; keep credentials in the GitHub CLI credential store.
+Bind an installed SPAI target to a repository GitHub profile, then finish repository convergence. Store only the profile login and host; keep credentials in the GitHub CLI credential store.
 
 ## Profile Contract
 
@@ -27,17 +27,17 @@ Resolve the host from `SPAI_GITHUB_HOST`, then `git config --local --get spai.gi
 
 ## Procedure
 
-1. Inspect the repository and current installation:
+1. Inspect the repository and installed target:
    - confirm the working directory and git repository
    - inspect `claude plugin list`, `AGENTS.md`, and `GEMINI.md` as available
-   - detect the requested target and scope; default to project scope and install one target per run; map SPAI global scope to Claude Code user scope
+   - detect the installed target and scope; map SPAI global scope to Claude Code user scope
 2. Resolve and validate the GitHub profile using the Profile Contract. If multiple authenticated profiles remain plausible, ask before selecting one.
 3. Configure the profile:
    - keep an existing `SPAI_GITHUB_PROFILE` as the session override
    - otherwise write the repository-local `spai.githubProfile` and `spai.githubHost` values
-4. Install or repair the selected target:
-   - Claude Code: `claude plugin marketplace add 0x0w1/spai --scope <project|user>`, then `claude plugin install spai@spai --scope <project|user>`; use `user` for a requested global install and pass an already-installed plugin as healthy
-   - Codex or Antigravity: `curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh | SPAI_GITHUB_PROFILE=<profile> SPAI_GITHUB_HOST=<host> sh -s -- --target <target> --scope <scope>`; preserve the stamped skill selection when repairing an existing install
+4. Verify the installed target and repair only when incomplete:
+   - Claude Code: confirm `spai@spai` is enabled; when missing, run `claude plugin marketplace add 0x0w1/spai --scope <project|user>` and `claude plugin install spai@spai --scope <project|user>`
+   - Codex or Antigravity: confirm the SPAI version stamp and `spai-project-setup`; when incomplete, rerun `install.sh` for the detected target and preserve the stamped skill selection
 5. Verify:
    - Claude Code: `claude plugin list` shows `spai@spai` enabled
    - Codex: `AGENTS.md` has the SPAI version stamp and `.agents/skills/spai-project-setup/SKILL.md` exists
@@ -57,7 +57,7 @@ Resolve the host from `SPAI_GITHUB_HOST`, then `git config --local --get spai.gi
 
 Include:
 
-- Target and scope installed or already healthy
+- Target and scope already healthy or repaired
 - Profile source: environment | local git config | explicit selection | repository owner
 - Profile login and host, never its token
 - Files and local config keys changed

@@ -83,7 +83,7 @@ If the composed notes and the intended bump disagree, one of them is wrong. Stop
 
 A break here counts as a break. Anything else is internal and stays `patch`.
 
-1. The installer and GitHub profile contract: `--target`, `--scope`, `--github-profile`/`--github-account`, `SPAI_GITHUB_PROFILE`, `spai.githubProfile`
+1. The installer and post-install GitHub profile contract: `--target`, `--scope`, optional `--github-profile`/`--github-account`, `SPAI_GITHUB_PROFILE`, `spai.githubProfile`
 2. Skill invocation names: `/spai:<skill>`, `spai-<skill>`
 3. Plugin and marketplace names: `spai@spai`, `0x0w1/spai`
 4. Managed block markers: `<!-- spai:start ... -->`, `<!-- spai:end ... -->`

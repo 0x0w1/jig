@@ -67,10 +67,10 @@ Defaults:
 
 Examples:
   wget -qO- https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-    | sh -s -- --target codex --scope project --github-profile your-account
+    | sh -s -- --target codex --scope project
 
   curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-    | sh -s -- --target antigravity --scope project --github-profile your-account
+    | sh -s -- --target antigravity --scope project
 
 Environment:
   SPAI_GITHUB_PROFILE=your-account sh install.sh --target codex --scope project
@@ -91,7 +91,8 @@ Version:
   AGENTS.md / GEMINI.md; the spai-update and spai-doctor skills read this stamp.
 
 GitHub profile:
-  Project scope resolves --github-profile, SPAI_GITHUB_PROFILE, then local git config spai.githubProfile.
+  GitHub profile is optional during installation. Configure it afterward with the installed project-setup skill.
+  When provided, project scope resolves --github-profile, SPAI_GITHUB_PROFILE, then local git config spai.githubProfile.
   --github-account and SPAI_GITHUB_ACCOUNT remain supported aliases.
   Use --github-host <host> or SPAI_GITHUB_HOST for GitHub Enterprise hosts.
   The installer logs in with gh when needed and uses that profile per command without changing the globally active account.
@@ -108,7 +109,7 @@ Skill ownership:
   (.agents/skills/spai-github-sync, ...) to stay clear of your own skill names.
 
 Project scope also syncs GitHub repository settings when gh is available:
-  profile: selected by --github-profile, SPAI_GITHUB_PROFILE, or local git config
+  profile: optional; selected by --github-profile, SPAI_GITHUB_PROFILE, or local git config
   branches: develop creation from main when missing
 
 Target-specific project installs:
@@ -761,6 +762,11 @@ sync_github_repository_settings() {
     return 0
   fi
 
+  if [ -z "$GITHUB_ACCOUNT" ]; then
+    pass_task "GitHub profile is not configured; repository settings sync is deferred to project-setup"
+    return 0
+  fi
+
   if [ "$DRY_RUN" -eq 1 ]; then
     log "[dry-run] Would use GitHub CLI account: $GITHUB_ACCOUNT@$GITHUB_HOST"
     log "[dry-run] Would inspect GitHub repository visibility and viewer permission"
@@ -787,6 +793,11 @@ print_guide() {
 
   printf '\nGUIDE\n'
   printf '%s\n' '  Remaining manual steps:'
+  if [ -z "$GITHUB_ACCOUNT" ]; then
+    printf '%s\n' '    - Run the installed `spai-project-setup` skill to select this repository GitHub profile.'
+    printf '%s\n' '    - Claude Code users run `/spai:project-setup`; Codex and Antigravity users run `spai-project-setup`.'
+    return 0
+  fi
   printf '%s\n' '    - Protect `main` and `develop` against force pushes and deletion; do not require pull requests.'
   printf '%s\n' '    - Use the installed `spai-github-sync` skill to apply or verify this branch protection.'
 }
@@ -910,11 +921,10 @@ main() {
 
   resolve_github_profile_config
 
-  if [ "$SCOPE" = "project" ] && [ -z "$GITHUB_ACCOUNT" ]; then
-    error "project scope requires --github-profile <profile>, SPAI_GITHUB_PROFILE, or local git config spai.githubProfile."
-  fi
-  if [ "$SCOPE" = "project" ]; then
+  if [ "$SCOPE" = "project" ] && [ -n "$GITHUB_ACCOUNT" ]; then
     log "GitHub profile source: ${GITHUB_PROFILE_SOURCE:-explicit input}"
+  elif [ "$SCOPE" = "project" ]; then
+    log "GitHub profile will be configured after installation with project-setup"
   fi
 
   need_downloader

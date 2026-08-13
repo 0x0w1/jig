@@ -1,8 +1,8 @@
 # GitHub Repository Settings
 
-이 문서는 `install.sh`(Codex, Antigravity CLI 대상)의 GitHub 동작을 설명합니다. Claude Code는 플러그인으로 설치되어 installer를 거치지 않으므로, 저장소 설정 수렴은 설치 후 `/spai:github-sync`를 실행해 처리합니다.
+이 문서는 `install.sh`(Codex, Antigravity CLI 대상)의 GitHub 동작을 설명합니다. Claude Code는 플러그인으로 설치되어 installer를 거치지 않으므로, 저장소 프로필 설정과 수렴은 설치 후 `/spai:project-setup`으로 처리합니다.
 
-SPAI project scope 설치는 `SPAI_GITHUB_PROFILE`, 로컬 `git config`의 `spai.githubProfile`, 또는 `--github-profile`로 지정한 `gh` 프로필을 사용합니다. 해당 프로필이 로그인되어 있지 않으면 `gh auth login`을 실행합니다. credential은 명령별 환경으로 전달하며 전역 active account를 바꾸지 않습니다. `gh`가 설치되어 있고 현재 디렉터리가 GitHub repository에 연결된 git repository일 때 일부 GitHub Repository 설정을 동기화할 수 있습니다.
+SPAI project scope 스킬 설치에는 GitHub 프로필이 필요하지 않습니다. 프로필 없이 설치하면 GitHub Repository 설정 동기화만 건너뛰며, 설치된 `project-setup`이 이후 `SPAI_GITHUB_PROFILE` 또는 로컬 `spai.githubProfile`을 설정합니다. 프로필 credential은 명령별 환경으로 전달하며 전역 active account를 바꾸지 않습니다.
 
 ## Repository 운영 규칙
 
@@ -13,7 +13,7 @@ SPAI project scope 설치는 `SPAI_GITHUB_PROFILE`, 로컬 `git config`의 `spai
 
 ## install.sh가 적용하는 항목
 
-`install.sh --target <codex|antigravity> --scope project --github-profile <profile>`는 Agent 스킬/룰 파일을 먼저 설치한 뒤, 가능한 경우 다음 GitHub 작업을 시도합니다.
+`install.sh --target <codex|antigravity> --scope project`는 Agent 스킬/룰 파일을 먼저 설치합니다. 프로필이 이미 제공된 경우에만 이어서 다음 GitHub 작업을 시도합니다.
 
 - GitHub CLI 계정 선택:
   - `--github-profile` → `SPAI_GITHUB_PROFILE` → 로컬 `spai.githubProfile` 순서로 프로필을 확정합니다.
@@ -55,9 +55,7 @@ EOF
 
 ## 중단되는 경우
 
-installer는 project scope에서 환경변수, 로컬 config, 또는 옵션으로 GitHub 프로필을 확정할 수 없으면 즉시 중단합니다.
-
-지정한 GitHub 프로필의 `gh auth login` 또는 credential 검증을 완료하지 못한 경우에도 중단합니다.
+GitHub 프로필을 명시한 설치에서는 해당 프로필의 `gh auth login` 또는 credential 검증을 완료하지 못하면 중단합니다. 프로필을 아예 지정하지 않은 설치는 중단하지 않습니다.
 
 ## 건너뛰는 경우
 
@@ -65,6 +63,7 @@ installer는 다음 상황에서 GitHub Repository 설정 작업을 건너뛰고
 
 - `--scope global`을 사용한 경우
 - `--dry-run`을 사용한 경우
+- GitHub 프로필을 아직 설정하지 않은 경우
 - `gh`가 설치되어 있지 않은 경우
 - `git`이 설치되어 있지 않은 경우
 - 현재 디렉터리가 git repository가 아닌 경우
@@ -98,10 +97,10 @@ installer는 다음 상황에서 GitHub Repository 설정 작업을 건너뛰고
 파일이나 GitHub 설정을 수정하지 않고 예정 작업만 보려면 dry-run mode를 사용합니다.
 
 ```bash
-sh install.sh --target codex --scope project --github-profile your-account --dry-run
+sh install.sh --target codex --scope project --dry-run
 ```
 
-GitHub에 연결된 git repository 안에서 project scope로 실행하면 지정한 `gh` 계정으로 로그인/선택을 검증하고, `develop` 브랜치가 없으면 생성한 뒤 가능한 범위에서 검증합니다. branch protection은 `GUIDE`로 수동 안내합니다.
+위 명령은 프로필 없이 스킬 설치 계획을 검증합니다. 설치 후 `spai-project-setup`을 실행하면 프로필을 선택하고, `develop` 브랜치와 branch protection을 수렴합니다. 설치 중 GitHub 연동까지 하려면 선택적으로 다음처럼 프로필을 전달할 수 있습니다.
 
 ```bash
 sh install.sh --target codex --scope project --github-profile your-account
