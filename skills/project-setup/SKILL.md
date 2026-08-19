@@ -43,13 +43,19 @@ Resolve the host from `SPAI_GITHUB_HOST`, then `git config --local --get spai.gi
    - Codex: `AGENTS.md` has the SPAI version stamp and `.agents/skills/spai-project-setup/SKILL.md` exists
    - Antigravity: `GEMINI.md` has the stamp and the same skill file exists
    - the configured profile resolves to the expected login without changing the globally active `gh` account
-6. Run `github-sync` for repository convergence, then `spai-doctor` for a read-only health check.
+6. Settle the version rubric:
+   - Resolve it from `SPAI_VERSION_RUBRIC`, then `git config --local --get spai.versionRubric`, then `.spai/versioning.md`.
+   - When the file exists, report its path, source, and whether it records the adopted default or a project-specific rubric. Do not change it.
+   - When it is missing, run the `version-rubric` skill. If the user skips the question or does not answer, that skill records the adopted default; do not press for an answer.
+   - Never reproduce the rubric text here; `version-rubric` owns it.
+7. Run `github-sync` for repository convergence, then `spai-doctor` for a read-only health check.
 
 ## Safety Rules
 
 - Do not expose or persist tokens outside the GitHub CLI credential store.
 - Do not modify shell startup files to persist environment variables.
 - Do not overwrite locally modified skills without following installer backup rules.
+- Do not create or edit the version rubric directly; delegate to `version-rubric`.
 - Do not force push, delete branches, or create a release.
 - Preserve unrelated repository and GitHub settings.
 
@@ -61,5 +67,6 @@ Include:
 - Profile source: environment | local git config | explicit selection | repository owner
 - Profile login and host, never its token
 - Files and local config keys changed
+- Version rubric: path, source, and kind, or delegated to `version-rubric`
 - `github-sync` and `spai-doctor` results
 - Skipped or blocked steps and the exact next action

@@ -9,6 +9,7 @@ Use these repo-scoped Codex skills:
 - SPAI project installation and GitHub profile setup: `spai-project-setup` from `.agents/skills/spai-project-setup/SKILL.md`.
 - SPAI installation updates: `spai-update` from `.agents/skills/spai-update/SKILL.md`.
 - SPAI installation diagnostics: `spai-doctor` from `.agents/skills/spai-doctor/SKILL.md`.
+- Version grading rubric: `spai-version-rubric` from `.agents/skills/spai-version-rubric/SKILL.md`.
 
 ## Repository Model
 
@@ -30,6 +31,7 @@ Use these repo-scoped Codex skills:
 - Do not overwrite user-modified files without explicit user confirmation.
 - Keep repository skill copies under `.agents/skills` and `.claude/skills`, synced from `skills/`.
 - Do not create `.codex` or unrequested AI skill directories beyond those two inside this repository.
+- `.spai/` is project-owned: only `spai-version-rubric` writes `.spai/versioning.md`, and the installer and `spai-update` never touch it.
 - Do not push ordinary work directly to `main`; `main` only updates through the release fast-forward push.
 - Keep all documentation and skill examples generic: use placeholders such as `your-account`, `your@email.com`, and `/absolute/path/to/<name>`. Never include local machine paths, personal identifiers, or examples taken from local or other projects.
 - If a release request includes unfinished code, config, documentation, generated `dist`, or workflow changes, stop release execution and complete those changes first through `develop-task-flow`.
@@ -43,12 +45,12 @@ Use these repo-scoped Codex skills:
 - Run relevant tests before merging.
 - Finish by `git merge --squash` into `develop` and a single conventional commit, then push `develop`.
 - Squash commit subjects use a conventional prefix (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`, `ci:`); bodies carry Korean, user-perspective, release-note-ready bullets with technical terms in backticks.
-- These squash commits are the release-note source: `feat:` renders under `🚀 Enhancements`, `fix:` under `🐛 Fixes`, everything else under `🧰 Chores`.
+- These squash commits are the release-note source. Sections derive from the prefix: `feat:` → `🚀 Enhancements`, `fix:` → `🐛 Fixes`, `chore:` → `🧰 Chores`, any other prefix → its own section (`docs:` → `📚 Documentation`).
 
 ## Release Rules
 
 - Release only when the user explicitly asks for a release.
-- Grade the bump by what installed projects pay, not by the kind of change: `patch` when the public interface is unchanged, `minor` for new capability or a break that fails loudly and names its own fix, `major` when a human decision is needed or behavior changes silently. A silent behavior change is always `major`. The full policy is `docs/versioning.md`.
+- Grade the bump against this repository's version rubric at `.spai/versioning.md`, which grades by what installed projects pay: `patch` when the public interface is unchanged, `minor` for new capability or a break that fails loudly and names its own fix, `major` when a human decision is needed or behavior changes silently. A silent behavior change is always `major`, and any `migration-manual` block forces `major`. `docs/versioning.md` is the human-readable commentary; `docs/version-rubric.md` explains the rubric contract for installed projects.
 - While the major version is `0`, a `major` grade raises the minor position (`v0.Y.Z` → `v0.(Y+1).0`).
 - Compute the next version from the latest `vX.Y.Z` tag using the graded bump type; an explicit `vX.Y.Z` from the user overrides it. If the grade exceeds the requested bump, report the reason and ask before continuing.
 - Verify a clean worktree, `develop` synced with `origin/develop`, and a non-existing tag before promoting.

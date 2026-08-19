@@ -22,6 +22,7 @@ skill_summary() {
     spai-update) printf '%s' "update the installed SPAI skills to the latest SPAI release and converge repository settings." ;;
     spai-doctor) printf '%s' "diagnose the installed SPAI state (profile, version, protection, legacy); read-only." ;;
     readme) printf '%s' "write or update the project README from the repository state; drafts one when missing, fixes drift when present." ;;
+    version-rubric) printf '%s' "decide and maintain how this project grades patch, minor, and major in .spai/versioning.md." ;;
     *) printf '%s' "SPAI procedure." ;;
   esac
 }

@@ -26,13 +26,15 @@
 | `spai-update` | 설치본을 최신 SPAI 릴리즈로 업데이트 |
 | `spai-doctor` | 설치 상태 진단(버전·드리프트·보호 규칙·레거시), read-only |
 | `readme` | 프로젝트 타입 판정 후 `README.md` 생성, 기존 README는 코드와 대조해 드리프트 수정 |
+| `version-rubric` | 프로젝트의 버전 판정 기준(`patch`/`minor`/`major`)을 `.spai/versioning.md`에 정하고 언제든 다시 설정 |
 
 작업 병합 방식은 **solo-cli 하나**입니다: 작업 브랜치를 로컬에서 `git merge --squash`로 `develop`에 합치고 직접 push하며, Pull Request를 쓰지 않습니다. 팀 단위 PR 흐름은 [Roadmap](docs/roadmap.md)의 보류 후보입니다.
 
 ## 문서
 
 - [설치 가이드](docs/installation.md): CLI별로 무엇이 어디에 설치되고, 이후 어떻게 관리·제거되는지 설명합니다.
-- [버전 정책](docs/versioning.md): `patch`/`minor`/`major`를 설치본이 치르는 비용으로 판정하는 기준과 공개 인터페이스 목록입니다.
+- [버전 판정 기준](docs/version-rubric.md): 설치된 프로젝트가 자기 기준으로 `patch`/`minor`/`major`를 가르는 방법, `.spai/versioning.md` 파일 계약과 설정값입니다.
+- [버전 정책](docs/versioning.md): SPAI 자신의 판정 기준 해설입니다. 규범 원본은 `.spai/versioning.md`입니다.
 - [GitHub Repository Settings](docs/github-repository-settings.md): installer가 project scope에서 적용하는 GitHub 설정과, 수동으로 안내하는 branch protection입니다.
 - [Roadmap](docs/roadmap.md): SPAI의 정체성과 방향 후보(트리거 조건부) 기록입니다.
 
@@ -81,7 +83,9 @@ curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
 
 ### 설치 후
 
-스킬 설치에는 GitHub 프로필이 필요하지 않습니다. 설치가 끝난 뒤 `project-setup` 스킬을 실행하면 저장소별 GitHub 프로필을 설정하고 `github-sync`와 `spai-doctor`까지 이어서 실행합니다. Claude Code는 `/spai:project-setup`, Codex/Antigravity는 `spai-project-setup`입니다.
+스킬 설치에는 GitHub 프로필이 필요하지 않습니다. 설치가 끝난 뒤 `project-setup` 스킬을 실행하면 저장소별 GitHub 프로필을 설정하고, 버전 판정 기준을 정하고, `github-sync`와 `spai-doctor`까지 이어서 실행합니다. Claude Code는 `/spai:project-setup`, Codex/Antigravity는 `spai-project-setup`입니다.
+
+버전 판정 기준은 프로젝트마다 다릅니다. `project-setup`이 기본 기준을 보여주고 그대로 쓸지만 물으며, 결과는 `.spai/versioning.md`에 기록됩니다. 나중에 언제든 `version-rubric` 스킬로 다시 정할 수 있습니다. 자세한 내용은 [버전 판정 기준](docs/version-rubric.md)에 있습니다.
 
 프로필은 토큰이 아니라 로그인 이름만 저장합니다. `SPAI_GITHUB_PROFILE`이 있으면 세션 override로 사용하고, 없으면 `git config --local spai.githubProfile your-account`에 저장합니다. 이후 SPAI 스킬은 해당 프로필의 `gh` 보안 저장소 credential을 명령별로 사용하므로 전역 active account를 바꾸지 않습니다.
 

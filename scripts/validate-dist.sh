@@ -27,6 +27,7 @@ skill_title() {
     spai-update) printf '%s\n' "# SPAI Update" ;;
     spai-doctor) printf '%s\n' "# SPAI Doctor" ;;
     readme) printf '%s\n' "# README" ;;
+    version-rubric) printf '%s\n' "# Version Rubric" ;;
     *) fail "unknown skill: $1" ;;
   esac
 }
@@ -100,6 +101,45 @@ require_text "dist/antigravity/.agents/skills/spai-develop-task-flow/SKILL.md" '
 require_text "dist/codex/.agents/skills/spai-github-release/SKILL.md" "Develop-First Gate"
 require_text "dist/codex/.agents/skills/spai-github-release/SKILL.md" 'git push origin develop:main'
 require_text "dist/antigravity/.agents/skills/spai-github-release/SKILL.md" 'gh release create'
+
+# The version rubric is a contract between four skills: version-rubric owns the file,
+# github-release reads it, project-setup delegates to it, spai-doctor reports it.
+for rubric_skill in github-release project-setup spai-doctor version-rubric; do
+  require_text "dist/claude-code-plugin/spai/skills/$rubric_skill/SKILL.md" ".spai/versioning.md"
+  require_text "dist/codex/.agents/skills/$(prefixed_skill_name "$rubric_skill")/SKILL.md" ".spai/versioning.md"
+done
+
+for rubric_skill in github-release spai-doctor version-rubric; do
+  require_text "dist/claude-code-plugin/spai/skills/$rubric_skill/SKILL.md" "## 판정 순서"
+  require_text "dist/claude-code-plugin/spai/skills/$rubric_skill/SKILL.md" "## 등급 정의"
+done
+
+# version-rubric ships the whole default rubric; the other skills must not copy it.
+require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "기존 기능의 단순 변경"
+require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "기능이 추가·삭제되거나 크게 바뀌었는가"
+require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "프로젝트가 제공하는 가치나 세대가 바뀌었는가"
+require_text "dist/codex/.agents/skills/spai-version-rubric/SKILL.md" "SPAI_VERSION_RUBRIC"
+require_text "dist/antigravity/.agents/skills/spai-version-rubric/SKILL.md" "spai.versionRubric"
+
+if grep -F '기존 기능의 단순 변경' dist/claude-code-plugin/spai/skills/project-setup/SKILL.md >/dev/null 2>&1; then
+  fail "project-setup must delegate to version-rubric, not duplicate the default rubric"
+fi
+
+# The rubric moved SPAI's own facts out of the distributed release skill. Keep them out.
+for own_fact in 'scripts/validate-dist.sh' 'spai@spai' '0x0w1/spai' '--target'; do
+  if grep -F "$own_fact" dist/claude-code-plugin/spai/skills/github-release/SKILL.md >/dev/null 2>&1; then
+    fail "dist github-release leaks a SPAI-specific fact: $own_fact"
+  fi
+done
+
+# This repository's own rubric is the normative source for its releases.
+require_file .spai/versioning.md
+require_text .spai/versioning.md "## 판정 순서"
+require_text .spai/versioning.md "## 등급 정의"
+require_text .spai/versioning.md "## 강경 규칙"
+require_text .spai/versioning.md "sh scripts/validate-dist.sh"
+require_file docs/version-rubric.md
+require_text README.md "docs/version-rubric.md"
 
 require_text dist/codex/AGENTS.md "Scaffolded Procedures for AI Agents"
 require_text dist/antigravity/GEMINI.md "Scaffolded Procedures for AI Agents"

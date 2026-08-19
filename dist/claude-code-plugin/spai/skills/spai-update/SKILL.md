@@ -16,6 +16,7 @@ Each CLI updates on its own path; there is no combined update.
 - For codex and antigravity, the installed version and skill selection are stamped inside the SPAI managed block as `<!-- spai:version vX.Y.Z skills=<a,b,c> -->` in `AGENTS.md` or `GEMINI.md`. A stamp without `skills=` means the full default skill set.
 - The latest version is the latest GitHub release tag of `0x0w1/spai`.
 - Repository-side convergence (branch protection, legacy file and label cleanup) is handled by the `github-sync` skill after the update, and is idempotent across skipped versions.
+- `.spai/` is owned by the project, not by the installer. The version rubric at `.spai/versioning.md` is never written, replaced, or removed by an update; `version-rubric` owns it.
 
 ## GitHub Profile
 

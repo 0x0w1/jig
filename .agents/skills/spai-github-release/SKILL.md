@@ -11,11 +11,8 @@ Use this repository skill for release execution.
 
 - A release promotes the current `origin/develop` to `main` with a fast-forward push: `git push origin develop:main`. There is no release PR and no `release/*` branch.
 - `develop` must already contain every intended release change, squash-merged through `develop-task-flow`.
-- The next version is computed from the latest `vX.Y.Z` tag using the requested bump type:
-  - `patch`: `vX.Y.Z` → `vX.Y.(Z+1)` (default when no type is given)
-  - `minor`: `vX.Y.Z` → `vX.(Y+1).0`
-  - `major`: `vX.Y.Z` → `v(X+1).0.0`, except before 1.0 (see Version Policy)
-  - An explicit `vX.Y.Z` from the user overrides the computed version.
+- The bump is graded against this project's version rubric, not against a rule inside this skill. See Version Rubric.
+- The next version is computed from the latest `vX.Y.Z` tag using the graded bump type. See Version Format.
 - The release tag and GitHub release are created from the CLI with `git tag` and `gh release create`.
 - Release notes are written by the agent from the commits in `<previous tag>..<new tag>`, categorized by conventional commit prefix.
 
@@ -23,29 +20,59 @@ Use this repository skill for release execution.
 
 Before any `gh` command, resolve the host from `SPAI_GITHUB_HOST`, local `spai.githubHost`, then `github.com`, and resolve the profile from `SPAI_GITHUB_PROFILE`, then local `spai.githubProfile`. If a profile is configured, read its credential with `gh auth token --hostname <host> --user <profile>` without printing it and run every `gh` command with that credential through `GH_TOKEN` (`github.com` or `*.ghe.com`) or `GH_ENTERPRISE_TOKEN` (other hosts). Verify `gh api user --jq .login` matches the profile. Do not use `gh auth switch`; fall back to the globally active account only when neither the environment nor local config selects a profile.
 
-## Version Policy
+## Version Rubric
 
-The bump is decided by what an installed project actually pays, not by the kind of change. The primary consumer of a release note is the `spai-update` skill, so a break an agent repairs unattended is not the same cost as one a human must decide.
+The grading rubric is not in this skill. It is a project-owned file, so every project grades by its own axis. The `version-rubric` skill owns that file.
 
-Ask these in order and stop at the first match:
+Resolve the rubric path in this order:
 
-1. Do installed projects need nothing, or does re-running the update converge them? → `patch`
-2. Does something break, but either (a) `spai-update` repairs it unattended, or (b) the tool **fails loudly at the point of use and names the replacement**? → `minor`
-3. Does it need a **human decision**, or does behavior change **silently** without failing? → `major`
+1. `SPAI_VERSION_RUBRIC` environment variable (session-only override).
+2. `git config --local --get spai.versionRubric` (repository override).
+3. `.spai/versioning.md` (the convention).
 
-| bump | Definition |
-|---|---|
-| `patch` | The public interface is unchanged. Internal implementation, docs, skill body wording, `dist` regeneration. |
-| `minor` | New capability, or a **guided break**: the failure is loud and carries its own fix. |
-| `major` | A **human decision** is required, or behavior changes **silently**. Branch model or protection policy changes, deletion of user files or labels, a command that returns a different result without erroring. |
+Apply it like this:
 
-The loosening is that a repairable break is `minor`. It is paid for by one hard rule:
+- Grade with the rubric's `## 판정 순서`: ask its questions in order and **stop at the first match**. That ordering is fixed; a rubric cannot change it.
+- Check the graded bump against the rubric's `## 등급 정의` before computing the version, and quote the deciding question in the report.
+- Apply `## 강경 규칙` after the ordered questions. A rubric without that section has no escalation rule.
+- A missing optional section (`## 강경 규칙`, `## 릴리즈 노트`, `## 버전 형식`, `## 릴리즈 전 검증`) means that rule does not apply.
+- Read sections beyond the contract as grading context; a project may list what counts as its public interface there.
+- Report the rubric path, its source, and whether it records the adopted default or a project-specific rubric.
+- Never edit the rubric file from this skill.
 
-> A silent behavior change is always `major`, regardless of how small it looks.
+When the rubric is missing or unusable:
 
-### Migration Blocks
+- **Missing file**: run the `version-rubric` skill to settle it, then continue the release. Do not stop the release for this.
+- **`version-rubric` not installed**: grade with the fallback below, say so in the report, and continue.
+- **Contract broken** (`## 판정 순서` or `## 등급 정의` missing, or fewer than three ordered questions): stop and point at `version-rubric`. Grading with a broken rubric silently is worse than stopping.
 
-The `### Migration` section is not prose. It is the input `spai-update` executes, so it is written as marker-delimited blocks:
+The fallback rubric, used only in the two cases above:
+
+1. 기존 기능의 단순 변경·수정인가? → `patch`
+2. 기능이 추가·삭제되거나 크게 바뀌었는가? → `minor`
+3. 프로젝트가 제공하는 가치나 세대가 바뀌었는가? → `major`
+
+## Version Format
+
+Defaults, each overridable by the rubric's `## 버전 형식` section:
+
+- The version must match `^v[0-9]+\.[0-9]+\.[0-9]+$`.
+- `patch`: `vX.Y.Z` → `vX.Y.(Z+1)`; `minor`: → `vX.(Y+1).0`; `major`: → `v(X+1).0.0`.
+- While the major version is `0`, a `major` grade raises the minor position instead: `v0.Y.Z` → `v0.(Y+1).0`. Grade exactly as after 1.0 and state the verdict in the report, so the rule is exercised before it becomes binding.
+- An explicit `vX.Y.Z` from the user overrides the computed version.
+
+## Release Notes
+
+- `## Changes`, then one section per commit type present in the range, each only when it has items, separated by horizontal rules.
+- Section titles derive from the commit prefix: `feat` → `### 🚀 Enhancements`, `fix` → `### 🐛 Fixes`, `chore` → `### 🧰 Chores`. Any other prefix becomes its own section named after it (`docs:` → `### 📚 Documentation`). Never fold an unlisted prefix into chores.
+- The rubric's `## 릴리즈 노트` section overrides section order and titles.
+- One `- <commit subject without type prefix>` line per commit.
+- `### Summary`: Korean user-perspective bullet items written from the commit subjects and bodies, release-note ready, with technical terms in backticks.
+- `### Migration`: only when downstream projects must take action that re-running an update does not cover.
+
+## Migration Blocks
+
+The `### Migration` section is not prose. It is the input an updating agent executes, so it is written as marker-delimited blocks:
 
 ```md
 ### Migration
@@ -62,40 +89,9 @@ The `### Migration` section is not prose. It is the input `spai-update` executes
 
 - `migration-auto`: mechanical steps an agent finishes unattended. Every item must be **idempotent** and be either a single command or an unambiguous file operation. A target that is already absent counts as done.
 - `migration-manual`: steps needing a human judgement, a choice, or an irreversible action. `spai-update` presents these and does not run them without approval.
-
-When in doubt, an item is `manual`. Either block may be omitted; omit the whole section when neither applies.
-
-**A marker counts only when it is the entire line**, matching `^<!-- spai:(start|end) migration-(auto|manual) -->$`. Release notes routinely name these markers in prose, so a mention inside backticks or mid-sentence is text, not a marker. Keep marker lines flush left with nothing else on them, and always close a block with its matching end marker.
-
-### The Notes Decide the Version
-
-The presence of these blocks forces the bump, so the grade is derived rather than chosen:
-
-| In the notes | Required bump |
-|---|---|
-| No Migration section | `patch` or `minor`, per the ordered questions |
-| `migration-auto` only | at least `minor` |
-| any `migration-manual` | **`major`** |
-
-If the composed notes and the intended bump disagree, one of them is wrong. Stop and resolve it before publishing rather than adjusting the notes to fit the version.
-
-### Public Interface
-
-A break here counts as a break. Anything else is internal and stays `patch`.
-
-1. The installer and post-install GitHub profile contract: `--target`, `--scope`, optional `--github-profile`/`--github-account`, `SPAI_GITHUB_PROFILE`, `spai.githubProfile`
-2. Skill invocation names: `/spai:<skill>`, `spai-<skill>`
-3. Plugin and marketplace names: `spai@spai`, `0x0w1/spai`
-4. Managed block markers: `<!-- spai:start ... -->`, `<!-- spai:end ... -->`
-5. The repository model: branch names, merge flow, protection policy
-
-Internal: `dist/` layout, `scripts/*`, skill body content, version stamp fields other than the version itself, log wording, `README` and `docs` structure.
-
-### Before 1.0
-
-While the major version is `0`, a `major` verdict raises the minor position instead: `v0.Y.Z` → `v0.(Y+1).0`. Judge the grade exactly as after 1.0 and state the verdict in the report, so the rule is exercised before it becomes binding.
-
-The full policy with worked examples lives in `docs/versioning.md`; keep the two in agreement.
+- When in doubt, an item is `manual`. Either block may be omitted; omit the whole section when neither applies.
+- **A marker counts only when it is the entire line**, matching `^<!-- spai:(start|end) migration-(auto|manual) -->$`. Release notes routinely name these markers in prose, so a mention inside backticks or mid-sentence is text, not a marker. Keep marker lines flush left with nothing else on them, and always close a block with its matching end marker.
+- A rubric may key an escalation rule off these blocks; SPAI's own rubric grades any `migration-manual` block as `major`. When applying such a rule, count line-anchored markers only.
 
 ## Safety Rules
 
@@ -124,25 +120,16 @@ The full policy with worked examples lives in `docs/versioning.md`; keep the two
    - `git fetch origin --prune`
    - verify local `develop` matches `origin/develop`
 2. Determine the previous version: latest `vX.Y.Z` tag reachable from `origin/main` (`git describe --tags --abbrev=0 origin/main`).
-3. Grade the release against the Version Policy before computing anything: read the commit subjects and bodies in the range, decide `patch`, `minor`, or `major`, and note which Public Interface items the range touches.
+3. Resolve and read the version rubric, then grade the release against it before computing anything: read the commit subjects and bodies in the range and decide `patch`, `minor`, or `major`. Handle a missing, uninstalled, or broken rubric per Version Rubric.
    - If the graded bump is higher than the one the user requested, say so with the specific reason and ask before continuing. The user's choice wins if they repeat it; record the graded verdict in the report either way.
    - If the graded bump is lower, use the requested one; a user may always release higher than required.
 4. Verify `origin/develop` already contains every intended release change. If not, stop and run the Develop-First Gate.
-5. Compose the release notes from `git log <previous>..HEAD --no-merges`. Do this **before** promoting or tagging, because the notes can still change the version:
-   - `## Changes` with these sections in order, each only when it has items, separated by horizontal rules:
-     - `### 🚀 Enhancements` for `feat:` commits
-     - `### 🐛 Fixes` for `fix:` commits
-     - `### 🧰 Chores` for all other commits
-   - One `- <commit subject without type prefix>` line per commit.
-   - `### Summary`: Korean user-perspective bullet items the agent writes from the commit subjects and bodies, release-note ready, with technical terms in backticks.
-   - `### Migration`: only when installed projects must take repository-side action that re-running the update does not cover. Write it as `migration-auto` and `migration-manual` marker blocks per Migration Blocks; `spai-update` executes the first and gates the second.
-6. Re-check the bump against the composed notes, counting **line-anchored markers only** (`grep -cE '^<!-- spai:start migration-manual -->$'`; a bare substring search also matches prose that names the marker):
-   - a `migration-manual` block requires `major`
-   - a `migration-auto` block requires at least `minor`
+5. Compose the release notes from `git log <previous>..HEAD --no-merges` per Release Notes. Do this **before** promoting or tagging, because the notes can still change the version.
+6. Re-check the bump against the composed notes when the rubric has a `## 강경 규칙` that keys off them, counting **line-anchored markers only** (`grep -cE '^<!-- spai:start migration-manual -->$'`; a bare substring search also matches prose that names the marker):
    - an opened block with no matching end marker is a defect; fix the notes before publishing
-   - if this raises the grade from step 3, go back to step 3 and resolve it with the user. Never weaken the notes to fit a version.
-7. Compute the new version from the settled bump type, or validate the explicit version. The version must match `^v[0-9]+\.[0-9]+\.[0-9]+$` and must not exist as a tag or release. Before 1.0, a `major` grade raises the minor position.
-8. Run repository validation when available (for this repository: `sh scripts/validate-dist.sh`).
+   - if the rule raises the grade from step 3, go back to step 3 and resolve it with the user. Never weaken the notes to fit a version.
+7. Compute the new version from the settled bump type per Version Format, or validate the explicit version. It must not exist as a tag or release.
+8. Run the repository's pre-release validation: the commands in the rubric's `## 릴리즈 전 검증` section when present, otherwise the validation or test command the repository already uses. Skip and report when there is none.
 9. Promote: `git push origin develop:main`. This must fast-forward; if rejected, stop and report.
 10. Tag the released commit: `git tag <version> <develop sha>` then `git push origin <version>`.
 11. Publish: `gh release create <version> --title "<version> 🌈" --notes-file <draft file>`.
@@ -154,7 +141,8 @@ Keep reports short and include:
 
 - Current repo and branch
 - Previous and new version
-- Graded bump versus the requested bump, with the Public Interface items the range touched
+- Rubric path, source, and kind (adopted default or project-specific)
+- Graded bump versus the requested bump, with the rubric question that decided it
 - `develop` to `main` promotion result
 - Tag and release status
 - Release note summary

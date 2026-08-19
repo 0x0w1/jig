@@ -23,7 +23,7 @@ Use this repository skill for normal development work requested by the user.
 The squash commit on `develop` is the release-note source. Every squash commit must follow this format:
 
 - Subject: `<type>: <concise user-facing summary>` with `<type>` one of `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `ci`.
-- Release note category mapping: `feat:` renders under `🚀 Enhancements`, `fix:` under `🐛 Fixes`, everything else under `🧰 Chores`.
+- Release note sections derive from the prefix: `feat:` renders under `🚀 Enhancements`, `fix:` under `🐛 Fixes`, `chore:` under `🧰 Chores`, and any other prefix becomes its own section named after it (`docs:` → `📚 Documentation`). Pick the prefix that describes the change, not the section you want.
 - Body: Korean bullet items describing the change from the user's perspective, release-note ready.
 - In body bullets, wrap useful technical terms in backticks, such as file paths, config keys, branch names, workflow names, command names, and env vars.
 

@@ -12,6 +12,7 @@ SPAI installs these repository workflow skills under .agents/skills. Every SPAI 
 - `spai-update`: update the installed SPAI skills to the latest SPAI release and converge repository settings.
 - `spai-doctor`: diagnose the installed SPAI state (profile, version, protection, legacy); read-only.
 - `spai-readme`: write or update the project README from the repository state; drafts one when missing, fixes drift when present.
+- `spai-version-rubric`: decide and maintain how this project grades patch, minor, and major in .spai/versioning.md.
 
 Use these skills when the matching workflow is requested. Preserve unrelated user changes, never force push, and never delete branches or labels without explicit confirmation.
 

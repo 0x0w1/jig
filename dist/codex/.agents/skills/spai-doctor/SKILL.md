@@ -49,24 +49,34 @@ Before any `gh` command, resolve the host from `SPAI_GITHUB_HOST`, local `spai.g
    - Fix owner is `github-sync`; report, never modify.
 9. **GitHub profile**: report whether the profile came from `SPAI_GITHUB_PROFILE`, local `spai.githubProfile`, or the globally active fallback. When a profile is configured, verify its stored credential and `gh api user` identity without printing the token. A missing credential, identity mismatch, or missing local profile for a multi-account host is a `project-setup` finding.
 
+10. **Version rubric**: resolve the path from `SPAI_VERSION_RUBRIC`, then local `spai.versionRubric`, then `.spai/versioning.md`.
+   - Report the source. A path from the environment variable is session-only; say so.
+   - Report the kind from the file's `> 기준:` line: adopted default or project-specific.
+   - Check the required sections `## 판정 순서` and `## 등급 정의`. A missing one is a contract break: `github-release` stops on it.
+   - Check that the file is committed (`git ls-files --error-unmatch <path>`). An untracked or uncommitted rubric does not reach clones or CI, so releases grade differently for different people.
+   - A missing file is information, not a defect. Fix owner is `version-rubric`.
+   - Never compare the rubric with any payload: it is user-owned content, never drift.
+
 ## Safety Rules
 
 - Read-only: do not modify files, settings, branches, or labels.
 - Do not run the installer or any `claude plugin` command that changes state; recommend `spai-update` instead.
 - Report the exact command for each recommended fix, but do not execute it.
 - Never report a skill the user wrote as a SPAI problem. SPAI only owns the `spai` plugin and `spai-` prefixed directories.
+- Never report the contents of `.spai/` as drift or as a SPAI defect. That directory is owned by the project.
 - Preserve unrelated user changes.
 
 ## Procedure
 
 1. Confirm context: `git rev-parse --is-inside-work-tree`, `gh repo view`, `gh auth status`, `command -v claude`. If a tool is unavailable, run only the checks that do not need it and list the skipped checks in the report.
-2. Run checks 1–9 in order and collect the results.
+2. Run checks 1–10 in order and collect the results.
 3. Compose the report. For every finding, name the fix owner:
    - version behind, drifted files, missing plugin, or pending `migration-auto` items → `spai-update`
    - pending `migration-manual` items → `spai-update`, but only after the user decides each item
    - protection mismatch or legacy leftovers → `github-sync` (deletions only with explicit confirmation)
    - local guard missing, outdated, or modified → `github-sync`
    - GitHub profile missing, ambiguous, or invalid → `project-setup`
+   - version rubric missing, contract-broken, or uncommitted → `version-rubric`
    - branch state divergence → stop releases and reconcile manually; never force-push.
 
 ## Final Report
@@ -101,6 +111,9 @@ Before any `gh` command, resolve the host from `SPAI_GITHUB_HOST`, local `spai.g
 
 ### GitHub 프로필
 - <source>: <profile>@<host> → OK | credential 누락 | identity 불일치 | 전역 active fallback
+
+### 버전 판정 기준
+- <path> (출처: 환경 변수 | 로컬 설정 | 관례) · 기본 채택 | 직접 작성 · 필수 섹션 OK | 누락 · 커밋됨 | 미커밋 | 파일 없음
 
 ### 권장 조치
 - <fix owner>: <명령 또는 스킬>
