@@ -1,6 +1,6 @@
 ---
 name: spai-version-rubric
-description: "Use when creating, reviewing, or re-setting this repository's version grading rubric at .spai/versioning.md: adopt the SPAI default change-scale rubric, write a project-specific one, edit one grade, or reset to the default. Owns the rubric file; never runs a release."
+description: "Use when creating, reviewing, or re-setting this repository's version grading rubric at .spai/versioning.md: adopt the SPAI default human-intervention rubric, write a project-specific one, edit one grade, or reset to the default. Owns the rubric file; never runs a release."
 ---
 
 # Version Rubric
@@ -28,7 +28,7 @@ Two required sections, four optional. The section titles are the contract.
 ```md
 # 버전 정책
 
-> 기준: SPAI 기본 (변경 규모 축) | 직접 작성, <날짜>
+> 기준: SPAI 기본 (사람 개입 축) | 직접 작성, <날짜>
 
 ## 판정 순서        (required)
 1. <question> → `patch`
@@ -45,33 +45,46 @@ Two required sections, four optional. The section titles are the contract.
 ```
 
 - `## 판정 순서` is asked in order and **stops at the first match**. A rubric cannot change that meaning.
-- A missing optional section falls back to the default rubric below. No `## 강경 규칙` means no escalation rule.
+- An optional section a rubric omits simply does not apply to that project. No `## 강경 규칙` means no escalation rule, even though the default below ships two.
 - The `> 기준:` line records whether the default was adopted or the rubric was written for the project.
 - Sections beyond these are read as context, not ignored. A project may add its own, such as a list of what counts as its public interface.
 
 ## Default Rubric
 
-Offer this as-is. It grades by the scale of the change, which fits most projects.
+Offer this as-is. It grades by whether a human has to step in. Scale alone does not survive an AI-paced project: generations turn over fast enough that grading by size inflates `major` until the number carries no information.
 
 ```md
 # 버전 정책
 
-> 기준: SPAI 기본 (변경 규모 축), <날짜> 채택
+> 기준: SPAI 기본 (사람 개입 축), <날짜> 채택
 
 ## 판정 순서
-1. 기존 기능의 단순 변경·수정인가? → `patch`
-2. 기능이 추가·삭제되거나 크게 바뀌었는가? → `minor`
-3. 프로젝트가 제공하는 가치나 세대가 바뀌었는가? → `major`
+1. 기존 기능 범위 안의 수정인가? → `patch`
+2. 새로 할 수 있는 일이 생기거나 세대가 바뀌었지만, 쓰던 대로 계속 쓸 수 있는가? → `minor`
+3. 제공하는 가치가 확장·제거·변경됐거나, 사람이 손대야 계속 쓸 수 있는가? → `major`
 
 ## 등급 정의
 | bump | 정의 |
 |---|---|
 | `patch` | 기존 기능 범위 안의 수정. 버그 수정, 문구·문서 변경, 내부 구현 정리 |
-| `minor` | 기능 단위의 추가·삭제·변경. 사용자가 새로 할 수 있는 일이 생기거나 없어짐 |
-| `major` | 프로젝트의 방향·구조·제공 가치가 바뀜. 이전 버전과 같은 것으로 설명되지 않음 |
+| `minor` | 기능 추가·삭제·변경, 세대 교체. 새로 할 수 있는 일이 생기지만 쓰던 방식은 그대로 통함 |
+| `major` | 제공 가치의 확장·제거·변경, 또는 사람이 손대야 하는 변경. 설정·파일·호출 방식을 고쳐야 계속 씀 |
+
+## 강경 규칙
+> 에러 없이 동작만 달라지는 변경은 `major`다. 크기와 무관하다.
+
+> 스킬·프롬프트 지시문이 에이전트의 발화 조건을 바꾸면 최소 `minor`다.
+
+## 버전 형식
+- major 버전이 `0`인 동안 `major` 판정은 minor 자리를 올린다: `v0.Y.Z` → `v0.(Y+1).0`. 아직 1.0이 아니므로 제공 가치도 호출 방식도 언제든 바뀔 수 있다는 뜻이다. 판정 자체는 1.0 이후와 동일하게 하고, 릴리즈 보고에 `major` 판정을 남긴다.
+- `v1.0.0` 이후 `major` 판정은 major 자리를 올린다. 이때부터 위 유예가 끝난다.
 ```
 
-The default carries no `## 강경 규칙`. "A silent behavior change is always `major`" only makes sense for a tool with installed consumers; a project that needs it writes it into its own rubric.
+The default ships `## 강경 규칙` and `## 버전 형식` alongside the two required sections:
+
+- The escalation rules exist because the break that matters in an AI project is a quiet one. No test suite confirms that a reworded instruction still fires on the same input, so the version number is the channel left for "a human should look at this."
+- While the major version is `0`, `minor` and `major` land on the same position, so the escalation rules cost nothing yet and the `> 기준:` line says so. They begin to bind at `v1.0.0`, which is why they are settled before then.
+- A project that wants neither section removes them; both are optional by contract.
 
 A project whose releases ship documents rather than features usually grades by artifact instead: `patch` for document add/edit/delete, `minor` for changes to the tooling that manages the documents, `major` for a restructure. Write that through the project-specific path.
 
@@ -115,7 +128,7 @@ Called without arguments. Determine the current state first, then confirm the us
 ## 버전 판정 기준
 
 - 경로: <path> (출처: 환경 변수 | 로컬 설정 | 관례)
-- 기준: SPAI 기본 (변경 규모 축) | 직접 작성
+- 기준: SPAI 기본 (사람 개입 축) | 직접 작성
 - patch: <문항>
 - minor: <문항>
 - major: <문항>

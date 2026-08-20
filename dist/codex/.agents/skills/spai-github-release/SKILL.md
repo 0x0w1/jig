@@ -46,11 +46,17 @@ When the rubric is missing or unusable:
 - **`version-rubric` not installed**: grade with the fallback below, say so in the report, and continue.
 - **Contract broken** (`## 판정 순서` or `## 등급 정의` missing, or fewer than three ordered questions): stop and point at `version-rubric`. Grading with a broken rubric silently is worse than stopping.
 
-The fallback rubric, used only in the two cases above:
+The fallback rubric, used only in the two cases above. It matches the default `version-rubric` writes, so a project grades the same whether or not that skill is installed:
 
-1. 기존 기능의 단순 변경·수정인가? → `patch`
-2. 기능이 추가·삭제되거나 크게 바뀌었는가? → `minor`
-3. 프로젝트가 제공하는 가치나 세대가 바뀌었는가? → `major`
+1. 기존 기능 범위 안의 수정인가? → `patch`
+2. 새로 할 수 있는 일이 생기거나 세대가 바뀌었지만, 쓰던 대로 계속 쓸 수 있는가? → `minor`
+3. 제공하는 가치가 확장·제거·변경됐거나, 사람이 손대야 계속 쓸 수 있는가? → `major`
+
+With these escalation rules, applied after the ordered questions:
+
+> 에러 없이 동작만 달라지는 변경은 `major`다. 크기와 무관하다.
+
+> 스킬·프롬프트 지시문이 에이전트의 발화 조건을 바꾸면 최소 `minor`다.
 
 ## Version Format
 

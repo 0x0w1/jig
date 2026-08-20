@@ -115,13 +115,20 @@ for rubric_skill in github-release spai-doctor version-rubric; do
 done
 
 # version-rubric ships the whole default rubric; the other skills must not copy it.
-require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "기존 기능의 단순 변경"
-require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "기능이 추가·삭제되거나 크게 바뀌었는가"
-require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "프로젝트가 제공하는 가치나 세대가 바뀌었는가"
+require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "기존 기능 범위 안의 수정인가"
+require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "쓰던 대로 계속 쓸 수 있는가"
+require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "사람이 손대야 계속 쓸 수 있는가"
+require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "## 강경 규칙"
+require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "## 버전 형식"
+
+# The fallback inside github-release must stay identical to the default version-rubric
+# writes, or a project grades differently depending on which skills happen to be installed.
+require_text "dist/claude-code-plugin/spai/skills/github-release/SKILL.md" "사람이 손대야 계속 쓸 수 있는가"
+require_text "dist/claude-code-plugin/spai/skills/github-release/SKILL.md" "에이전트의 발화 조건을 바꾸면 최소"
 require_text "dist/codex/.agents/skills/spai-version-rubric/SKILL.md" "SPAI_VERSION_RUBRIC"
 require_text "dist/antigravity/.agents/skills/spai-version-rubric/SKILL.md" "spai.versionRubric"
 
-if grep -F '기존 기능의 단순 변경' dist/claude-code-plugin/spai/skills/project-setup/SKILL.md >/dev/null 2>&1; then
+if grep -F '사람이 손대야 계속 쓸 수 있는가' dist/claude-code-plugin/spai/skills/project-setup/SKILL.md >/dev/null 2>&1; then
   fail "project-setup must delegate to version-rubric, not duplicate the default rubric"
 fi
 
