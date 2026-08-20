@@ -34,6 +34,7 @@
 
 - [설치 가이드](docs/installation.md): CLI별로 무엇이 어디에 설치되고, 이후 어떻게 관리·제거되는지 설명합니다.
 - [버전 판정 기준](docs/version-rubric.md): 설치된 프로젝트가 자기 기준으로 `patch`/`minor`/`major`를 가르는 방법, `.spai/versioning.md` 파일 계약과 설정값입니다.
+- [프로젝트 유형별 버전 기준](docs/version-rubrics/README.md): API 서버, 웹·앱·데스크톱 클라이언트, 라이브러리·SDK, CLI, 워커, 인프라, 모노레포에 SemVer 호환성 기준을 적용한 초안입니다.
 - [버전 정책](docs/versioning.md): SPAI 자신의 판정 기준 해설입니다. 규범 원본은 `.spai/versioning.md`입니다.
 - [GitHub Repository Settings](docs/github-repository-settings.md): installer가 project scope에서 적용하는 GitHub 설정과, 수동으로 안내하는 branch protection입니다.
 - [Roadmap](docs/roadmap.md): SPAI의 정체성과 방향 후보(트리거 조건부) 기록입니다.
