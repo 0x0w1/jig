@@ -10,6 +10,7 @@ Use these repo-scoped Codex skills:
 - SPAI installation updates: `spai-update` from `.agents/skills/spai-update/SKILL.md`.
 - SPAI installation diagnostics: `spai-doctor` from `.agents/skills/spai-doctor/SKILL.md`.
 - Version grading rubric: `spai-version-rubric` from `.agents/skills/spai-version-rubric/SKILL.md`.
+- Project type scan and rubric recommendation: `spai-rubric-scan` from `.agents/skills/spai-rubric-scan/SKILL.md`.
 
 ## Repository Model
 
@@ -32,6 +33,7 @@ Use these repo-scoped Codex skills:
 - Keep repository skill copies under `.agents/skills` and `.claude/skills`, synced from `skills/`.
 - Do not create `.codex` or unrequested AI skill directories beyond those two inside this repository.
 - `.spai/` is project-owned: only `spai-version-rubric` writes `.spai/versioning.md`, and the installer and `spai-update` never touch it.
+- The project-type rubric catalog lives at `skills/version-rubric/rubrics` and ships as payload; `spai-rubric-scan` reads it and never writes. `rubrics/INDEX.md` is the only list of types, so a new rubric file must be added to that table in the same task.
 - Do not push ordinary work directly to `main`; `main` only updates through the release fast-forward push.
 - Keep all documentation and skill examples generic: use placeholders such as `your-account`, `your@email.com`, and `/absolute/path/to/<name>`. Never include local machine paths, personal identifiers, or examples taken from local or other projects.
 - If a release request includes unfinished code, config, documentation, generated `dist`, or workflow changes, stop release execution and complete those changes first through `develop-task-flow`.

@@ -87,13 +87,18 @@ project scope:
   spai-update/SKILL.md
   spai-doctor/SKILL.md
   spai-readme/SKILL.md
+  spai-version-rubric/SKILL.md
+  spai-version-rubric/rubrics/      # 프로젝트 유형별 기준 카탈로그
+  spai-rubric-scan/SKILL.md
 ```
+
+스킬은 파일 하나가 아니라 디렉토리입니다. `spai-version-rubric`처럼 참조 파일을 함께 배포하는 스킬은 `SKILL.md` 외의 파일도 같이 설치됩니다. installer는 릴리즈의 `dist/files.tsv`에 적힌 목록대로 내려받습니다.
 
 global scope:
 
 ```text
 ~/.codex/AGENTS.md
-~/.agents/skills/spai-*/SKILL.md
+~/.agents/skills/spai-*/
 ```
 
 ### 활용
@@ -117,7 +122,8 @@ installer는 파일을 지우지 않습니다. 직접 지웁니다.
 ```bash
 rm -rf .agents/skills/spai-github-sync .agents/skills/spai-github-release \
   .agents/skills/spai-develop-task-flow .agents/skills/spai-update .agents/skills/spai-doctor \
-  .agents/skills/spai-project-setup .agents/skills/spai-readme
+  .agents/skills/spai-project-setup .agents/skills/spai-readme \
+  .agents/skills/spai-version-rubric .agents/skills/spai-rubric-scan
 ```
 
 `AGENTS.md`에서는 `<!-- spai:start ... -->`와 `<!-- spai:end ... -->` 사이 구간만 지우면 됩니다. 블록 바깥 내용은 SPAI가 건드린 적이 없습니다.
@@ -134,14 +140,14 @@ project scope:
 
 ```text
 ./GEMINI.md                       # SPAI managed block 추가/교체
-.agents/skills/spai-*/SKILL.md
+.agents/skills/spai-*/
 ```
 
 global scope:
 
 ```text
 ~/.gemini/GEMINI.md
-~/.gemini/config/skills/spai-*/SKILL.md
+~/.gemini/config/skills/spai-*/
 ```
 
 ### 활용

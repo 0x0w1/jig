@@ -28,9 +28,11 @@ Before any `gh` command, resolve the host from `SPAI_GITHUB_HOST`, local `spai.g
    - If the `claude` CLI is unavailable and `.claude/settings.json` has no plugin entry, report the check as skipped rather than as a failure.
 2. **Version** (codex and antigravity): read the installed stamp (`grep -h "spai:version" AGENTS.md GEMINI.md 2>/dev/null | head -n 1`) and compare with the latest release tag (`gh api repos/0x0w1/spai/releases/latest --jq .tag_name`). Also read `skills=` from the stamp; a stamp without it means the full default skill set, and a missing stamp means an install without a version stamp. Skip this check when neither file carries the managed block.
 3. **Drift** (codex and antigravity only; the Claude Code plugin is updated by the host): for each installed skill file, compare with the payload of the stamped version.
-   - codex: `curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/<stamp>/dist/codex/.agents/skills/spai-<skill>/SKILL.md | cmp -s - .agents/skills/spai-<skill>/SKILL.md`
-   - antigravity: same with `dist/antigravity/.agents/skills/spai-<skill>/SKILL.md`
+   - A skill is a directory, not always one file. Read the payload file list first (`curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/<stamp>/dist/files.tsv`); each row is `<skill>\t<path relative to the skill directory>`. A version that publishes no `files.tsv` shipped single-file skills, so compare `SKILL.md` alone.
+   - codex: `curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/<stamp>/dist/codex/.agents/skills/spai-<skill>/<path> | cmp -s - .agents/skills/spai-<skill>/<path>`
+   - antigravity: same with `dist/antigravity/.agents/skills/spai-<skill>/<path>`
    - A `cmp` mismatch means the file was locally modified or partially updated. If the stamp is `main` or `custom`, drift cannot be judged against a fixed payload; report that instead.
+   - A file under an installed skill directory that the payload list does not contain is a leftover from an older version, not drift. Report it as a leftover and leave it: only `spai-update` removes it, and only with confirmation.
 4. **Pending migrations**: when the stamp is behind the latest release, read the notes of every release newer than the stamp (`gh release view <tag> --repo 0x0w1/spai`) and count the items inside `<!-- spai:start migration-auto -->` and `<!-- spai:start migration-manual -->` blocks.
    - Count **line-anchored markers only** (`^<!-- spai:start migration-auto -->$`); notes often name these markers in prose, and a substring search would count those mentions as blocks.
    - Report the counts and quote the manual items in full; those need a human decision and are what makes a release `major`.

@@ -26,6 +26,7 @@ SPAI_VERSION_STAMP="main"
 SKILLS_INPUT="${SPAI_SKILLS:-}"
 SELECTED_SKILLS=""
 MANIFEST_TMP=""
+FILES_TMP=""
 INSTALLED_FILES=""
 VERIFIED_GITHUB_ACCOUNT=""
 SYNCED_GIT_CONFIG=""
@@ -243,6 +244,31 @@ stamp_spai_version() {
 load_manifest() {
   MANIFEST_TMP=$(mktemp)
   download_file "$REPO_RAW_URL/dist/manifest.tsv" "$MANIFEST_TMP"
+
+  # dist/files.tsv lists every file a skill ships, because a skill is a directory and not
+  # always a single SKILL.md. Releases older than the catalog have no such file; those
+  # payloads are single-file skills, so an absent list is a valid answer, not a failure.
+  FILES_TMP=$(mktemp)
+  if ! download_file "$REPO_RAW_URL/dist/files.tsv" "$FILES_TMP" 2>/dev/null; then
+    rm -f "$FILES_TMP"
+    FILES_TMP=""
+    log "Payload file list not published for this version: installing SKILL.md only."
+  fi
+}
+
+manifest_skill_files() {
+  if [ -z "$FILES_TMP" ]; then
+    printf 'SKILL.md\n'
+    return 0
+  fi
+  skill_file_list=$(awk -F '\t' -v name="$1" '
+    !/^#/ && NF >= 2 && $1 == name { print $2 }
+  ' "$FILES_TMP")
+  if [ -z "$skill_file_list" ]; then
+    printf 'SKILL.md\n'
+    return 0
+  fi
+  printf '%s\n' "$skill_file_list"
 }
 
 manifest_default_skills() {
@@ -812,7 +838,9 @@ install_codex() {
   fi
   for skill in $SELECTED_SKILLS; do
     prefixed=$(prefixed_skill_name "$skill")
-    copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/$prefixed/SKILL.md" "$skill_base/$prefixed/SKILL.md"
+    for skill_file in $(manifest_skill_files "$skill"); do
+      copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/$prefixed/$skill_file" "$skill_base/$prefixed/$skill_file"
+    done
   done
   install_managed_block "$REPO_RAW_URL/dist/codex/AGENTS.md" "$destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
 }
@@ -827,7 +855,9 @@ install_antigravity() {
   fi
   for skill in $SELECTED_SKILLS; do
     prefixed=$(prefixed_skill_name "$skill")
-    copy_file_with_backup "$REPO_RAW_URL/dist/antigravity/.agents/skills/$prefixed/SKILL.md" "$skill_base/$prefixed/SKILL.md"
+    for skill_file in $(manifest_skill_files "$skill"); do
+      copy_file_with_backup "$REPO_RAW_URL/dist/antigravity/.agents/skills/$prefixed/$skill_file" "$skill_base/$prefixed/$skill_file"
+    done
   done
   install_managed_block "$REPO_RAW_URL/dist/antigravity/GEMINI.md" "$destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
 }

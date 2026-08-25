@@ -86,7 +86,27 @@ The default ships `## 강경 규칙` and `## 버전 형식` alongside the two re
 - While the major version is `0`, `minor` and `major` land on the same position, so the escalation rules cost nothing yet and the `> 기준:` line says so. They begin to bind at `v1.0.0`, which is why they are settled before then.
 - A project that wants neither section removes them; both are optional by contract.
 
-A project whose releases ship documents rather than features usually grades by artifact instead: `patch` for document add/edit/delete, `minor` for changes to the tooling that manages the documents, `major` for a restructure. Write that through the project-specific path.
+A project whose releases ship documents rather than features usually grades by artifact instead: `patch` for document add/edit/delete, `minor` for changes to the tooling that manages the documents, `major` for a restructure. That rubric and a dozen others are already written; take one from the catalog below instead of drafting it.
+
+## Type Catalog
+
+`rubrics/` ships next to this skill and holds one ready draft per project type. Every file in it is a complete rubric: copy it to the resolved rubric path, fill the `> 기준:` date, and adjust the interface list to what this project actually promises.
+
+```text
+rubrics/
+├── INDEX.md            # type list, detection signals, scoring and merge rules
+├── _template.md        # skeleton for a type the catalog does not cover yet
+├── common.md           # SemVer principles that hold across every type
+├── developer/          # graded by call, import, and deployment contracts
+└── non-developer/      # graded by the documents, assets, and data themselves
+```
+
+- Read `INDEX.md` first. It is the only file that lists the types, so a draft not indexed there is invisible to the scan.
+- The `non-developer/` drafts title their interface section `## 소비자와 약속한 것`. It means the same thing as `## 공개 인터페이스`; the reader is not a developer.
+- Do not read every body. Read `INDEX.md`, pick the type, read that one file.
+- The catalog is payload: `spai-update` replaces it. Never edit a catalog file to record a project's decision — the decision lives in the resolved rubric path.
+
+When the project type is not obvious, run `rubric-scan` (or the installed `spai-rubric-scan`) first. It scans the repository, scores it against `INDEX.md`, and hands back a type with the paths that produced it. This skill still owns the write.
 
 ## Actions
 
@@ -96,6 +116,7 @@ Called without arguments. Determine the current state first, then confirm the us
 |---|---|---|
 | Review | file exists | Report the current rubric: path, source, kind, the three grades, commit state. Stop. |
 | Create | file missing | Show the default, ask the binary question, write the file. |
+| Adopt a type | the project has a clear type, or `rubric-scan` handed one over | Write that catalog draft as the rubric, dated and with the interface list adjusted. |
 | Re-set | file exists, user wants a different rubric | Show the current rubric, confirm, then replace it. |
 | Edit one grade | file exists, one grade is wrong | Update that grade's question and definition only; preserve the rest. |
 | Reset to default | file exists, user wants the default back | Replace with the default rubric and update the `> 기준:` line. |
@@ -106,7 +127,8 @@ Called without arguments. Determine the current state first, then confirm the us
 2. If the file exists, summarize it and confirm the intent: keep, re-set, edit one grade, or reset to default. Keep ends the run.
 3. For create or re-set, show the default rubric and ask one question: **use this rubric?**
    - Yes → write the default and record adoption in the `> 기준:` line.
-   - No → ask, for each of the three grades, which changes in this project belong there. Put the user's own wording into `## 판정 순서` and `## 등급 정의`.
+   - No → offer the catalog before drafting from scratch. Read `rubrics/INDEX.md`, name the types that fit what this repository ships, and let the user pick one; when the type is unclear, run `rubric-scan` and use its recommendation. A chosen draft is written as-is except for the `> 기준:` line and the interface list.
+   - No catalog type fits → ask, for each of the three grades, which changes in this project belong there. Put the user's own wording into `## 판정 순서` and `## 등급 정의`.
 4. If the user skips the question or does not answer, adopt the default and record it. Do not ask again.
 5. Keep the user's vocabulary. Only normalize the sentence shape into `<question> → \`patch\`` form. Translating their words into SPAI terms such as "silent behavior change" makes the next release grade differently than they intended.
 6. Write the file, creating `.spai/` when missing. Then hand the commit to the repository's flow: if `develop-task-flow` (or the installed `spai-develop-task-flow`) exists, follow it with a `chore/<slug>` branch, a `chore:` squash commit, and a `develop` push. Otherwise propose a normal commit on the current branch.
@@ -119,6 +141,7 @@ Called without arguments. Determine the current state first, then confirm the us
 - Do not grade a release or write release notes; `github-release` owns that.
 - Do not touch branches, branch protection, tags, releases, or GitHub settings.
 - Do not write anything outside the resolved rubric path and its parent `.spai/` directory.
+- Do not modify `rubrics/`. It is shipped payload that `spai-update` replaces; a project's decision belongs in the rubric file.
 - Do not force a commit. If the user declines, report the uncommitted state.
 - Preserve unrelated user changes.
 
@@ -128,11 +151,12 @@ Called without arguments. Determine the current state first, then confirm the us
 ## 버전 판정 기준
 
 - 경로: <path> (출처: 환경 변수 | 로컬 설정 | 관례)
-- 기준: SPAI 기본 (사람 개입 축) | 직접 작성
+- 기준: SPAI 기본 (사람 개입 축) | 카탈로그 <type> | 직접 작성
 - patch: <문항>
 - minor: <문항>
 - major: <문항>
 - 변경: 생성 | 재설정 | <등급> 수정 | 기본 복귀 | 변경 없음
+- 출처 초안: 없음 | rubrics/<audience>/<type>.md
 - 커밋: 완료 <commit subject> | 미커밋 (clone에 전파되지 않음)
 - 다음 조치: 없음 | <조치>
 ```

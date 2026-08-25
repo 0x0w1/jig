@@ -22,9 +22,17 @@ skill_summary() {
     spai-update) printf '%s' "update the installed SPAI skills to the latest SPAI release and converge repository settings." ;;
     spai-doctor) printf '%s' "diagnose the installed SPAI state (profile, version, protection, legacy); read-only." ;;
     readme) printf '%s' "write or update the project README from the repository state; drafts one when missing, fixes drift when present." ;;
-    version-rubric) printf '%s' "decide and maintain how this project grades patch, minor, and major in .spai/versioning.md." ;;
+    version-rubric) printf '%s' "decide and maintain how this project grades patch, minor, and major in .spai/versioning.md; ships the project-type rubric catalog." ;;
+    rubric-scan) printf '%s' "scan the repository to classify its project type and recommend a version rubric from the catalog; read-only." ;;
     *) printf '%s' "SPAI procedure." ;;
   esac
+}
+
+# Lists every file a skill ships, relative to its directory, with SKILL.md first.
+# A skill is a directory, not a single file: version-rubric carries its rubric catalog.
+skill_files() {
+  printf 'SKILL.md\n'
+  find "skills/$1" -type f ! -name SKILL.md | sed "s|^skills/$1/||" | LC_ALL=C sort
 }
 
 # Copies a skill payload, rewriting the frontmatter name so it matches the prefixed
@@ -77,11 +85,29 @@ append_managed_block \
   "SPAI installs these repository workflow skills under .agents/skills. Every SPAI skill name carries the spai- prefix so it stays out of the way of skills you wrote yourself." \
   > dist/antigravity/GEMINI.md
 
+# The installer downloads one file at a time, so it needs the file list the payload
+# actually has. Paths are relative to the skill directory and identical for every target.
+{
+  printf '# skill\tpath\n'
+  for skill in $SKILLS; do
+    for skill_file in $(skill_files "$skill"); do
+      printf '%s\t%s\n' "$skill" "$skill_file"
+    done
+  done
+} > dist/files.tsv
+
 for skill in $SKILLS; do
   prefixed=$(prefixed_skill_name "$skill")
   for target_dir in dist/codex/.agents/skills dist/antigravity/.agents/skills; do
-    mkdir -p "$target_dir/$prefixed"
-    copy_prefixed_skill "$skill" "$target_dir/$prefixed/SKILL.md"
+    for skill_file in $(skill_files "$skill"); do
+      destination="$target_dir/$prefixed/$skill_file"
+      mkdir -p "$(dirname "$destination")"
+      if [ "$skill_file" = "SKILL.md" ]; then
+        copy_prefixed_skill "$skill" "$destination"
+      else
+        cp "skills/$skill/$skill_file" "$destination"
+      fi
+    done
   done
 done
 
@@ -103,8 +129,11 @@ EOF
   cp hooks/guard-push.sh "$plugin_root/hooks/guard-push.sh"
   chmod +x "$plugin_root/hooks/guard-push.sh"
   for skill in $SKILLS; do
-    mkdir -p "$plugin_root/skills/$skill"
-    cp "skills/$skill/SKILL.md" "$plugin_root/skills/$skill/SKILL.md"
+    for skill_file in $(skill_files "$skill"); do
+      destination="$plugin_root/skills/$skill/$skill_file"
+      mkdir -p "$(dirname "$destination")"
+      cp "skills/$skill/$skill_file" "$destination"
+    done
   done
 }
 

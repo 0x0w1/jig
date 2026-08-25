@@ -28,6 +28,7 @@ skill_title() {
     spai-doctor) printf '%s\n' "# SPAI Doctor" ;;
     readme) printf '%s\n' "# README" ;;
     version-rubric) printf '%s\n' "# Version Rubric" ;;
+    rubric-scan) printf '%s\n' "# Rubric Scan" ;;
     *) fail "unknown skill: $1" ;;
   esac
 }
@@ -146,7 +147,61 @@ require_text .spai/versioning.md "## 등급 정의"
 require_text .spai/versioning.md "## 강경 규칙"
 require_text .spai/versioning.md "sh scripts/validate-dist.sh"
 require_file docs/version-rubric.md
+require_text docs/version-rubric.md "skills/version-rubric/rubrics/INDEX.md"
 require_text README.md "docs/version-rubric.md"
+
+# A skill is a directory: dist/files.tsv is what tells the installer which files to fetch.
+require_file dist/files.tsv
+require_text dist/files.tsv "version-rubric	rubrics/INDEX.md"
+require_text dist/files.tsv "rubric-scan	SKILL.md"
+
+for catalog_file in \
+  rubrics/INDEX.md \
+  rubrics/_template.md \
+  rubrics/common.md \
+  rubrics/developer/api-server.md \
+  rubrics/developer/infrastructure.md \
+  rubrics/developer/agent-skill-pack.md \
+  rubrics/non-developer/document-archive.md \
+  rubrics/non-developer/content-site.md \
+  rubrics/non-developer/dataset.md; do
+  require_text dist/files.tsv "version-rubric	$catalog_file"
+  require_file "dist/claude-code-plugin/spai/skills/version-rubric/$catalog_file"
+  require_file "dist/codex/.agents/skills/spai-version-rubric/$catalog_file"
+  require_file "dist/antigravity/.agents/skills/spai-version-rubric/$catalog_file"
+done
+
+# Every catalog row must point at a file that exists, or the scan recommends a dead link.
+awk -F '|' '/^\| \[/ { print $2 }' skills/version-rubric/rubrics/INDEX.md \
+  | sed -e 's/.*(\(.*\)).*/\1/' -e 's/^[[:space:]]*//' \
+  | while read -r indexed_rubric; do
+      [ -n "$indexed_rubric" ] || continue
+      [ -f "skills/version-rubric/rubrics/$indexed_rubric" ] \
+        || fail "INDEX.md lists a missing rubric: $indexed_rubric"
+    done
+
+# Every rubric body must carry the two required sections and stay copy-ready: a body with
+# frontmatter cannot be moved into .spai/versioning.md as-is.
+for rubric_body in skills/version-rubric/rubrics/developer/*.md skills/version-rubric/rubrics/non-developer/*.md; do
+  require_text "$rubric_body" "## 판정 순서"
+  require_text "$rubric_body" "## 등급 정의"
+  if head -n 1 "$rubric_body" | grep -qx -- '---'; then
+    fail "rubric body must not start with frontmatter: $rubric_body"
+  fi
+  if ! grep -q '^# ' "$rubric_body"; then
+    fail "rubric body has no title: $rubric_body"
+  fi
+done
+
+# rubric-scan reads the catalog and hands the write to version-rubric; it never writes.
+require_text dist/claude-code-plugin/spai/skills/rubric-scan/SKILL.md "rubrics/INDEX.md"
+require_text dist/claude-code-plugin/spai/skills/rubric-scan/SKILL.md "SPAI_RUBRIC_CATALOG"
+require_text dist/claude-code-plugin/spai/skills/rubric-scan/SKILL.md "Read-only"
+require_text dist/codex/.agents/skills/spai-rubric-scan/SKILL.md ".agents/skills/spai-version-rubric/rubrics"
+if grep -F 'Write the file' dist/claude-code-plugin/spai/skills/rubric-scan/SKILL.md >/dev/null 2>&1; then
+  fail "rubric-scan must not write the rubric file; version-rubric owns it"
+fi
+require_text dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md "## Type Catalog"
 
 require_text dist/codex/AGENTS.md "Scaffolded Procedures for AI Agents"
 require_text dist/antigravity/GEMINI.md "Scaffolded Procedures for AI Agents"

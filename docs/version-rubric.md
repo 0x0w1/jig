@@ -4,7 +4,7 @@ SPAI가 릴리즈 등급(`patch`/`minor`/`major`)을 어떤 기준으로 가를�
 
 판정 축은 프로젝트마다 다릅니다. 기본은 사람이 손대야 하는지로 가르고, 문서 관리 프로젝트는 산출물 종류로 가릅니다. 같은 임계값을 조절하는 문제가 아니라 축 자체가 다르기 때문에, 판정 기준을 스킬에 고정하지 않고 프로젝트로 내보냈습니다.
 
-SemVer의 호환성 의미를 유지하면서 API 서버, 웹·모바일·데스크톱 클라이언트, 라이브러리·SDK, CLI, 백그라운드 워커, 인프라, 모노레포의 공개 인터페이스에 맞춘 초안은 [프로젝트 유형별 버전 판정 기준](version-rubrics/README.md)에 있습니다. 이 기준들은 AI 작업량이나 구현 규모가 아니라 릴리즈 전후의 소비자 호환성을 판정합니다.
+유형별 초안은 스킬과 함께 배포되는 **기준 카탈로그**에 들어 있습니다. 처음부터 쓸 필요가 없습니다. 어떤 유형인지 모르겠으면 `rubric-scan`이 저장소를 스캔해 후보를 골라 줍니다. 두 가지는 아래 [기준 카탈로그](#기준-카탈로그)에서 설명합니다.
 
 ## 파일 위치
 
@@ -16,6 +16,49 @@ SemVer의 호환성 의미를 유지하면서 API 서버, 웹·모바일·데스
 - `.spai/`는 **프로젝트가 소유합니다.** installer와 `spai-update`는 이 디렉토리를 쓰지도 지우지도 않고, `spai-doctor`는 이 안의 내용을 드리프트로 보지 않습니다. 직접 고친 내용이 정답입니다.
 - 이 파일은 **커밋해야 합니다.** 커밋하지 않으면 clone과 CI에 전달되지 않아 사람마다 다른 기준으로 판정합니다. `spai-doctor`가 미커밋 상태를 경고합니다.
 - `.gitignore`에 넣지 마세요.
+
+## 기준 카탈로그
+
+유형별 초안은 `version-rubric` 스킬 payload 안에 함께 설치됩니다. 설치 위치는 CLI마다 다릅니다.
+
+| 환경 | 카탈로그 경로 |
+|---|---|
+| Claude Code | `${CLAUDE_PLUGIN_ROOT}/skills/version-rubric/rubrics` |
+| Codex · Antigravity (project) | `.agents/skills/spai-version-rubric/rubrics` |
+| SPAI 저장소 자체 | [`skills/version-rubric/rubrics`](../skills/version-rubric/rubrics/INDEX.md) |
+
+```text
+rubrics/
+├── INDEX.md            # 유형 목록과 탐지 신호. 스캔은 이 파일만 읽습니다
+├── _template.md        # 카탈로그에 없는 유형을 새로 쓸 때의 골격
+├── common.md           # 유형과 무관한 공통 SemVer 원칙
+├── developer/          # 호출·import·배포 계약으로 판정하는 11개 유형
+└── non-developer/      # 문서·자산·데이터·발행물로 판정하는 6개 유형
+```
+
+두 디렉토리는 난이도가 아니라 **공개 인터페이스의 종류**로 갈립니다. `developer/`는 코드 소비자와의 계약, `non-developer/`는 산출물 자체가 계약입니다. 비개발자가 관리하는 저장소라도 API를 배포하면 `developer/`를 씁니다.
+
+| 축 | 유형 |
+|---|---|
+| developer | `api-server`, `web-client`, `mobile-app`, `desktop-app`, `library-sdk`, `cli-tool`, `background-worker`, `infrastructure`, `monorepo`, `data-pipeline`, `agent-skill-pack` |
+| non-developer | `document-archive`, `content-site`, `design-assets`, `dataset`, `config-collection`, `course-material` |
+
+카탈로그 파일은 그대로 `.spai/versioning.md`가 될 수 있게 쓰여 있습니다. 복사한 뒤 `> 기준:` 줄의 날짜와 공개 인터페이스 목록만 프로젝트에 맞게 고칩니다. 카탈로그 자체는 payload라서 `spai-update`가 갱신합니다 — 프로젝트의 결정은 카탈로그가 아니라 기준 파일에 적습니다.
+
+### 유형 스캔
+
+`rubric-scan` 스킬은 저장소를 읽어 유형 후보를 고릅니다. Claude Code는 `/spai:rubric-scan`, Codex와 Antigravity는 `spai-rubric-scan`입니다.
+
+1. 추적 파일 목록, 확장자 분포, 의존성 manifest, 배포 설정, 커밋 이력을 읽습니다.
+2. `INDEX.md`의 신호 표와 맞춰 점수를 냅니다 — 강한 신호 2점, 약한 신호 1점, 3점 미만은 후보에서 제외합니다.
+3. 후보 최대 3개를 **점수를 만든 실제 경로와 함께** 보고합니다. 근거 경로 없는 추천은 하지 않습니다.
+4. 사용자가 유형을 고르면 초안을 `version-rubric`에 넘깁니다. 파일을 쓰는 것은 `version-rubric`이고, 스캔은 아무것도 쓰지 않습니다.
+
+소비자가 여럿이면 유형도 여럿입니다. 이때는 하나를 고르는 대신 주 유형의 초안에 다른 유형의 공개 인터페이스 항목을 합치고, 같은 변경에 등급이 갈리면 가장 높은 등급을 씁니다.
+
+### 새 유형 추가
+
+카탈로그에 없는 성격의 프로젝트는 `_template.md`를 복사해 `developer/` 또는 `non-developer/` 아래에 만들고, `INDEX.md` 표에 행을 추가합니다. **표에 없는 파일은 스캔이 찾지 못합니다.** 강한 신호는 그 유형에서만 나오는 경로여야 합니다 — `README.md`처럼 어디에나 있는 파일은 신호가 아닙니다.
 
 ## 설정값
 
@@ -37,6 +80,7 @@ Claude Code는 `/spai:version-rubric`, Codex와 Antigravity는 `spai-version-rub
 |---|---|
 | 지금 기준이 뭔지 보기 | 경로·출처·종류·3등급·커밋 여부를 보고합니다 |
 | 처음 정하기 | 기본 기준을 보여주고 "이 기준으로 갈까요?" 하나만 묻습니다 |
+| 어떤 유형인지 모르겠을 때 | `rubric-scan`이 저장소를 스캔해 후보를 고르고, 이 스킬이 그 초안을 씁니다 |
 | **다시 정하기** | 현재 기준을 보여주고 확인을 받은 뒤 교체합니다 |
 | 한 등급만 손보기 | 그 등급의 문항과 정의만 바꾸고 나머지는 보존합니다 |
 | 기본으로 되돌리기 | 기본 기준 전문으로 교체합니다 |
@@ -119,7 +163,7 @@ Claude Code는 `/spai:version-rubric`, Codex와 Antigravity는 `spai-version-rub
 
 ### 문서 관리 프로젝트
 
-직접 작성 경로로 가서 세 등급에 해당하는 변경을 적습니다.
+카탈로그의 `non-developer/document-archive.md`가 이 경우입니다. 직접 쓰면 이런 모양이 됩니다.
 
 ```md
 # 버전 정책
@@ -145,6 +189,7 @@ SPAI 자신이 이 경우입니다. [`.spai/versioning.md`](../.spai/versioning.
 
 ## 관련 문서
 
-- [프로젝트 유형별 버전 판정 기준](version-rubrics/README.md)
+- [기준 카탈로그 색인](../skills/version-rubric/rubrics/INDEX.md)
+- [공통 SemVer 원칙](../skills/version-rubric/rubrics/common.md)
 - [SPAI 버전 정책 해설](versioning.md)
 - [설치 가이드](installation.md)

@@ -47,6 +47,7 @@ Resolve the host from `SPAI_GITHUB_HOST`, then `git config --local --get spai.gi
    - Resolve it from `SPAI_VERSION_RUBRIC`, then `git config --local --get spai.versionRubric`, then `.spai/versioning.md`.
    - When the file exists, report its path, source, and whether it records the adopted default or a project-specific rubric. Do not change it.
    - When it is missing, run the `version-rubric` skill. If the user skips the question or does not answer, that skill records the adopted default; do not press for an answer.
+   - When the project is clearly not a plain code project, or the user asks which rubric fits, run `rubric-scan` first and pass its recommended type to `version-rubric`.
    - Never reproduce the rubric text here; `version-rubric` owns it.
 7. Run `github-sync` for repository convergence, then `spai-doctor` for a read-only health check.
 

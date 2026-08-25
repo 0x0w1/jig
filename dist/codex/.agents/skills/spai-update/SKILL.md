@@ -13,6 +13,7 @@ Each CLI updates on its own path; there is no combined update.
 
 - **Claude Code** installs SPAI as the `spai` plugin. The host updates it: marketplace auto-update, or `/plugin marketplace update spai`. Skills are namespaced as `/spai:<skill>` and never touch `.claude/skills`. There is no version stamp to read or write for this target.
 - **Codex and Antigravity** have no plugin system. Their `spai-` prefixed skill directories under `.agents/skills` are refreshed by re-running `install.sh` once per target, pinned to the latest tag. The installer is idempotent: unchanged files pass, changed files are backed up as `*.bak`, and managed blocks are replaced in place.
+- A skill is a directory, not always one `SKILL.md`. The installer reads `dist/files.tsv` from the pinned version and installs every file that skill ships, such as the rubric catalog under `spai-version-rubric/rubrics`. Files an older version installed and the new payload no longer lists stay on disk; report them and remove them only with explicit confirmation.
 - For codex and antigravity, the installed version and skill selection are stamped inside the SPAI managed block as `<!-- spai:version vX.Y.Z skills=<a,b,c> -->` in `AGENTS.md` or `GEMINI.md`. A stamp without `skills=` means the full default skill set.
 - The latest version is the latest GitHub release tag of `0x0w1/spai`.
 - Repository-side convergence (branch protection, legacy file and label cleanup) is handled by the `github-sync` skill after the update, and is idempotent across skipped versions.
@@ -81,7 +82,7 @@ Release notes carry migration work as marker blocks, not prose. Collect them fro
    - `curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh | sh -s -- --target <target> --scope project --version <latest> --skills <stamped skills>`
    - When a profile is configured, the installer resolves it from the environment or local git config and also converges GitHub settings. Otherwise it updates the files and defers GitHub convergence to `project-setup`.
    - When the stamp has no `skills=`, omit `--skills` so the installer applies the defaults.
-9. Verify the `AGENTS.md` or `GEMINI.md` stamp now shows the latest version. Claude Code has no stamp to verify.
+9. Verify the `AGENTS.md` or `GEMINI.md` stamp now shows the latest version, and that every path in the new `dist/files.tsv` exists under the installed skill directories. Claude Code has no stamp to verify.
 10. Apply the merged `migration-auto` items in release order, after the payload is updated so the steps run against the new version. Each item is idempotent: record it as applied, already satisfied, or failed, and continue past already-satisfied items. Stop and report on the first failure rather than improvising a fix.
 11. Present the merged `migration-manual` items and apply only the ones the user approves. Anything not approved stays pending and is named in the report.
 12. When a GitHub profile is configured, run the `github-sync` skill to converge branch protection and report legacy files or labels; delete them only with explicit confirmation. Otherwise recommend `project-setup` and leave GitHub convergence pending.

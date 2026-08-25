@@ -6,3 +6,4 @@ spai-update	solo-cli	yes
 spai-doctor	solo-cli	yes
 readme	solo-cli	yes
 version-rubric	solo-cli	yes
+rubric-scan	solo-cli	yes
