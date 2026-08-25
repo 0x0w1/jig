@@ -61,7 +61,7 @@ rubrics/
 
 둘 중 하나만 씁니다. 문항을 섞으면 판정 순서가 어디서 멈추는지가 흐려집니다. 설치본·호출자·독자처럼 **바깥 소비자가 분명한 프로젝트**는 카탈로그가, 소비자가 자기 자신이거나 아직 정해지지 않은 프로젝트는 기본 기준이 맞습니다.
 
-카탈로그 파일은 그대로 `.spai/versioning.md`가 될 수 있게 쓰여 있습니다. 복사한 뒤 `> 기준:` 줄의 날짜와 공개 인터페이스 목록만 프로젝트에 맞게 고칩니다. 카탈로그 자체는 payload라서 `spai-update`가 갱신합니다 — 프로젝트의 결정은 카탈로그가 아니라 기준 파일에 적습니다.
+카탈로그 파일은 그대로 `.spai/versioning.md`가 될 수 있게 쓰여 있습니다. 복사한 뒤 `> Basis:` 줄의 날짜와 `## Public Interface` 목록만 프로젝트에 맞게 고칩니다. 카탈로그 자체는 payload라서 `spai-update`가 갱신합니다 — 프로젝트의 결정은 카탈로그가 아니라 기준 파일에 적습니다.
 
 ### 유형 스캔
 
@@ -72,7 +72,7 @@ rubrics/
 3. 후보 최대 3개를 **점수를 만든 실제 경로와 함께** 보고합니다. 근거 경로 없는 추천은 하지 않습니다.
 4. 사용자가 유형을 고르면 초안을 `version-rubric`에 넘깁니다. 파일을 쓰는 것은 `version-rubric`이고, 스캔은 아무것도 쓰지 않습니다.
 
-소비자가 여럿이면 유형도 여럿입니다. 이때는 하나를 고르는 대신 주 유형의 초안에 다른 유형의 공개 인터페이스 항목을 합치고, 같은 변경에 등급이 갈리면 가장 높은 등급을 씁니다.
+소비자가 여럿이면 유형도 여럿입니다. 이때는 하나를 고르는 대신 주 유형의 초안에 다른 유형의 `## Public Interface` 항목을 합치고, 같은 변경에 등급이 갈리면 가장 높은 등급을 씁니다.
 
 ### 새 유형 추가
 
@@ -88,7 +88,7 @@ rubrics/
 
 해석 순서는 환경 변수 → 로컬 설정 → 관례 경로입니다. `SPAI_GITHUB_PROFILE`/`spai.githubProfile` 쌍과 같은 형태입니다.
 
-설정 키에는 **경로만** 넣습니다. "기본 기준을 채택했다" 같은 상태는 파일 상단의 `> 기준:` 줄에만 기록합니다. `git config --local`은 `.git/config`에 저장되어 clone에 전달되지 않으므로, 상태를 그쪽에 두면 같은 저장소가 사람마다 다르게 판정합니다.
+설정 키에는 **경로만** 넣습니다. "기본 기준을 채택했다" 같은 상태는 파일 상단의 `> Basis:` 줄에만 기록합니다. `git config --local`은 `.git/config`에 저장되어 clone에 전달되지 않으므로, 상태를 그쪽에 두면 같은 저장소가 사람마다 다르게 판정합니다.
 
 ## 사용법
 
@@ -109,31 +109,33 @@ Claude Code는 `/spai:version-rubric`, Codex와 Antigravity는 `spai-version-rub
 
 ## 기본 기준 (사람 개입 축)
 
+스킬이 쓰는 기본 기준 전문입니다. 섹션 제목과 문항이 영어인 이유는 [섹션 제목](#섹션-제목)에 있습니다.
+
 ```md
-# 버전 정책
+# Version Policy
 
-> 기준: SPAI 기본 (사람 개입 축), <날짜> 채택
+> Basis: SPAI default (human-intervention axis), adopted <date>
 
-## 판정 순서
-1. 기존 기능 범위 안의 수정인가? → `patch`
-2. 새로 할 수 있는 일이 생기거나 세대가 바뀌었지만, 쓰던 대로 계속 쓸 수 있는가? → `minor`
-3. 제공하는 가치가 확장·제거·변경됐거나, 사람이 손대야 계속 쓸 수 있는가? → `major`
+## Decision Order
+1. Is this a fix inside what the project already does? → `patch`
+2. Can people do something new, or did a generation turn over, while everything they already do keeps working? → `minor`
+3. Did the value on offer widen, shrink, or change, or must a human step in to keep using it? → `major`
 
-## 등급 정의
-| bump | 정의 |
+## Grade Definitions
+| bump | definition |
 |---|---|
-| `patch` | 기존 기능 범위 안의 수정. 버그 수정, 문구·문서 변경, 내부 구현 정리 |
-| `minor` | 기능 추가·삭제·변경, 세대 교체. 새로 할 수 있는 일이 생기지만 쓰던 방식은 그대로 통함 |
-| `major` | 제공 가치의 확장·제거·변경, 또는 사람이 손대야 하는 변경. 설정·파일·호출 방식을 고쳐야 계속 씀 |
+| `patch` | A fix inside the existing feature set: bug fixes, wording and documentation changes, internal cleanup |
+| `minor` | A capability added, removed, or changed, or a generation replaced. Something new is possible and the old way still works |
+| `major` | The value on offer widened, shrank, or changed, or a human must edit config, files, or call sites to keep using it |
 
-## 강경 규칙
-> 에러 없이 동작만 달라지는 변경은 `major`다. 크기와 무관하다.
+## Hard Rules
+> A change that raises no error but behaves differently is `major`. Its size does not matter.
 
-> 스킬·프롬프트 지시문이 에이전트의 발화 조건을 바꾸면 최소 `minor`다.
+> A skill or prompt instruction that changes when the agent speaks is at least `minor`.
 
-## 버전 형식
-- major 버전이 `0`인 동안 `major` 판정은 minor 자리를 올린다: `v0.Y.Z` → `v0.(Y+1).0`. 아직 1.0이 아니므로 제공 가치도 호출 방식도 언제든 바뀔 수 있다는 뜻이다. 판정 자체는 1.0 이후와 동일하게 하고, 릴리즈 보고에 `major` 판정을 남긴다.
-- `v1.0.0` 이후 `major` 판정은 major 자리를 올린다. 이때부터 위 유예가 끝난다.
+## Version Format
+- While the major version is `0`, a `major` grade raises the minor position: `v0.Y.Z` → `v0.(Y+1).0`. Before 1.0, both the value on offer and the call sites may change at any time. Grade exactly as after 1.0 and record the `major` grade in the release report.
+- After `v1.0.0`, a `major` grade raises the major position. The grace above ends there.
 ```
 
 등급을 변경 규모가 아니라 **사람이 손대야 하는지**로 가릅니다. AI와 함께 만드는 프로젝트는 세대가 빠르게 갈리는데, 규모로 판정하면 세대가 바뀔 때마다 `major`가 되어 숫자가 정보를 잃습니다. 세대 교체는 `minor`로 내려가고, `major`는 제공 가치가 확장·제거·변경되거나 사람이 직접 고쳐야 하는 경우에만 붙습니다.
@@ -148,17 +150,37 @@ Claude Code는 `/spai:version-rubric`, Codex와 Antigravity는 `spai-version-rub
 
 | 섹션 | 필수 | 내용 |
 |---|---|---|
-| `## 판정 순서` | 필수 | 순서대로 묻는 질문 3개와 각 등급 |
-| `## 등급 정의` | 필수 | 등급별 정의 표 |
-| `## 강경 규칙` | 선택 | 무조건 승격시키는 조건 |
-| `## 릴리즈 노트` | 선택 | 노트 섹션 순서·제목 override |
-| `## 버전 형식` | 선택 | 태그 정규식, 1.0 이전 처리, 요약 언어 |
-| `## 릴리즈 전 검증` | 선택 | 릴리즈 전에 실행할 명령 |
+| `## Decision Order` | 필수 | 순서대로 묻는 질문 3개와 각 등급 |
+| `## Grade Definitions` | 필수 | 등급별 정의 표 |
+| `## Hard Rules` | 선택 | 무조건 승격시키는 조건 |
+| `## Release Notes` | 선택 | 노트 섹션 순서·제목 override |
+| `## Version Format` | 선택 | 태그 정규식, 1.0 이전 처리, 요약 언어 |
+| `## Pre-Release Checks` | 선택 | 릴리즈 전에 실행할 명령 |
 
-- `## 판정 순서`는 순서대로 묻고 **처음 걸리는 곳에서 멈춥니다.** 이 의미는 기준 파일이 바꿀 수 없습니다.
-- 기준 파일에 없는 선택 섹션은 그 프로젝트에 적용되지 않습니다. `## 강경 규칙`을 지우면 승격 규칙이 없는 것이고, 기본 기준의 규칙이 대신 적용되지는 않습니다.
+- `## Decision Order`는 순서대로 묻고 **처음 걸리는 곳에서 멈춥니다.** 이 의미는 기준 파일이 바꿀 수 없습니다.
+- 기준 파일에 없는 선택 섹션은 그 프로젝트에 적용되지 않습니다. `## Hard Rules`를 지우면 승격 규칙이 없는 것이고, 기본 기준의 규칙이 대신 적용되지는 않습니다.
+
+### 섹션 제목
+
+계약 제목은 영어입니다. 스킬 본문이 전부 영어라 제목만 한글이면 같은 파일 안에서 어휘가 갈리고, 설치본이 어느 쪽을 써야 하는지 매번 판단해야 합니다.
+
+**한글 제목으로 쓰인 기존 기준 파일은 그대로 동작합니다.** rubric을 읽는 모든 스킬(`github-release`, `spai-doctor`, `version-rubric`, `rubric-scan`)이 양쪽 철자를 모두 인식합니다.
+
+| 영어 (표준) | 한글 (레거시) |
+|---|---|
+| `## Decision Order` | `## 판정 순서` |
+| `## Grade Definitions` | `## 등급 정의` |
+| `## Hard Rules` | `## 강경 규칙` |
+| `## Release Notes` | `## 릴리즈 노트` |
+| `## Version Format` | `## 버전 형식` |
+| `## Pre-Release Checks` | `## 릴리즈 전 검증` |
+| `> Basis:` | `> 기준:` |
+
+- 한 파일 안에서 두 철자를 **섞지 마세요.** `## Decision Order`와 `## 등급 정의`가 함께 있으면 필수 섹션 하나가 없는 것으로 읽힙니다.
+- 스킬은 기존 파일의 제목을 스스로 바꾸지 않습니다. 바꾸고 싶으면 `version-rubric`에 "제목을 영어로 바꿔줘"라고 요청하면 제목만 갈아끼우고 문항은 한 글자도 건드리지 않습니다.
+- **문항과 정의는 프로젝트의 언어로 씁니다.** 제목만 계약이고, 안의 내용은 그 저장소를 읽는 사람의 말이 정답입니다.
 - 계약에 없는 섹션을 추가해도 됩니다. 판정 맥락으로 함께 읽습니다. 예를 들어 "무엇이 우리 프로젝트의 공개 인터페이스인가" 목록을 둘 수 있습니다.
-- 필수 섹션이 없거나 판정 순서가 3단계가 안 되면 `github-release`가 릴리즈를 멈추고 이 스킬을 안내합니다. 깨진 기준으로 조용히 판정하는 것보다 멈추는 게 낫습니다.
+- 필수 섹션이 없거나 판정 순서가 3단계가 안 되면(두 철자 모두 없을 때) `github-release`가 릴리즈를 멈추고 이 스킬을 안내합니다. 깨진 기준으로 조용히 판정하는 것보다 멈추는 게 낫습니다.
 
 ## 릴리즈 노트 섹션
 
@@ -171,7 +193,7 @@ Claude Code는 `/spai:version-rubric`, Codex와 Antigravity는 `spai-version-rub
 | `chore:` | `🧰 Chores` |
 | 그 밖의 prefix | 그 이름으로 섹션 생성 (`docs:` → `📚 Documentation`) |
 
-문서 위주 프로젝트에서 `docs:` 커밋이 "잡일" 칸으로 밀리지 않습니다. 순서나 제목을 바꾸고 싶으면 `## 릴리즈 노트` 섹션에 적습니다.
+문서 위주 프로젝트에서 `docs:` 커밋이 "잡일" 칸으로 밀리지 않습니다. 순서나 제목을 바꾸고 싶으면 `## Release Notes` 섹션에 적습니다.
 
 ## 작성 예
 
@@ -186,20 +208,22 @@ Claude Code는 `/spai:version-rubric`, Codex와 Antigravity는 `spai-version-rub
 ```md
 # 버전 정책
 
-> 기준: 직접 작성, <날짜>
+> Basis: 직접 작성, <날짜>
 
-## 판정 순서
+## Decision Order
 1. 문서를 추가·수정·삭제했는가? → `patch`
 2. 문서를 관리하는 기능이 추가·수정·삭제됐는가? → `minor`
 3. 프로젝트 전체 구조가 대대적으로 바뀌었는가? → `major`
 
-## 등급 정의
+## Grade Definitions
 | bump | 정의 |
 |---|---|
 | `patch` | 문서 콘텐츠 변경. 추가·수정·삭제를 모두 포함 |
 | `minor` | 문서를 만들고 관리하는 도구·템플릿·스크립트의 변경 |
 | `major` | 디렉토리 구조, 분류 체계, 발행 방식의 전면 개편 |
 ```
+
+제목은 영어, 문항은 한국어입니다. 계약은 제목뿐이라 이렇게 섞는 게 정상입니다.
 
 ### 설치본을 가진 도구
 

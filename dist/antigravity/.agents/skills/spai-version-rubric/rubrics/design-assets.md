@@ -1,45 +1,45 @@
-# 디자인 자산 저장소 버전 정책
+# Design Asset Version Policy
 
-> 기준: SemVer 디자인 자산형, `<날짜>` 채택
+> Basis: SemVer design assets, adopted `<date>`
 
-## 공개 인터페이스
+## Public Interface
 
-- 자산 파일의 경로·이름과 그것을 참조하는 코드·문서
-- 제공 포맷과 해상도·크기 변형(`svg`, `png@2x`, 아이콘 그리드)
-- 디자인 토큰의 이름과 값(색상, 간격, 타이포)
-- 자산이 표현하는 의미(아이콘이 가리키는 동작, 색상의 상태 의미)
-- 사용 조건(라이선스, 로고 변형 금지 규칙, 최소 여백)
-- 컴포넌트·심볼 이름과 라이브러리 게시 위치
+- Asset paths and names, and the code and documents that reference them
+- Delivered formats and size variants (`svg`, `png@2x`, the icon grid)
+- Design token names and values (color, spacing, type)
+- What an asset means: the action an icon stands for, the state a color signals
+- Terms of use: license, logo restrictions, minimum clear space
+- Component and symbol names and where the library is published
 
-원본 편집 파일의 레이어 구성이나 작업 방식은 내보낸 자산이 같은 한 공개 인터페이스가 아닙니다.
+Layer structure in the source editing file and the way it is produced are not the public interface as long as the exported asset is the same.
 
-## 판정 순서
+## Decision Order
 
-1. 기존 자산의 이름·포맷·의미를 유지하며 그 자산을 다듬었는가? → `patch`
-2. 기존 자산을 그대로 두고 새 자산·변형·포맷·토큰을 추가했는가? → `minor`
-3. 참조하는 쪽이 경로·이름·값을 고치거나 화면을 다시 확인해야 하는가? → `major`
+1. Was an existing asset refined while its name, format, and meaning held? → `patch`
+2. Were existing assets left in place while new assets, variants, formats, or tokens were added? → `minor`
+3. Must the referencing side fix a path, a name, or a value, or re-check a screen? → `major`
 
-## 등급 정의
+## Grade Definitions
 
-| bump | 정의 | 예 |
+| bump | definition | examples |
 |---|---|---|
-| `patch` | 참조를 그대로 둔 자산 수정 | 아이콘 픽셀 정렬, 여백 정리, 파일 용량 최적화 |
-| `minor` | 기존 자산과 공존하는 확장 | 새 아이콘 추가, 다크 모드 변형 추가, 새 포맷 내보내기, 토큰 추가 |
-| `major` | 참조·의미·규칙이 바뀌는 변경 | 파일 이름·경로 변경, 아이콘 의미 변경, 토큰 값 변경, 로고 교체, 라이선스 변경 |
+| `patch` | Asset fixes that leave references untouched | icon pixel alignment, spacing tidied, file size optimized |
+| `minor` | Growth that coexists with existing assets | new icon, dark-mode variant, new export format, new token |
+| `major` | A change to references, meaning, or terms | file renamed or moved, icon meaning changed, token value changed, logo replaced, license changed |
 
-## 강경 규칙
+## Hard Rules
 
-> 같은 이름의 자산이 다른 그림·다른 색으로 바뀌면 `major`다. 참조는 성공하지만 화면 결과가 달라지기 때문이다.
+> If an asset with the same name becomes a different drawing or a different color, it is `major`. The reference still resolves while the screen changes.
 
-> 브랜드 규칙(로고 사용 조건, 라이선스)이 바뀌면 자산 파일이 그대로여도 `major`다.
+> If brand rules (logo conditions, license) change, it is `major` even when no asset file moved.
 
-## 릴리즈 전 검증
+## Pre-Release Checks
 
-- 이번에 이름·경로가 바뀐 파일 목록을 만들고 참조하는 저장소를 확인한다.
-- 토큰 값 변경분을 이전 버전과 비교한다.
-- 내보내기 결과가 모든 선언된 포맷·해상도에 존재하는지 확인한다.
+- List the files renamed or moved in this release and check the repositories that reference them.
+- Diff token value changes against the previous version.
+- Confirm the export exists in every declared format and resolution.
 
-## 버전 형식
+## Version Format
 
-- 디자인 라이브러리 버전과 이를 소비하는 제품 버전은 별개다. 이 저장소의 `major`가 제품에서는 `minor` 작업일 수 있다.
-- `0.x`에서 `major` 판정은 `v0.Y.Z` → `v0.(Y+1).0`으로 표현하되 판정 결과는 `major`로 기록한다.
+- The design library's version and the version of the products consuming it are separate. A `major` here can be a `minor` amount of work in a product.
+- A `major` grade in `0.x` is expressed as `v0.Y.Z` → `v0.(Y+1).0`, while the grade is still recorded as `major`.

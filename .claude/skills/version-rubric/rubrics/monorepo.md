@@ -1,69 +1,69 @@
-# 모노레포 버전 정책
+# Monorepo Version Policy
 
-> 기준: SemVer 모노레포형, `<날짜>` 채택
+> Basis: SemVer monorepo, adopted `<date>`
 
-모노레포라는 디렉토리 구조 자체는 버전 전략을 결정하지 않습니다. 공개되는 제품·패키지의 소비 방식에 따라 고정 버전, 독립 버전, 혼합 버전 중 하나를 명시적으로 선택합니다.
+Being a monorepo does not by itself decide a versioning strategy. Choose one explicitly — fixed, independent, or mixed — based on how the published products and packages are consumed.
 
-## 공개 인터페이스
+## Public Interface
 
-- 각 package·service·app가 유형별 문서에서 정의한 공개 계약
-- workspace package 사이의 dependency와 지원 버전 범위
-- 공유 schema, protocol, generated client
-- 통합 배포가 보장하는 cross-package compatibility
-- root command, build·release entrypoint
+- The public contract each package, service, or app defines in its own type document
+- Dependencies between workspace packages and their supported version ranges
+- Shared schemas, protocols, and generated clients
+- The cross-package compatibility that a combined deployment guarantees
+- Root commands and the build and release entrypoints
 
-## 버전 전략
+## Version Strategy
 
-### 고정 버전
+### Fixed version
 
-모든 산출물을 하나의 제품으로 배포하고 항상 같은 버전을 부여합니다.
+Every artifact ships as one product and always carries the same version.
 
-- package별로 등급을 판정한 뒤 가장 높은 등급을 전체 버전에 적용합니다.
-- 변경되지 않은 package도 같은 버전으로 발행할 수 있습니다.
-- 서버·클라이언트가 하나의 호환성 단위일 때 적합합니다.
+- Grade each package, then apply the highest grade to the whole product version.
+- Packages that did not change may still be published at the new version.
+- Fits when server and client are a single compatibility unit.
 
-### 독립 버전
+### Independent versions
 
-각 package가 별도 소비자와 릴리즈 주기를 가집니다.
+Each package has its own consumers and release cadence.
 
-- 영향을 받은 package만 각자 SemVer를 올립니다.
-- dependency range 변경이 소비 package의 공개 계약에 미치는 영향도 따로 판정합니다.
-- root에는 제품 버전을 두지 않거나 release manifest만 둡니다.
+- Raise SemVer only for the packages affected.
+- Grade separately how a dependency range change affects the consuming package's public contract.
+- Keep no product version at the root, or keep only a release manifest.
 
-### 혼합 버전
+### Mixed versions
 
-제품군은 고정 버전으로 묶고 독립 도구·라이브러리는 별도 버전을 사용합니다.
+Product groups ship on a fixed version while standalone tools and libraries carry their own.
 
-- version group을 문서에 열거합니다.
-- group 안에서는 최고 등급을 사용하고 group 사이는 독립 판정합니다.
-- package를 group 사이로 이동하면 소비자 설치·호출 방식의 호환성을 판정합니다.
+- List the version groups in the documentation.
+- Inside a group use the highest grade; between groups grade independently.
+- Moving a package between groups is graded on the compatibility of consumers' install and call sites.
 
-## 판정 순서
+## Decision Order
 
-1. 영향받은 version unit의 공개 계약을 유지하며 결함·내부 구현만 수정했는가? → `patch`
-2. 기존 소비자와 package 조합을 유지하면서 하위 호환 기능만 추가했는가? → `minor`
-3. 기존 소비자나 workspace package가 코드·설정·dependency·배포 순서를 바꿔야 하는가? → `major`
+1. Did it fix defects or internals while keeping the affected version unit's public contract? → `patch`
+2. Did it add only backward-compatible capability while existing consumers and package combinations held? → `minor`
+3. Must existing consumers or workspace packages change code, configuration, dependencies, or deployment order? → `major`
 
-## 등급 정의
+## Grade Definitions
 
-| bump | 정의 | 예 |
+| bump | definition | examples |
 |---|---|---|
-| `patch` | version unit의 공개 계약을 유지하는 수정 | 내부 package refactor, 호환 가능한 버그 수정 |
-| `minor` | 기존 package 조합과 공존하는 기능 추가 | 새 package, 하위 호환 API 추가, optional integration 추가 |
-| `major` | 소비자 또는 package 사이 계약을 깨는 변경 | package 제거, export 변경, dependency range 비호환, 필수 배포 순서 변경 |
+| `patch` | A fix that keeps the version unit's public contract | internal package refactor, compatible bug fix |
+| `minor` | Capability that coexists with existing package combinations | new package, backward-compatible API added, optional integration |
+| `major` | A change that breaks a consumer or a contract between packages | package removed, export changed, dependency range incompatible, deployment order now required |
 
-## 강경 규칙
+## Hard Rules
 
-> generated client와 schema가 함께 바뀌어 저장소 안에서는 성공하더라도 외부 소비자가 깨지면 `major`다.
+> If a generated client and its schema change together so the repository builds but an external consumer breaks, it is `major`.
 
-## 릴리즈 전 검증
+## Pre-Release Checks
 
-- 변경된 package와 역의존 package의 테스트를 실행한다.
-- 지원되는 이전·새 package 버전 조합을 contract test로 확인한다.
-- 실제 발행 대상, dependency range, changelog와 tag가 선택한 전략과 일치하는지 확인한다.
+- Run the tests of the changed packages and of the packages that depend on them.
+- Contract-test the supported combinations of old and new package versions.
+- Confirm that the actual publish targets, dependency ranges, changelog, and tags match the chosen strategy.
 
-## 버전 형식
+## Version Format
 
-- 고정 버전은 `vX.Y.Z`, 독립 버전은 `<package>@X.Y.Z`처럼 충돌 없는 tag 규칙을 정한다.
-- version group과 package별 현재 버전의 source of truth를 하나로 고정한다.
-- `0.x`에서 `major` 판정은 해당 version unit의 minor 자리를 올리되 판정 결과는 `major`로 기록한다.
+- Pick a tag convention that cannot collide: `vX.Y.Z` for fixed versions, `<package>@X.Y.Z` for independent ones.
+- Keep one source of truth for version groups and each package's current version.
+- A `major` grade in `0.x` raises the minor position of that version unit, while the grade is still recorded as `major`.

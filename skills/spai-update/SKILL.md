@@ -68,7 +68,7 @@ Release notes carry migration work as marker blocks, not prose. Collect them fro
    - `gh release list --repo 0x0w1/spai --limit 20`
    - `gh release view <tag> --repo 0x0w1/spai` for each release newer than the installed version.
    - Extract the `migration-auto` and `migration-manual` blocks from each and merge them in release order.
-5. Report the version delta with a short Korean summary of the changes, the count of auto and manual migration items, and the full text of every manual item. Ask for approval before applying, unless the user already asked for the update to be executed end to end. Approval to update never implies approval for manual migration items; ask for those separately.
+5. Report the version delta with a short summary of the changes in the repository's own language, defaulting to English, the count of auto and manual migration items, and the full text of every manual item. Ask for approval before applying, unless the user already asked for the update to be executed end to end. Approval to update never implies approval for manual migration items; ask for those separately.
 6. Detect the installed targets:
    - `spai@spai` in `claude plugin list` or in `.claude/settings.json` → claude-code (plugin)
    - `./AGENTS.md` with SPAI markers → codex

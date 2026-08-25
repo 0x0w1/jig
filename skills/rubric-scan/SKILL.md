@@ -38,28 +38,30 @@ Match what you found against the signal table in `INDEX.md` and score it by that
 
 ## Report
 
+Write the report in the language the repository already uses for its own documents, defaulting to English.
+
 ```md
-## 프로젝트 유형 스캔
+## Project Type Scan
 
-- 카탈로그: <path> (출처: 환경 변수 | 플러그인 | 프로젝트 설치 | 저장소 | 사용자 설치)
-- 추적 파일: <n>개 · 주요 확장자: <ext>(<n>), <ext>(<n>)
-- 배포 형태: <무엇이 소비자에게 닿는가>
+- Catalog: <path> (source: environment variable | plugin | project install | repository | user install)
+- Tracked files: <n> · main extensions: <ext>(<n>), <ext>(<n>)
+- Ships as: <what reaches the consumer>
 
-| 순위 | 유형 | 점수 | 근거 경로 |
+| Rank | Type | Score | Evidence |
 |---|---|---|---|
 | 1 | <id> | <n> | `<path>`, `<path>` |
 | 2 | <id> | <n> | `<path>` |
 
-- 추천: <id> — <한 문장 이유>
-- 함께 볼 유형: <id> (<이유>) | 없음
-- 채택 시 초안: <catalog>/<id>.md
-- 다음 조치: `version-rubric`으로 초안 작성 | 기본 기준 채택 | 유형 선택 필요
+- Recommended: <id> — <one sentence why>
+- Also consider: <id> (<why>) | none
+- Draft if adopted: <catalog>/<id>.md
+- Next: draft it with `version-rubric` | adopt the default rubric | pick a type
 ```
 
 Rules for the report:
 
 - Every candidate row carries at least one real path from this repository. A row without evidence is removed, not softened.
-- Say what would be inherited: the recommended draft's `## 판정 순서` three questions, so the user judges the rubric and not just the type name.
+- Say what would be inherited: the recommended draft's `## Decision Order` three questions, so the user judges the rubric and not just the type name.
 - When two candidates are within 2 points, present them as a composite rather than picking one, and follow the merge rule in `INDEX.md`.
 - When the top score is below 3, recommend the default rubric and say which signals were missing.
 - Say which axis the recommendation grades on. A catalog draft grades by SemVer consumer compatibility; the default rubric grades by whether a human must step in. When the repository already has a rubric on the other axis, say so plainly — adopting the draft replaces the axis, it does not extend it.
@@ -68,7 +70,7 @@ Rules for the report:
 
 1. Report the candidates and ask which type to adopt. One question, not a per-signal interrogation.
 2. On a choice, read that type's body from the catalog and pass it to `version-rubric` (or the installed `spai-version-rubric`) as the draft, telling it that the draft came from the catalog and which type it is.
-3. `version-rubric` owns the write, the `> 기준:` line, the confirmation before overwriting an existing rubric, and the commit.
+3. `version-rubric` owns the write, the `> Basis:` line, the confirmation before overwriting an existing rubric, and the commit.
 4. If `version-rubric` is not installed, hand the draft to the user as a fenced block with its target path, and say that the file must be committed to reach clones and CI.
 
 ## Safety Rules

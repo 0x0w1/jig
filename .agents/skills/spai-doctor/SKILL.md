@@ -53,8 +53,9 @@ Before any `gh` command, resolve the host from `SPAI_GITHUB_HOST`, local `spai.g
 
 10. **Version rubric**: resolve the path from `SPAI_VERSION_RUBRIC`, then local `spai.versionRubric`, then `.spai/versioning.md`.
    - Report the source. A path from the environment variable is session-only; say so.
-   - Report the kind from the file's `> 기준:` line: adopted default or project-specific.
-   - Check the required sections `## 판정 순서` and `## 등급 정의`. A missing one is a contract break: `github-release` stops on it.
+   - Report the kind from the file's `> Basis:` line (`> 기준:` in a legacy rubric): adopted default or project-specific.
+   - Check the two required sections. Accept either spelling: `## Decision Order` or `## 판정 순서`, and `## Grade Definitions` or `## 등급 정의`. A missing one is a contract break: `github-release` stops on it.
+   - Report which spelling the file uses. Korean titles are legacy but valid, so report them as legacy, never as drift or as a defect. A file that mixes the two spellings is a contract break, because one required section is then missing under both names.
    - Check that the file is committed (`git ls-files --error-unmatch <path>`). An untracked or uncommitted rubric does not reach clones or CI, so releases grade differently for different people.
    - A missing file is information, not a defect. Fix owner is `version-rubric`.
    - Never compare the rubric with any payload: it is user-owned content, never drift.
@@ -83,40 +84,42 @@ Before any `gh` command, resolve the host from `SPAI_GITHUB_HOST`, local `spai.g
 
 ## Final Report
 
+Write the report in the language the repository already uses for its own documents, defaulting to English.
+
 ```md
-## SPAI 진단 보고서
+## SPAI Diagnostic Report
 
-### Claude Code 플러그인
-- 등록/활성: OK | 누락 항목과 복구 명령 (버전은 호스트 관리)
+### Claude Code plugin
+- Registered/enabled: OK | missing items and the recovery command (version is host-managed)
 
-### 버전 (codex/antigravity)
-- 설치: <stamp> / 최신: <latest> → 최신 여부 | 미설치
+### Version (codex/antigravity)
+- Installed: <stamp> / latest: <latest> → up to date or behind | not installed
 
-### 드리프트 (codex/antigravity)
-- 없음 | 불일치 파일 목록
+### Drift (codex/antigravity)
+- None | list of mismatched files
 
-### 미처리 마이그레이션
-- auto: N건 | manual: N건 (항목 전문) | 해당 없음
+### Pending migrations
+- auto: N | manual: N (items quoted in full) | none
 
-### 브랜치 보호
-- main: OK | 항목별 불일치
-- develop: OK | 항목별 불일치
+### Branch protection
+- main: OK | mismatches, item by item
+- develop: OK | mismatches, item by item
 
-### 브랜치 상태
-- OK | main이 N커밋 앞섬 (fast-forward 릴리즈 불가)
+### Branch state
+- OK | main is N commits ahead (fast-forward release not possible)
 
-### 레거시
-- 없음 | 발견 항목 목록
+### Legacy leftovers
+- None | list of what was found
 
-### 로컬 가드
-- pre-push: OK vN | 미설치 | 구버전 (vN → vM) | 수정됨/실행권한 없음 | 사용자 훅 존재
+### Local guard
+- pre-push: OK vN | not installed | outdated (vN → vM) | modified or not executable | user's own hook
 
-### GitHub 프로필
-- <source>: <profile>@<host> → OK | credential 누락 | identity 불일치 | 전역 active fallback
+### GitHub profile
+- <source>: <profile>@<host> → OK | credential missing | identity mismatch | globally active fallback
 
-### 버전 판정 기준
-- <path> (출처: 환경 변수 | 로컬 설정 | 관례) · 기본 채택 | 직접 작성 · 필수 섹션 OK | 누락 · 커밋됨 | 미커밋 | 파일 없음
+### Version rubric
+- <path> (source: environment variable | local config | convention) · adopted default | project-specific · titles English | Korean (legacy) · required sections OK | missing · committed | uncommitted | file absent
 
-### 권장 조치
-- <fix owner>: <명령 또는 스킬>
+### Recommended actions
+- <fix owner>: <command or skill>
 ```

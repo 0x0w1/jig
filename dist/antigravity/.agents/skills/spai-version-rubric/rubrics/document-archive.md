@@ -1,47 +1,47 @@
-# 문서 관리 저장소 버전 정책
+# Document Archive Version Policy
 
-> 기준: SemVer 문서 관리형, `<날짜>` 채택
+> Basis: SemVer document archive, adopted `<date>`
 
-문서 파일 자체를 찾아 읽는 저장소입니다. 사이트로 발행돼 URL이 계약이 되면 `content-site` 기준을 대신 씁니다.
+This is a repository where the document files themselves are looked up and read. If it is published as a site and URLs become the contract, use the `content-site` rubric instead.
 
-## 공개 인터페이스
+## Public Interface
 
-- 문서의 위치와 파일 이름, 그리고 그것을 가리키는 링크
-- 분류 체계(디렉토리 구조, 카테고리, 태그)와 그 의미
-- 문서 하나가 답하는 질문의 범위
-- 문서에 적힌 규정·절차의 효력과 적용 시점
-- 문서 양식(템플릿), 필수 항목, 승인 표기
-- 어떤 문서가 최신인지 판단하는 규칙
+- Where documents live, what they are named, and the links that point at them
+- The classification scheme (directories, categories, tags) and what it means
+- The scope of the question each document answers
+- The force of the rules and procedures a document states, and when they take effect
+- Document templates, required fields, and approval markings
+- The rule for telling which document is current
 
-맞춤법, 문장 다듬기, 예시 보강처럼 읽는 사람이 하던 일을 그대로 할 수 있는 변경은 공개 인터페이스를 바꾸지 않습니다.
+Spelling fixes, smoother sentences, and better examples do not change the public interface, because readers can keep doing exactly what they did.
 
-## 판정 순서
+## Decision Order
 
-1. 문서를 추가·수정·삭제했지만 위치·분류·효력은 그대로인가? → `patch`
-2. 기존 문서를 그대로 둔 채 관리 방식(템플릿, 자동화, 검색·발행 도구)이 추가·개선됐는가? → `minor`
-3. 링크가 깨지거나, 분류 체계가 바뀌거나, 사람이 따르던 절차가 달라지는가? → `major`
+1. Were documents added, edited, or removed while their location, classification, and force stayed the same? → `patch`
+2. Were existing documents left alone while the way they are managed (templates, automation, search or publishing tooling) was added to or improved? → `minor`
+3. Do links break, does the classification change, or does what people must follow change? → `major`
 
-## 등급 정의
+## Grade Definitions
 
-| bump | 정의 | 예 |
+| bump | definition | examples |
 |---|---|---|
-| `patch` | 문서 내용의 추가·수정·삭제 | 새 매뉴얼 작성, 오래된 설명 갱신, 폐기 문서 정리 |
-| `minor` | 문서를 만들고 관리하는 도구·템플릿·규칙의 변경 | 새 템플릿, 목차 자동 생성, 명명 규칙 추가 |
-| `major` | 찾는 방법이나 따르는 절차가 바뀌는 변경 | 디렉토리 재편, 카테고리 통폐합, 규정 효력 변경, 대량 파일 이름 변경 |
+| `patch` | Document content added, edited, or removed | new manual written, stale explanation refreshed, retired document cleared out |
+| `minor` | A change to the tools, templates, or rules for producing and managing documents | new template, generated table of contents, naming convention added |
+| `major` | A change to how documents are found or what people must follow | directories reorganized, categories merged, a rule's force changed, files renamed in bulk |
 
-## 강경 규칙
+## Hard Rules
 
-> 외부에서 걸어 둔 링크가 깨지면 `major`다. 파일을 옮기거나 이름만 바꿔도 마찬가지다.
+> If a link someone set from outside breaks, it is `major`. Moving a file or renaming it counts.
 
-> 규정·절차 문서에서 사람이 해야 할 일이 달라지면 문서 한 줄만 바뀌었어도 `major`다.
+> If what a person must do changes in a rules or procedure document, it is `major` even when only one line moved.
 
-## 릴리즈 전 검증
+## Pre-Release Checks
 
-- 문서 사이의 상대 링크가 모두 살아 있는지 확인한다.
-- 이번에 옮기거나 이름을 바꾼 파일 목록을 만들어 릴리즈 노트에 적는다.
-- 효력이 바뀐 규정이 있으면 적용 시점을 문서 안에 명시한다.
+- Confirm that every relative link between documents still resolves.
+- List the files moved or renamed in this release and put that list in the release notes.
+- Where a rule's force changed, state the effective date inside the document.
 
-## 버전 형식
+## Version Format
 
-- 문서 개별 개정 이력과 저장소 버전은 별개다. 문서 안의 "개정 3판"은 그 문서의 이력이고, 저장소 버전은 이번 릴리즈가 읽는 사람에게 무엇을 요구하는지를 나타낸다.
-- `0.x`에서 `major` 판정은 `v0.Y.Z` → `v0.(Y+1).0`으로 표현하되 판정 결과는 `major`로 기록한다.
+- A document's own revision history and the repository version are separate. "Revision 3" inside a document is that document's history; the repository version says what this release asks of its readers.
+- A `major` grade in `0.x` is expressed as `v0.Y.Z` → `v0.(Y+1).0`, while the grade is still recorded as `major`.

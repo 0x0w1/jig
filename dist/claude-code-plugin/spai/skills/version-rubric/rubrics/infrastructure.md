@@ -1,46 +1,46 @@
-# 인프라 프로젝트 버전 정책
+# Infrastructure Version Policy
 
-> 기준: SemVer 인프라형, `<날짜>` 채택
+> Basis: SemVer infrastructure, adopted `<date>`
 
-## 공개 인터페이스
+## Public Interface
 
-- module·chart·template의 input, output, variable, default
-- 생성되는 리소스의 이름과 외부 참조점
-- state, import, upgrade 계약
-- network, identity, secret, storage 경계
-- 지원 provider·platform·region·tool version
-- availability, backup, retention, recovery 보장
-- 소비 프로젝트가 따라야 하는 배포·운영 절차
+- Module, chart, and template inputs, outputs, variables, and defaults
+- The names of created resources and the reference points others use
+- The state, import, and upgrade contract
+- Network, identity, secret, and storage boundaries
+- Supported providers, platforms, regions, and tool versions
+- Availability, backup, retention, and recovery guarantees
+- The deployment and operational procedure consuming projects must follow
 
-리소스 내부 구성은 비용·가용성·보안·운영 계약에 영향을 주지 않는 한 구현 세부사항입니다.
+How resources are composed internally is an implementation detail unless it affects the cost, availability, security, or operational contract.
 
-## 판정 순서
+## Decision Order
 
-1. 기존 input·state·운영 계약을 유지하며 결함·비용·성능만 수정했는가? → `patch`
-2. 기존 적용 결과를 유지하면서 선택적 resource·variable·output만 추가했는가? → `minor`
-3. 기존 소비자가 state·설정·권한·운영 절차를 바꾸거나 중단을 감수해야 하는가? → `major`
+1. Did it fix defects, cost, or performance while keeping existing inputs, state, and operational contracts? → `patch`
+2. Did it only add optional resources, variables, or outputs while the result of applying it stayed the same? → `minor`
+3. Must existing consumers change state, configuration, permissions, or procedures, or accept downtime? → `major`
 
-## 등급 정의
+## Grade Definitions
 
-| bump | 정의 | 예 |
+| bump | definition | examples |
 |---|---|---|
-| `patch` | 기존 인프라 계약을 유지하는 수정 | 잘못된 policy 수정, tag 누락 복구, 무중단 성능 개선 |
-| `minor` | 기존 구성과 공존하는 opt-in 확장 | optional resource, variable, output 추가 |
-| `major` | state·리소스·운영과 비호환인 변경 | variable 제거, resource address 변경, 수동 import, downtime 필요, 지원 provider 제거 |
+| `patch` | A fix that keeps the existing infrastructure contract | wrong policy fixed, missing tag restored, zero-downtime performance work |
+| `minor` | Opt-in growth that coexists with existing setups | optional resource, variable, or output added |
+| `major` | A change incompatible with state, resources, or operations | variable removed, resource address changed, manual import needed, downtime required, supported provider dropped |
 
-## 강경 규칙
+## Hard Rules
 
-> plan이 성공하더라도 기존 리소스를 예상 밖으로 교체·삭제하거나 보안·가용성 의미를 바꾸면 `major`다.
+> Even when the plan succeeds, replacing or destroying existing resources unexpectedly, or changing what security and availability mean, is `major`.
 
-> 소비자가 기존 계약을 벗어난 필수 비용이나 운영 책임을 새로 지면 `major`다. 비용이 줄거나 늘었다는 사실 자체는 등급의 근거가 아니다.
+> If consumers take on required cost or operational responsibility beyond the existing contract, it is `major`. Cost going up or down is not by itself grounds for a grade.
 
-## 릴리즈 전 검증
+## Pre-Release Checks
 
-- 이전 버전으로 만든 state에 새 버전의 plan을 실행해 replacement와 deletion을 확인한다.
-- 최소·최대 지원 provider와 tool version을 시험한다.
-- backup, migration, rollback 및 장애 복구 절차를 검증한다.
+- Run the new version's plan against state created by the previous version and inspect replacements and deletions.
+- Test the minimum and maximum supported provider and tool versions.
+- Verify backup, migration, rollback, and disaster-recovery procedures.
 
-## 버전 형식
+## Version Format
 
-- module·chart 등 소비 가능한 산출물의 버전과 배포 환경 revision을 분리한다.
-- `0.x`에서 `major` 판정은 `v0.Y.Z` → `v0.(Y+1).0`으로 표현하되 판정 결과는 `major`로 기록한다.
+- Keep the version of the consumable artifact (module, chart) separate from the deployed environment's revision.
+- A `major` grade in `0.x` is expressed as `v0.Y.Z` → `v0.(Y+1).0`, while the grade is still recorded as `major`.

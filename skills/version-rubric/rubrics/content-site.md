@@ -1,47 +1,47 @@
-# 콘텐츠 사이트 버전 정책
+# Content Site Version Policy
 
-> 기준: SemVer 콘텐츠 발행형, `<날짜>` 채택
+> Basis: SemVer content site, adopted `<date>`
 
-발행된 페이지와 URL이 계약인 프로젝트입니다. 발행 없이 저장소 안의 문서를 직접 읽으면 `document-archive` 기준을 대신 씁니다.
+This is a project whose contract is the published pages and their URLs. If nothing is published and the documents in the repository are read directly, use the `document-archive` rubric instead.
 
-## 공개 인터페이스
+## Public Interface
 
-- 발행된 페이지의 URL과 그 URL이 유지되는 범위
-- 사이트 구조(메뉴, 섹션, 목록 페이지)와 탐색 경로
-- 피드(RSS·newsletter) 주소와 항목 형식
-- 게시 언어·번역본과 그 대응 관계
-- 페이지에 걸린 외부 링크·인용을 받는 앵커
-- 발행 주기와 공개 범위(공개·비공개·구독자 전용)
+- The URLs of published pages and how long they are kept
+- Site structure (menus, sections, index pages) and the paths through it
+- Feed addresses (RSS, newsletter) and the shape of their items
+- Published languages, translations, and how they map to each other
+- Anchors that outside links and citations point at
+- Publishing cadence and audience (public, private, subscriber-only)
 
-테마, 색상, 폰트, 빌드 도구는 URL과 구조를 유지하는 한 공개 인터페이스가 아닙니다.
+Themes, colors, fonts, and the build tool are not the public interface as long as URLs and structure hold.
 
-## 판정 순서
+## Decision Order
 
-1. 기존 URL과 구조를 유지하며 글을 쓰거나 고쳤는가? → `patch`
-2. 기존 페이지를 그대로 두고 섹션·피드·언어·기능을 추가했는가? → `minor`
-3. URL이 바뀌거나, 탐색 경로가 재편되거나, 공개 범위가 달라지는가? → `major`
+1. Was something written or corrected while existing URLs and structure held? → `patch`
+2. Were existing pages left in place while sections, feeds, languages, or features were added? → `minor`
+3. Do URLs change, is navigation reorganized, or does the audience change? → `major`
 
-## 등급 정의
+## Grade Definitions
 
-| bump | 정의 | 예 |
+| bump | definition | examples |
 |---|---|---|
-| `patch` | 기존 발행 계약 안의 콘텐츠 변경 | 새 글 발행, 오탈자 수정, 이미지 교체, 테마 스타일 조정 |
-| `minor` | 기존 페이지와 공존하는 확장 | 새 섹션·태그 목록, 검색 추가, 번역본 추가, 피드 추가 |
-| `major` | 독자가 다시 찾아야 하는 변경 | URL 규칙 변경, 글 대량 이동·삭제, 메뉴 전면 개편, 공개 범위 축소 |
+| `patch` | Content changes inside the existing publishing contract | new post published, typo fixed, image swapped, theme styling adjusted |
+| `minor` | Growth that coexists with existing pages | new section or tag index, search added, translation added, feed added |
+| `major` | A change that makes readers find things again | URL scheme changed, posts moved or deleted in bulk, menu overhauled, audience narrowed |
 
-## 강경 규칙
+## Hard Rules
 
-> 리다이렉트 없이 기존 URL이 404가 되면 `major`다. 리다이렉트를 걸면 `minor`로 내려갈 수 있다.
+> If an existing URL 404s with no redirect, it is `major`. With a redirect in place it can come down to `minor`.
 
-> 이미 발행한 글의 주장이나 결론이 달라지면 `major`다. 정정 표기를 남긴 경우도 포함한다.
+> If the claim or conclusion of an already-published post changes, it is `major`. Leaving a correction notice included.
 
-## 릴리즈 전 검증
+## Pre-Release Checks
 
-- 빌드 후 내부 링크와 이미지 경로가 깨지지 않았는지 확인한다.
-- 삭제·이동한 페이지에 리다이렉트가 걸려 있는지 확인한다.
-- 피드 항목이 기존 구독자에게 중복 발송되지 않는지 확인한다.
+- Build, then confirm no internal link or image path broke.
+- Confirm redirects exist for deleted and moved pages.
+- Confirm that feed items will not be resent to existing subscribers as duplicates.
 
-## 버전 형식
+## Version Format
 
-- 발행 시각과 저장소 버전은 별개다. 매일 글을 올려도 URL 계약이 그대로면 `patch`가 쌓인다.
-- `0.x`에서 `major` 판정은 `v0.Y.Z` → `v0.(Y+1).0`으로 표현하되 판정 결과는 `major`로 기록한다.
+- Publishing time and the repository version are separate. Posting daily still accumulates `patch` releases as long as the URL contract holds.
+- A `major` grade in `0.x` is expressed as `v0.Y.Z` → `v0.(Y+1).0`, while the grade is still recorded as `major`.

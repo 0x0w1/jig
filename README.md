@@ -29,6 +29,8 @@
 | `version-rubric` | 프로젝트의 버전 판정 기준(`patch`/`minor`/`major`)을 `.spai/versioning.md`에 정하고 언제든 다시 설정. 유형별 기준 카탈로그를 함께 배포 |
 | `rubric-scan` | 저장소를 스캔해 프로젝트 유형을 판정하고 카탈로그에서 맞는 버전 기준을 추천, read-only |
 
+스킬 본문과 기준 카탈로그는 영어로 씁니다. 어느 언어권 저장소에 설치해도 같은 문서를 읽기 때문입니다. 반대로 스킬이 **만들어 내는 것**(보고서, 커밋 본문, 릴리즈 노트, README)은 그 저장소가 이미 쓰는 언어를 따르고, 판단할 근거가 없을 때만 영어로 씁니다.
+
 작업 병합 방식은 **solo-cli 하나**입니다: 작업 브랜치를 로컬에서 `git merge --squash`로 `develop`에 합치고 직접 push하며, Pull Request를 쓰지 않습니다. 팀 단위 PR 흐름은 [Roadmap](docs/roadmap.md)의 보류 후보입니다.
 
 ## 문서

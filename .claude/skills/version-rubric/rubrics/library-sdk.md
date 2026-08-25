@@ -1,45 +1,45 @@
-# 라이브러리·SDK 버전 정책
+# Library and SDK Version Policy
 
-> 기준: SemVer 라이브러리·SDK형, `<날짜>` 채택
+> Basis: SemVer library and SDK, adopted `<date>`
 
-## 공개 인터페이스
+## Public Interface
 
-- export된 함수, class, type, constant, module path
-- signature, generic constraint, 반환값, 오류
-- protocol·serialization 형식과 기본값
-- extension·plugin hook
-- 지원 언어·runtime·compiler 버전
-- peer dependency와 소비자에게 노출되는 transitive type
+- Exported functions, classes, types, constants, and module paths
+- Signatures, generic constraints, return values, and errors
+- Protocol and serialization formats and their defaults
+- Extension and plugin hooks
+- Supported language, runtime, and compiler versions
+- Peer dependencies and transitive types exposed to consumers
 
-비공개 symbol과 빌드·테스트 구현은 공개 산출물이나 소비자 환경을 바꾸지 않는 한 내부 구현입니다.
+Private symbols and the build and test setup are implementation details unless they change the published artifact or the consumer's environment.
 
-## 판정 순서
+## Decision Order
 
-1. 공개 API와 지원 환경을 유지하며 버그·성능·내부 구현만 수정했는가? → `patch`
-2. 기존 consumer code가 그대로 compile·run되면서 새 API·기능만 추가됐는가? → `minor`
-3. 기존 consumer code·설정·runtime 또는 직렬화 데이터를 바꿔야 하는가? → `major`
+1. Did it fix bugs, performance, or internals while keeping the public API and supported environments? → `patch`
+2. Does existing consumer code still compile and run, with only new APIs or features added? → `minor`
+3. Must existing consumer code, configuration, runtime, or serialized data change? → `major`
 
-## 등급 정의
+## Grade Definitions
 
-| bump | 정의 | 예 |
+| bump | definition | examples |
 |---|---|---|
-| `patch` | 기존 API와 의미를 유지하는 수정 | 구현 오류 수정, 성능 개선, 내부 dependency 교체 |
-| `minor` | 하위 호환 API 확장 | 새 함수·type 추가, optional parameter를 호환 방식으로 추가 |
-| `major` | source·binary·behavior compatibility를 깨는 변경 | export 제거, signature 변경, 기본값 의미 변경, runtime 지원 제거 |
+| `patch` | A fix that keeps the existing API and its meaning | implementation bug fixed, performance improved, internal dependency swapped |
+| `minor` | Backward-compatible API growth | new function or type, optional parameter added compatibly |
+| `major` | A change that breaks source, binary, or behavior compatibility | export removed, signature changed, meaning of a default changed, runtime support dropped |
 
-## 강경 규칙
+## Hard Rules
 
-> compile은 성공하지만 같은 호출의 반환 의미·예외·부작용이 달라지면 `major`다.
+> If it still compiles but the same call returns a different meaning, throws differently, or has different side effects, it is `major`.
 
-> type system 특성상 union·enum case 추가가 기존 consumer의 exhaustive check를 깨면 `major`다.
+> If adding a union member or enum case breaks an existing consumer's exhaustive check, it is `major`.
 
-## 릴리즈 전 검증
+## Pre-Release Checks
 
-- 공개 API 또는 ABI diff를 확인한다.
-- 최소·최대 지원 runtime과 compiler에서 consumer fixture를 실행한다.
-- 직렬화·역직렬화와 이전 데이터 호환성을 시험한다.
+- Review a public API or ABI diff.
+- Run consumer fixtures on the minimum and maximum supported runtime and compiler.
+- Test serialization, deserialization, and compatibility with data written by earlier versions.
 
-## 버전 형식
+## Version Format
 
-- package registry 버전과 git tag의 SemVer를 일치시킨다.
-- `0.x`에서 `major` 판정은 `v0.Y.Z` → `v0.(Y+1).0`으로 표현하되 판정 결과는 `major`로 기록한다.
+- Keep the package registry version and the git tag SemVer identical.
+- A `major` grade in `0.x` is expressed as `v0.Y.Z` → `v0.(Y+1).0`, while the grade is still recorded as `major`.

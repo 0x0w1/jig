@@ -32,10 +32,11 @@ Resolve the rubric path in this order:
 
 Apply it like this:
 
-- Grade with the rubric's `## 판정 순서`: ask its questions in order and **stop at the first match**. That ordering is fixed; a rubric cannot change it.
-- Check the graded bump against the rubric's `## 등급 정의` before computing the version, and quote the deciding question in the report.
-- Apply `## 강경 규칙` after the ordered questions. A rubric without that section has no escalation rule.
-- A missing optional section (`## 강경 규칙`, `## 릴리즈 노트`, `## 버전 형식`, `## 릴리즈 전 검증`) means that rule does not apply.
+- Grade with the rubric's `## Decision Order`: ask its questions in order and **stop at the first match**. That ordering is fixed; a rubric cannot change it.
+- Check the graded bump against the rubric's `## Grade Definitions` before computing the version, and quote the deciding question in the report.
+- Apply `## Hard Rules` after the ordered questions. A rubric without that section has no escalation rule.
+- A missing optional section (`## Hard Rules`, `## Release Notes`, `## Version Format`, `## Pre-Release Checks`) means that rule does not apply.
+- Rubrics written before the contract switched to English carry Korean titles, and they stay valid. Accept either spelling for every section: `## 판정 순서`, `## 등급 정의`, `## 강경 규칙`, `## 릴리즈 노트`, `## 버전 형식`, `## 릴리즈 전 검증`, and `> 기준:` for `> Basis:`. Read the file as it is; never retitle it during a release.
 - Read sections beyond the contract as grading context; a project may list what counts as its public interface there.
 - Report the rubric path, its source, and whether it records the adopted default or a project-specific rubric.
 - Never edit the rubric file from this skill.
@@ -44,23 +45,23 @@ When the rubric is missing or unusable:
 
 - **Missing file**: run the `version-rubric` skill to settle it, then continue the release. Do not stop the release for this.
 - **`version-rubric` not installed**: grade with the fallback below, say so in the report, and continue.
-- **Contract broken** (`## 판정 순서` or `## 등급 정의` missing, or fewer than three ordered questions): stop and point at `version-rubric`. Grading with a broken rubric silently is worse than stopping.
+- **Contract broken** (neither spelling of the decision-order or grade-definition section is present, or fewer than three ordered questions): stop and point at `version-rubric`. Grading with a broken rubric silently is worse than stopping.
 
 The fallback rubric, used only in the two cases above. It matches the default `version-rubric` writes, so a project grades the same whether or not that skill is installed:
 
-1. 기존 기능 범위 안의 수정인가? → `patch`
-2. 새로 할 수 있는 일이 생기거나 세대가 바뀌었지만, 쓰던 대로 계속 쓸 수 있는가? → `minor`
-3. 제공하는 가치가 확장·제거·변경됐거나, 사람이 손대야 계속 쓸 수 있는가? → `major`
+1. Is this a fix inside what the project already does? → `patch`
+2. Can people do something new, or did a generation turn over, while everything they already do keeps working? → `minor`
+3. Did the value on offer widen, shrink, or change, or must a human step in to keep using it? → `major`
 
 With these escalation rules, applied after the ordered questions:
 
-> 에러 없이 동작만 달라지는 변경은 `major`다. 크기와 무관하다.
+> A change that raises no error but behaves differently is `major`. Its size does not matter.
 
-> 스킬·프롬프트 지시문이 에이전트의 발화 조건을 바꾸면 최소 `minor`다.
+> A skill or prompt instruction that changes when the agent speaks is at least `minor`.
 
 ## Version Format
 
-Defaults, each overridable by the rubric's `## 버전 형식` section:
+Defaults, each overridable by the rubric's `## Version Format` section:
 
 - The version must match `^v[0-9]+\.[0-9]+\.[0-9]+$`.
 - `patch`: `vX.Y.Z` → `vX.Y.(Z+1)`; `minor`: → `vX.(Y+1).0`; `major`: → `v(X+1).0.0`.
@@ -71,9 +72,9 @@ Defaults, each overridable by the rubric's `## 버전 형식` section:
 
 - `## Changes`, then one section per commit type present in the range, each only when it has items, separated by horizontal rules.
 - Section titles derive from the commit prefix: `feat` → `### 🚀 Enhancements`, `fix` → `### 🐛 Fixes`, `chore` → `### 🧰 Chores`. Any other prefix becomes its own section named after it (`docs:` → `### 📚 Documentation`). Never fold an unlisted prefix into chores.
-- The rubric's `## 릴리즈 노트` section overrides section order and titles.
+- The rubric's `## Release Notes` section overrides section order and titles.
 - One `- <commit subject without type prefix>` line per commit.
-- `### Summary`: Korean user-perspective bullet items written from the commit subjects and bodies, release-note ready, with technical terms in backticks.
+- `### Summary`: user-perspective bullet items written from the commit subjects and bodies, release-note ready, with technical terms in backticks. Write them in the language the repository already uses for its release notes and commit bodies, defaulting to English.
 - `### Migration`: only when downstream projects must take action that re-running an update does not cover.
 
 ## Migration Blocks
@@ -131,11 +132,11 @@ The `### Migration` section is not prose. It is the input an updating agent exec
    - If the graded bump is lower, use the requested one; a user may always release higher than required.
 4. Verify `origin/develop` already contains every intended release change. If not, stop and run the Develop-First Gate.
 5. Compose the release notes from `git log <previous>..HEAD --no-merges` per Release Notes. Do this **before** promoting or tagging, because the notes can still change the version.
-6. Re-check the bump against the composed notes when the rubric has a `## 강경 규칙` that keys off them, counting **line-anchored markers only** (`grep -cE '^<!-- spai:start migration-manual -->$'`; a bare substring search also matches prose that names the marker):
+6. Re-check the bump against the composed notes when the rubric has a `## Hard Rules` section that keys off them, counting **line-anchored markers only** (`grep -cE '^<!-- spai:start migration-manual -->$'`; a bare substring search also matches prose that names the marker):
    - an opened block with no matching end marker is a defect; fix the notes before publishing
    - if the rule raises the grade from step 3, go back to step 3 and resolve it with the user. Never weaken the notes to fit a version.
 7. Compute the new version from the settled bump type per Version Format, or validate the explicit version. It must not exist as a tag or release.
-8. Run the repository's pre-release validation: the commands in the rubric's `## 릴리즈 전 검증` section when present, otherwise the validation or test command the repository already uses. Skip and report when there is none.
+8. Run the repository's pre-release validation: the commands in the rubric's `## Pre-Release Checks` section when present, otherwise the validation or test command the repository already uses. Skip and report when there is none.
 9. Promote: `git push origin develop:main`. This must fast-forward; if rejected, stop and report.
 10. Tag the released commit: `git tag <version> <develop sha>` then `git push origin <version>`.
 11. Publish: `gh release create <version> --title "<version> 🌈" --notes-file <draft file>`.

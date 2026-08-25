@@ -1,55 +1,55 @@
-# <유형 이름> 버전 정책
+# <Type Name> Version Policy
 
-> 기준: SemVer <유형 이름>형, `<날짜>` 채택
+> Basis: SemVer <type name>, adopted `<date>`
 
-## 공개 인터페이스
+## Public Interface
 
-- <이 프로젝트를 쓰는 쪽이 의존하는 것 1>
-- <의존하는 것 2>
-- <의존하는 것 3>
+- <what the people using this project depend on, 1>
+- <what they depend on, 2>
+- <what they depend on, 3>
 
-<공개 인터페이스가 아닌 것과 그 이유를 한 문장으로 적습니다.>
+<One sentence naming what is not the public interface, and why.>
 
-## 판정 순서
+## Decision Order
 
-1. <공개 인터페이스를 유지하며 잘못된 동작만 고쳤는가?> → `patch`
-2. <기존 소비자가 그대로 쓰면서 새 기능만 추가됐는가?> → `minor`
-3. <기존 소비자가 무언가를 바꿔야 하는가?> → `major`
+1. <Did it fix wrong behavior while keeping the public interface?> → `patch`
+2. <Can existing consumers keep going untouched, with only new capability added?> → `minor`
+3. <Must existing consumers change something?> → `major`
 
-## 등급 정의
+## Grade Definitions
 
-| bump | 정의 | 예 |
+| bump | definition | examples |
 |---|---|---|
-| `patch` | <정의> | <예 2~3개> |
-| `minor` | <정의> | <예 2~3개> |
-| `major` | <정의> | <예 2~3개> |
+| `patch` | <definition> | <2-3 examples> |
+| `minor` | <definition> | <2-3 examples> |
+| `major` | <definition> | <2-3 examples> |
 
-## 강경 규칙
+## Hard Rules
 
-> <크기와 무관하게 무조건 승격시키는 조건 1>
+> <a condition that always escalates, regardless of size, 1>
 
-> <조건 2>
+> <condition 2>
 
-## 릴리즈 전 검증
+## Pre-Release Checks
 
-- <릴리즈 전에 실행할 확인 1>
-- <확인 2>
+- <what to verify before releasing, 1>
+- <check 2>
 
-## 버전 형식
+## Version Format
 
-- <이 유형에서 버전 번호가 다른 번호(스토어 빌드 번호, API 세대, 스키마 버전)와 어떻게 갈리는지>
-- `0.x`에서 `major` 판정은 `v0.Y.Z` → `v0.(Y+1).0`으로 표현하되 판정 결과는 `major`로 기록한다.
+- <how this type's version number differs from other numbers around it: store build numbers, API generations, schema versions>
+- A `major` grade in `0.x` is expressed as `v0.Y.Z` → `v0.(Y+1).0`, while the grade is still recorded as `major`.
 
 <!--
-작성 규칙
+How to write this file
 
-- `## 판정 순서`와 `## 등급 정의`는 필수, 나머지 네 섹션은 선택입니다. 해당 유형에 할 말이 없으면 섹션을 지웁니다.
-- 힘을 쏟을 곳은 `## 공개 인터페이스`, `## 강경 규칙`, `## 릴리즈 전 검증` 셋입니다. 판정 순서와 등급 정의는 common.md의 세 질문을 이 유형의 명사로 바꾼 것이면 충분합니다.
-- `## 강경 규칙`에는 **무조건 승격시키는 조건만** 씁니다. "무엇은 등급의 근거가 아니다" 같은 비승격 원칙은 common.md 소관이고, 버전 번호 표기는 `## 버전 형식` 소관입니다.
-- 판정 순서 1번이 2번을 삼키지 않는지 확인합니다. 1번에 "추가했는가"를 넣으면 모든 추가가 `patch`에서 멈춰 `minor`에 도달하지 못합니다.
-- 판정 순서는 위에서부터 묻고 처음 걸리는 곳에서 멈춥니다. 이 의미는 바꿀 수 없습니다.
-- 판정 대상은 릴리즈 전후의 소비자 호환성입니다. AI 작업량, 변경 파일 수, 구현 시간은 근거가 아닙니다.
-- `## 공개 인터페이스`는 문서·자산·데이터를 내보내는 프로젝트에도 그대로 씁니다. 코드가 아니어도 소비자가 의존하는 것이 있으면 그게 공개 인터페이스입니다.
-- 다 쓴 뒤 이 주석 블록을 지웁니다. 본문은 그대로 `.spai/versioning.md`가 될 수 있어야 합니다.
-- 마지막으로 INDEX.md 표에 행을 추가합니다.
+- `## Decision Order` and `## Grade Definitions` are required; the other four sections are optional. Delete a section this type has nothing to say about.
+- Spend the effort on `## Public Interface`, `## Hard Rules`, and `## Pre-Release Checks`. The decision order and grade definitions only need the three questions from common.md restated with this type's nouns.
+- The decision order is asked top down and stops at the first match. That meaning cannot be changed.
+- What is graded is consumer compatibility across the release. AI effort, file counts, and implementation time are not grounds.
+- `## Hard Rules` holds **only conditions that always escalate**. Statements about what is not grounds for a grade belong in common.md, and version-number notation belongs in `## Version Format`.
+- Check that question 1 does not swallow question 2. Putting "was something added?" in question 1 stops every addition at `patch` and makes `minor` unreachable.
+- `## Public Interface` applies to projects that ship documents, assets, or data too. If consumers depend on it, it is a public interface even when it is not code.
+- Delete this comment block when finished. The body must be able to become `.spai/versioning.md` as-is.
+- Finally, add a row to the table in INDEX.md.
 -->

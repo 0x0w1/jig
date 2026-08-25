@@ -1,45 +1,45 @@
-# 교육 자료 저장소 버전 정책
+# Course Material Version Policy
 
-> 기준: SemVer 교육 자료형, `<날짜>` 채택
+> Basis: SemVer course material, adopted `<date>`
 
-## 공개 인터페이스
+## Public Interface
 
-- 커리큘럼 순서와 각 차시의 위치·번호
-- 각 차시가 끝났을 때 수강자가 할 수 있어야 하는 것
-- 실습 과제의 지시문, 채점 기준, 정답 공개 범위
-- 실습에 필요한 환경(도구, 버전, 사전 설치물, 데이터)
-- 배포 형태(슬라이드, 노트북, 인쇄물)와 수강자에게 전달되는 파일
-- 선행 지식과 소요 시간
+- The curriculum order and the position and number of each session
+- What a learner should be able to do when a session ends
+- Exercise instructions, grading criteria, and how far solutions are revealed
+- The environment an exercise needs: tools, versions, prerequisites, data
+- The distribution form (slides, notebooks, print) and the files handed to learners
+- Assumed prior knowledge and expected time
 
-설명 문장, 예시 교체, 슬라이드 디자인은 학습 목표와 실습 결과가 같은 한 공개 인터페이스가 아닙니다.
+Explanatory sentences, swapped examples, and slide design are not the public interface as long as the learning objectives and exercise results hold.
 
-## 판정 순서
+## Decision Order
 
-1. 차시 순서와 실습 결과를 유지하며 설명·예시·오탈자를 고쳤는가? → `patch`
-2. 기존 차시를 그대로 두고 보충 자료·실습·부록을 추가했는가? → `minor`
-3. 가르치는 사람이 진행 계획을, 수강자가 환경이나 제출물을 바꿔야 하는가? → `major`
+1. Were explanations, examples, or typos fixed while session order and exercise results held? → `patch`
+2. Were existing sessions left in place while supplements, exercises, or appendices were added? → `minor`
+3. Must the teacher change the plan, or the learner change environment or deliverables? → `major`
 
-## 등급 정의
+## Grade Definitions
 
-| bump | 정의 | 예 |
+| bump | definition | examples |
 |---|---|---|
-| `patch` | 진행 방식이 그대로인 자료 수정 | 설명 보강, 예시 교체, 오탈자 수정, 이미지 개선 |
-| `minor` | 기존 차시와 공존하는 추가 | 심화 실습 추가, 참고 자료 추가, 새 부록 차시 |
-| `major` | 진행·환경·평가가 바뀌는 변경 | 차시 순서 재편, 실습 도구·버전 교체, 채점 기준 변경, 과제 삭제 |
+| `patch` | Material fixes that leave the delivery unchanged | explanation expanded, example swapped, typo fixed, image improved |
+| `minor` | Additions that coexist with existing sessions | advanced exercise, further reading, new appendix session |
+| `major` | A change to delivery, environment, or assessment | sessions reordered, exercise tool or version swapped, grading criteria changed, assignment removed |
 
-## 강경 규칙
+## Hard Rules
 
-> 실습 환경의 도구나 버전이 바뀌어 기존 안내대로 하면 실패하면 `major`다.
+> If a tool or version in the exercise environment changes so that following the existing instructions fails, it is `major`.
 
-> 채점 기준이나 제출물 형식이 바뀌면 `major`다. 이미 진행 중인 수강자의 결과가 달라지기 때문이다.
+> If grading criteria or the deliverable format changes, it is `major`, because it changes the outcome for learners already partway through.
 
-## 릴리즈 전 검증
+## Pre-Release Checks
 
-- 실습을 처음부터 그대로 따라 해 지시문과 결과가 맞는지 확인한다.
-- 명시한 도구 버전으로 예제 코드·노트북을 실행한다.
-- 차시 사이의 참조(앞 차시 산출물을 쓰는 실습)가 유지되는지 확인한다.
+- Walk an exercise from the start and confirm the instructions match the result.
+- Run the example code and notebooks on the tool versions the material names.
+- Confirm cross-session references still hold, where one session's output feeds the next.
 
-## 버전 형식
+## Version Format
 
-- 기수·학기와 저장소 버전은 별개다. 같은 기수 진행 중에 나오는 `major`는 진행 중인 수강자에게 공지가 필요하다는 뜻이다.
-- `0.x`에서 `major` 판정은 `v0.Y.Z` → `v0.(Y+1).0`으로 표현하되 판정 결과는 `major`로 기록한다.
+- The cohort or term and the repository version are separate. A `major` grade during a running cohort means learners in progress need to be told.
+- A `major` grade in `0.x` is expressed as `v0.Y.Z` → `v0.(Y+1).0`, while the grade is still recorded as `major`.

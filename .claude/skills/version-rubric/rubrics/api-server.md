@@ -1,45 +1,45 @@
-# API 서버 버전 정책
+# API Server Version Policy
 
-> 기준: SemVer API 서버형, `<날짜>` 채택
+> Basis: SemVer API server, adopted `<date>`
 
-## 공개 인터페이스
+## Public Interface
 
-- endpoint의 method와 path
-- request·response·error schema와 의미
-- HTTP status code, header, pagination, 정렬 기본값
-- 인증·인가 방식과 scope
-- webhook, event, rate limit 계약
-- 공개된 API 버전과 지원 기간
+- Endpoint methods and paths
+- Request, response, and error schemas and their meaning
+- HTTP status codes, headers, pagination, default ordering
+- Authentication and authorization schemes and scopes
+- Webhook, event, and rate-limit contracts
+- Published API generations and how long they are supported
 
-내부 저장소, 프레임워크, 배포 topology는 외부 계약에 영향을 주지 않는 한 공개 인터페이스가 아닙니다.
+Internal storage, frameworks, and deployment topology are not the public interface unless they affect the external contract.
 
-응답 필드 추가를 호환 변경으로 볼 수 있는지는 "모르는 필드는 무시한다"는 계약이 클라이언트와 있는지에 달렸습니다. 그 계약이 없으면 응답 스키마 전체가 공개 인터페이스이고, 필드 추가도 `major`입니다.
+Whether adding a response field is a compatible change depends on whether the contract with clients says unknown fields are ignored. Without that contract the whole response schema is public, and adding a field is `major`.
 
-## 판정 순서
+## Decision Order
 
-1. 공개 API 계약을 유지하며 잘못된 동작·성능·안정성만 수정했는가? → `patch`
-2. 기존 요청과 응답을 유지하면서 선택적 endpoint·필드·기능만 추가했는가? → `minor`
-3. 기존 호출자가 요청·파싱·인증·오류 처리를 바꿔야 하는가? → `major`
+1. Did it fix wrong behavior, performance, or stability while keeping the public API contract? → `patch`
+2. Did it only add optional endpoints, fields, or features while keeping existing requests and responses? → `minor`
+3. Must existing callers change how they request, parse, authenticate, or handle errors? → `major`
 
-## 등급 정의
+## Grade Definitions
 
-| bump | 정의 | 예 |
+| bump | definition | examples |
 |---|---|---|
-| `patch` | 기존 API 계약과 의미를 유지하는 수정 | 명세대로 status code 수정, N+1 제거, timeout 안정화 |
-| `minor` | 기존 호출에 영향을 주지 않는 API 확장 | 새 endpoint, optional request field, additive response field |
-| `major` | 기존 호출·해석·인증과 호환되지 않는 변경 | endpoint 제거, 필수 필드 추가, 필드 의미 변경, 인증 방식 교체 |
+| `patch` | A fix that keeps the API contract and its meaning | status code corrected to match the spec, N+1 removed, timeout stabilized |
+| `minor` | API growth that leaves existing calls untouched | new endpoint, optional request field, additive response field |
+| `major` | A change incompatible with existing calls, parsing, or auth | endpoint removed, required field added, field meaning changed, auth scheme replaced |
 
-## 강경 규칙
+## Hard Rules
 
-> 기존 요청이 성공하면서 결과 의미·권한·부작용이 달라지는 변경은 `major`다.
+> A change where the existing request still succeeds but the meaning, permissions, or side effects of the result differ is `major`.
 
-## 릴리즈 전 검증
+## Pre-Release Checks
 
-- OpenAPI 또는 schema diff로 breaking change를 확인한다.
-- 지원 중인 클라이언트 버전으로 contract test를 실행한다.
-- 데이터 migration과 rollback이 기존 API 응답에 미치는 영향을 확인한다.
+- Check for breaking changes with an OpenAPI or schema diff.
+- Run contract tests against the client versions still supported.
+- Check how data migration and rollback affect existing API responses.
 
-## 버전 형식
+## Version Format
 
-- 제품 SemVer와 URL의 `/v1` 같은 API 세대 표시는 별도다. API 세대를 유지해도 제품 릴리즈가 `major`일 수 있고, 새 API 세대를 `minor` 릴리즈에 병행 추가할 수도 있다.
-- `0.x`에서 `major` 판정은 `v0.Y.Z` → `v0.(Y+1).0`으로 표현하되 판정 결과는 `major`로 기록한다.
+- The product's SemVer and an API generation marker such as `/v1` in the URL are separate. A product release can be `major` while the API generation holds, and a new API generation can be added alongside in a `minor` release.
+- A `major` grade in `0.x` is expressed as `v0.Y.Z` → `v0.(Y+1).0`, while the grade is still recorded as `major`.

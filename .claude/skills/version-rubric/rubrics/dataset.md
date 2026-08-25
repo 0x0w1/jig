@@ -1,47 +1,47 @@
-# 데이터셋 저장소 버전 정책
+# Dataset Version Policy
 
-> 기준: SemVer 데이터셋형, `<날짜>` 채택
+> Basis: SemVer dataset, adopted `<date>`
 
-정리된 데이터 파일 자체를 배포하는 저장소입니다. 데이터를 만들어 내는 실행 과정과 갱신 주기가 계약이면 `data-pipeline` 기준을 대신 씁니다.
+This is a repository that ships the cleaned data files themselves. If the contract is the process that produces the data and its refresh cadence, use the `data-pipeline` rubric instead.
 
-## 공개 인터페이스
+## Public Interface
 
-- 파일 경로·이름·포맷과 인코딩·구분자
-- 컬럼 이름, 타입, 단위, 허용값, 결측 표기
-- 행이 무엇을 하나로 세는지(관측 단위)와 중복 규칙
-- 수집 범위(기간, 지역, 대상)와 갱신 주기
-- 값의 출처와 가공 여부, 개인정보·공개 범위
-- 이전 버전 파일의 보존 여부
+- File paths, names, formats, encodings, and delimiters
+- Column names, types, units, allowed values, and how missing data is marked
+- What one row counts (the observation unit) and the deduplication rule
+- Collection scope (period, region, subject) and refresh cadence
+- Provenance, whether values are derived, personal-data and audience limits
+- Whether files from earlier versions are retained
 
-내부 수집 절차와 정리 스크립트는 파일과 컬럼 계약을 유지하는 한 공개 인터페이스가 아닙니다.
+The internal collection procedure and cleanup scripts are not the public interface as long as the file and column contract holds.
 
-## 판정 순서
+## Decision Order
 
-1. 컬럼과 값의 의미를 유지하며 오류를 고치거나 기존 파일에 정기 갱신분을 더했는가? → `patch`
-2. 기존 컬럼을 유지하면서 컬럼·파일·기간을 추가했는가? → `minor`
-3. 읽는 쪽이 컬럼 매핑·해석·집계를 고쳐야 하는가? → `major`
+1. Were errors fixed, or a regular refresh added to existing files, while column and value meanings held? → `patch`
+2. Were columns, files, or periods added while existing columns held? → `minor`
+3. Must the reading side change column mappings, interpretation, or aggregation? → `major`
 
-## 등급 정의
+## Grade Definitions
 
-| bump | 정의 | 예 |
+| bump | definition | examples |
 |---|---|---|
-| `patch` | 기존 계약 안의 데이터 갱신·정정 | 잘못 입력된 값 수정, 정기 갱신분 추가, 설명 문서 보강 |
-| `minor` | 기존 소비자에 영향 없는 확장 | 새 컬럼 추가, 새 연도 파일 추가, 대체 포맷 제공 |
-| `major` | 기존 해석과 호환되지 않는 변경 | 컬럼 삭제·이름 변경, 단위·통화 변경, 관측 단위 변경, 과거 데이터 재산출, 공개 범위 축소 |
+| `patch` | Data refreshed or corrected inside the existing contract | mistyped value fixed, scheduled refresh added, documentation expanded |
+| `minor` | Growth with no effect on existing consumers | new column, new year's file, alternative format offered |
+| `major` | A change incompatible with existing interpretation | column dropped or renamed, unit or currency changed, observation unit changed, historical data recomputed, audience narrowed |
 
-## 강경 규칙
+## Hard Rules
 
-> 파일은 그대로 읽히는데 값의 단위·기준이 달라지면 `major`다. 집계 결과가 조용히 바뀌기 때문이다.
+> If the file still reads but the unit or basis of a value differs, it is `major`. Aggregates change quietly.
 
-> 이미 배포한 과거 구간의 값을 다시 계산해 덮어쓰면 `major`다.
+> Recomputing an already-published historical range and overwriting it is `major`.
 
-## 릴리즈 전 검증
+## Pre-Release Checks
 
-- 이전 버전과 컬럼 목록·타입을 비교한다.
-- 행 수와 주요 합계를 이전 버전과 대조해 예상 밖 변화를 확인한다.
-- 결측·중복·범위 밖 값 검사를 실행한다.
+- Diff the column list and types against the previous version.
+- Compare row counts and key totals against the previous version to catch unexpected shifts.
+- Run checks for missing values, duplicates, and out-of-range values.
 
-## 버전 형식
+## Version Format
 
-- 데이터 수집 시점과 저장소 버전은 별개다. 파일 이름의 날짜는 데이터 범위이고, 버전은 읽는 쪽이 치르는 비용이다.
-- `0.x`에서 `major` 판정은 `v0.Y.Z` → `v0.(Y+1).0`으로 표현하되 판정 결과는 `major`로 기록한다.
+- The collection date and the repository version are separate. A date in a filename is the data's range; the version is what the reading side pays.
+- A `major` grade in `0.x` is expressed as `v0.Y.Z` → `v0.(Y+1).0`, while the grade is still recorded as `major`.

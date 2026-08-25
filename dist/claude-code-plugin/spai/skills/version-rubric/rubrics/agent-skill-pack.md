@@ -1,45 +1,45 @@
-# 에이전트 스킬 패키지 버전 정책
+# Agent Skill Pack Version Policy
 
-> 기준: SemVer 에이전트 스킬형, `<날짜>` 채택
+> Basis: SemVer agent skill pack, adopted `<date>`
 
-## 공개 인터페이스
+## Public Interface
 
-- 스킬 이름과 호출 방식(slash command, 디렉토리 이름, prefix)
-- 각 스킬이 언제 발동하는지를 정하는 `description`과 트리거 조건
-- 스킬이 읽고 쓰는 파일 경로와 그 파일의 섹션 계약
-- 스킬이 실행하는 명령, 요구하는 도구, 요구하는 권한
-- 설치 위치, 설치 명령, 지원 에이전트 target
-- 사용자에게 묻는 질문과 기본 응답 정책
+- Skill names and how they are invoked (slash command, directory name, prefix)
+- The `description` and trigger conditions that decide when each skill fires
+- The file paths a skill reads and writes, and the section contract of those files
+- The commands a skill runs, the tools it requires, the permissions it needs
+- Install location, install command, supported agent targets
+- The questions asked of the user and the default response policy
 
-프롬프트 문장, 내부 절차 순서, 설명 문구는 발동 조건과 산출물이 같은 한 구현 세부사항입니다.
+Prompt wording, the order of internal steps, and explanatory text are implementation details as long as the trigger conditions and the outputs stay the same.
 
-## 판정 순서
+## Decision Order
 
-1. 발동 조건과 산출물을 유지하며 문구·절차·문서만 고쳤는가? → `patch`
-2. 기존 사용법이 그대로 통하면서 스킬·옵션·단계가 추가됐는가? → `minor`
-3. 설치본이 파일·설정·호출 방식을 고쳐야 하거나, 같은 요청에 동작이 달라지는가? → `major`
+1. Did it only change wording, steps, or documentation while trigger conditions and outputs held? → `patch`
+2. Do existing usages still work, with skills, options, or steps added? → `minor`
+3. Must an installation edit files, configuration, or call sites, or does the same request now behave differently? → `major`
 
-## 등급 정의
+## Grade Definitions
 
-| bump | 정의 | 예 |
+| bump | definition | examples |
 |---|---|---|
-| `patch` | 발동 조건과 산출물이 같은 수정 | 오탈자, 예시 보강, 보고 문구 정리, 내부 절차 순서 정리 |
-| `minor` | 기존 사용법과 공존하는 확장 | 새 스킬 추가, 선택 단계 추가, 새 target 지원 |
-| `major` | 설치본이 손대야 하는 변경 | 스킬 이름·경로 변경, 파일 섹션 계약 변경, 기본 동작 변경, 수동 migration 필요 |
+| `patch` | A fix with identical trigger conditions and outputs | typo, better example, report wording tidied, internal step order tidied |
+| `minor` | Growth that coexists with existing usage | new skill, optional step, new target supported |
+| `major` | A change an installation must act on | skill name or path changed, file section contract changed, default behavior changed, manual migration required |
 
-## 강경 규칙
+## Hard Rules
 
-> 에러 없이 발동 조건이나 기본 응답이 달라지는 변경은 `major`다. 테스트가 잡지 못하므로 버전이 유일한 통보 채널이다.
+> A change that raises no error but shifts trigger conditions or the default response is `major`. No test catches it, so the version number is the only channel left.
 
-> 설치본이 손으로 고쳐야 하는 migration 안내가 릴리즈 노트에 들어가면 `major`다.
+> If the release notes carry migration guidance an installation must apply by hand, it is `major`.
 
-## 릴리즈 전 검증
+## Pre-Release Checks
 
-- 배포 payload를 다시 빌드하고 검증 스크립트를 실행한다.
-- 스킬 이름·경로·frontmatter `name`이 배포본과 일치하는지 확인한다.
-- 기존 설치본을 갱신했을 때 사용자 파일이 덮이지 않는지 확인한다.
+- Rebuild the distribution payload and run the validation script.
+- Confirm that skill names, paths, and frontmatter `name` values match the distributed payload.
+- Confirm that updating an existing installation does not overwrite the user's own files.
 
-## 버전 형식
+## Version Format
 
-- 스킬 패키지 버전은 개별 스킬 버전이 아니라 패키지 전체의 계약 버전이다. 스킬 하나만 바뀌어도 패키지 등급을 매긴다.
-- `0.x`에서 `major` 판정은 `v0.Y.Z` → `v0.(Y+1).0`으로 표현하되 판정 결과는 `major`로 기록한다.
+- The pack version is the contract version of the whole package, not of an individual skill. One skill changing still grades the package.
+- A `major` grade in `0.x` is expressed as `v0.Y.Z` → `v0.(Y+1).0`, while the grade is still recorded as `major`.

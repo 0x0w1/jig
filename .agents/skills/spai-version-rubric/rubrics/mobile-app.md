@@ -1,46 +1,46 @@
-# 모바일 앱 버전 정책
+# Mobile App Version Policy
 
-> 기준: SemVer 모바일 앱형, `<날짜>` 채택
+> Basis: SemVer mobile app, adopted `<date>`
 
-스토어를 거쳐 기기에 설치되는 앱입니다. 브라우저에서 열리면 `web-client`, 데스크톱 설치본이면 `desktop-app` 기준을 대신 씁니다.
+This is an app installed onto a device through a store. If it opens in a browser, use the `web-client` rubric; if it is a desktop install, use `desktop-app`.
 
-## 공개 인터페이스
+## Public Interface
 
-- 사용자가 완료할 수 있는 주요 작업 흐름과 기본 동작
-- deep link, universal link, app link
-- 로컬 데이터·백업·동기화 형식
-- push notification payload와 처리 규칙
-- 서버 API와의 지원 버전 범위
-- 지원 OS, device capability, extension·widget 계약
-- 다른 앱에 공개한 URL scheme와 SDK
+- The main tasks a user can complete and their default behavior
+- Deep links, universal links, app links
+- Local data, backup, and sync formats
+- Push notification payloads and how they are handled
+- The supported version range against the server API
+- Supported OS versions, device capabilities, extension and widget contracts
+- URL schemes and SDKs exposed to other apps
 
-내부 UI framework나 빌드 시스템은 위 계약을 바꾸지 않는 한 내부 구현입니다.
+The internal UI framework and the build system are implementation details unless they change the contract above.
 
-## 판정 순서
+## Decision Order
 
-1. 기존 작업 흐름·데이터·연동을 유지하며 앱 결함만 수정했는가? → `patch`
-2. 기존 설치본과 사용법을 유지하면서 선택 기능·화면·플랫폼 지원만 추가했는가? → `minor`
-3. 기존 사용자가 데이터·설정·OS·연동 또는 사용 방식을 바꿔야 하는가? → `major`
+1. Did it fix app defects while keeping existing flows, data, and integrations? → `patch`
+2. Did it only add optional features, screens, or platform support while existing installs and usage held? → `minor`
+3. Must existing users change data, settings, OS, integrations, or the way they use the app? → `major`
 
-## 등급 정의
+## Grade Definitions
 
-| bump | 정의 | 예 |
+| bump | definition | examples |
 |---|---|---|
-| `patch` | 기존 앱 계약을 유지하는 수정 | crash 수정, battery 사용량 개선, 동기화 결함 수정 |
-| `minor` | 기존 사용법과 공존하는 기능 추가 | opt-in 기능, 새 widget, 새 deep link 추가 |
-| `major` | 기존 설치본·데이터·연동과 비호환인 변경 | 로컬 데이터 수동 변환, URL scheme 제거, 최소 OS 상향으로 기존 기기 제외 |
+| `patch` | A fix that keeps the existing app contract | crash fixed, battery use improved, sync defect fixed |
+| `minor` | Features that coexist with existing usage | opt-in feature, new widget, new deep link |
+| `major` | A change incompatible with existing installs, data, or integrations | local data needs manual conversion, URL scheme removed, minimum OS raised so existing devices drop out |
 
-## 강경 규칙
+## Hard Rules
 
-> 서버가 이전 앱 버전 지원을 중단하거나 강제 업데이트가 필요해지면 앱과 서버의 호환 계약을 `major`로 판정한다.
+> When the server stops supporting older app versions, or a forced update becomes necessary, grade the app-to-server compatibility contract as `major`.
 
-## 릴리즈 전 검증
+## Pre-Release Checks
 
-- 이전 공개 버전에서 데이터 upgrade와 로그인 유지 여부를 시험한다.
-- 지원 중인 서버·앱 버전 조합을 contract test로 확인한다.
-- deep link, notification, background task를 실제 배포 형태로 확인한다.
+- Test data upgrade and session retention from the previously published version.
+- Contract-test the supported server and app version combinations.
+- Verify deep links, notifications, and background tasks in the real distribution build.
 
-## 버전 형식
+## Version Format
 
-- 사용자용 SemVer와 스토어용 build number를 분리한다. 심사 재제출이나 동일 기능 재빌드만으로 SemVer 등급을 올리지 않는다.
-- `0.x`에서 `major` 판정은 `v0.Y.Z` → `v0.(Y+1).0`으로 표현하되 판정 결과는 `major`로 기록한다.
+- Keep the user-facing SemVer separate from the store build number. Resubmitting for review or rebuilding the same functionality does not raise the SemVer grade.
+- A `major` grade in `0.x` is expressed as `v0.Y.Z` → `v0.(Y+1).0`, while the grade is still recorded as `major`.

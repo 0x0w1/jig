@@ -1,46 +1,46 @@
-# 웹 클라이언트 버전 정책
+# Web Client Version Policy
 
-> 기준: SemVer 웹 클라이언트형, `<날짜>` 채택
+> Basis: SemVer web client, adopted `<date>`
 
-브라우저에서 열리는 화면과 URL이 계약인 프로젝트입니다. 스토어로 기기에 설치되면 `mobile-app`, 내려받아 설치하고 로컬 파일을 다루면 `desktop-app` 기준을 대신 씁니다.
+This is a project whose contract is the screen that opens in a browser and the URLs behind it. If it installs onto a device through a store, use the `mobile-app` rubric; if it is downloaded, installed, and works with local files, use `desktop-app`.
 
-## 공개 인터페이스
+## Public Interface
 
-- 사용자가 완료할 수 있는 주요 작업 흐름과 기본 동작
-- 공개 URL, route, bookmark, deep link
-- 브라우저 local storage, IndexedDB, cookie의 호환성
-- 외부 embed, postMessage, 공개 JavaScript API
-- 지원 브라우저와 접근성·키보드 계약
-- 서버 API와의 지원 버전 범위
+- The main tasks a user can complete and their default behavior
+- Public URLs, routes, bookmarks, deep links
+- Compatibility of browser local storage, IndexedDB, and cookies
+- External embeds, `postMessage`, and any public JavaScript API
+- Supported browsers and the accessibility and keyboard contract
+- The supported version range against the server API
 
-컴포넌트 구조, CSS 구현, bundler는 위 계약을 바꾸지 않는 한 내부 구현입니다.
+Component structure, CSS implementation, and the bundler are implementation details unless they change the contract above.
 
-## 판정 순서
+## Decision Order
 
-1. 기존 사용자 흐름·URL·저장 상태를 유지하며 결함만 수정했는가? → `patch`
-2. 기존 사용법을 유지하면서 새 화면·선택 기능·경로만 추가했는가? → `minor`
-3. 기존 사용자가 URL·저장 데이터·자동화·작업 방식을 바꿔야 하는가? → `major`
+1. Did it fix defects while keeping existing user flows, URLs, and stored state? → `patch`
+2. Did it only add new screens, optional features, or routes while existing usage held? → `minor`
+3. Must existing users change URLs, stored data, automation, or the way they work? → `major`
 
-## 등급 정의
+## Grade Definitions
 
-| bump | 정의 | 예 |
+| bump | definition | examples |
 |---|---|---|
-| `patch` | 공개된 웹 동작을 유지하는 수정 | 렌더링 오류, 접근성 결함, 성능 회귀 수정 |
-| `minor` | 기존 흐름과 공존하는 기능 추가 | 새 opt-in 화면, 새 filter, 새 route 추가 |
-| `major` | 기존 흐름이나 외부 연동을 깨뜨리는 변경 | URL 제거, 저장 데이터 초기화 필요, 기본 workflow 의미 변경 |
+| `patch` | A fix that keeps published web behavior | rendering bug, accessibility defect, performance regression |
+| `minor` | Features that coexist with existing flows | new opt-in screen, new filter, new route |
+| `major` | A change that breaks existing flows or external integrations | URL removed, stored data must be reset, meaning of a default workflow changed |
 
-## 강경 규칙
+## Hard Rules
 
-> 기존 URL이 계속 열리지만 다른 작업을 수행하거나, 기존 설정의 의미가 조용히 바뀌면 `major`다.
+> If an existing URL still opens but performs a different task, or the meaning of an existing setting quietly changes, it is `major`.
 
-## 릴리즈 전 검증
+## Pre-Release Checks
 
-- 이전 버전에서 저장한 브라우저 상태로 upgrade test를 수행한다.
-- 공개 route와 deep link의 smoke test를 수행한다.
-- 지원 브라우저와 서버 API 조합을 확인한다.
+- Run an upgrade test against browser state saved by the previous version.
+- Smoke-test public routes and deep links.
+- Verify the supported browser and server API combinations.
 
-## 버전 형식
+## Version Format
 
-- 배포 횟수와 SemVer 릴리즈는 같을 필요가 없다. 사용자에게 공개되는 호환성 단위에 태그를 붙인다.
-- 자동 배포되어 사용자가 버전을 선택할 수 없더라도 호환성 판정은 생략하지 않는다. 되돌릴 수 없는 배포일수록 판정이 유일한 기록이다.
-- `0.x`에서 `major` 판정은 `v0.Y.Z` → `v0.(Y+1).0`으로 표현하되 판정 결과는 `major`로 기록한다.
+- Deployment count and SemVer releases need not match. Tag the compatibility unit that is exposed to users.
+- Even when deployment is automatic and users cannot choose a version, do not skip the compatibility grade. The less reversible the deployment, the more the grade is the only record.
+- A `major` grade in `0.x` is expressed as `v0.Y.Z` → `v0.(Y+1).0`, while the grade is still recorded as `major`.

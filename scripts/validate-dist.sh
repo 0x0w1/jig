@@ -111,25 +111,35 @@ for rubric_skill in github-release project-setup spai-doctor version-rubric; do
 done
 
 for rubric_skill in github-release spai-doctor version-rubric; do
+  require_text "dist/claude-code-plugin/spai/skills/$rubric_skill/SKILL.md" "## Decision Order"
+  require_text "dist/claude-code-plugin/spai/skills/$rubric_skill/SKILL.md" "## Grade Definitions"
+done
+
+# The section titles went English while rubrics already written in Korean stay valid.
+# Every skill that reads a rubric must still name the legacy spelling, or those files
+# silently read as contract-broken.
+for rubric_skill in github-release spai-doctor version-rubric; do
   require_text "dist/claude-code-plugin/spai/skills/$rubric_skill/SKILL.md" "## 판정 순서"
   require_text "dist/claude-code-plugin/spai/skills/$rubric_skill/SKILL.md" "## 등급 정의"
 done
+require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "> 기준:"
+require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "> Basis:"
 
 # version-rubric ships the whole default rubric; the other skills must not copy it.
-require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "기존 기능 범위 안의 수정인가"
-require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "쓰던 대로 계속 쓸 수 있는가"
-require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "사람이 손대야 계속 쓸 수 있는가"
-require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "## 강경 규칙"
-require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "## 버전 형식"
+require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "a fix inside what the project already does"
+require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "everything they already do keeps working"
+require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "must a human step in to keep using it"
+require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "## Hard Rules"
+require_text "dist/claude-code-plugin/spai/skills/version-rubric/SKILL.md" "## Version Format"
 
 # The fallback inside github-release must stay identical to the default version-rubric
 # writes, or a project grades differently depending on which skills happen to be installed.
-require_text "dist/claude-code-plugin/spai/skills/github-release/SKILL.md" "사람이 손대야 계속 쓸 수 있는가"
-require_text "dist/claude-code-plugin/spai/skills/github-release/SKILL.md" "에이전트의 발화 조건을 바꾸면 최소"
+require_text "dist/claude-code-plugin/spai/skills/github-release/SKILL.md" "must a human step in to keep using it"
+require_text "dist/claude-code-plugin/spai/skills/github-release/SKILL.md" "changes when the agent speaks is at least"
 require_text "dist/codex/.agents/skills/spai-version-rubric/SKILL.md" "SPAI_VERSION_RUBRIC"
 require_text "dist/antigravity/.agents/skills/spai-version-rubric/SKILL.md" "spai.versionRubric"
 
-if grep -F '사람이 손대야 계속 쓸 수 있는가' dist/claude-code-plugin/spai/skills/project-setup/SKILL.md >/dev/null 2>&1; then
+if grep -F 'must a human step in to keep using it' dist/claude-code-plugin/spai/skills/project-setup/SKILL.md >/dev/null 2>&1; then
   fail "project-setup must delegate to version-rubric, not duplicate the default rubric"
 fi
 
@@ -184,8 +194,8 @@ awk -F '|' '/^\| \[/ { print $2 }' skills/version-rubric/rubrics/INDEX.md \
 # frontmatter cannot be moved into .spai/versioning.md as-is.
 for rubric_body in skills/version-rubric/rubrics/*.md; do
   case "$(basename "$rubric_body")" in INDEX.md|_template.md|common.md) continue ;; esac
-  require_text "$rubric_body" "## 판정 순서"
-  require_text "$rubric_body" "## 등급 정의"
+  require_text "$rubric_body" "## Decision Order"
+  require_text "$rubric_body" "## Grade Definitions"
   if head -n 1 "$rubric_body" | grep -qx -- '---'; then
     fail "rubric body must not start with frontmatter: $rubric_body"
   fi
@@ -201,33 +211,37 @@ fi
 # Every rubric body names its consumer contract under one section title.
 for rubric_body in skills/version-rubric/rubrics/*.md; do
   case "$(basename "$rubric_body")" in INDEX.md|_template.md|common.md) continue ;; esac
-  require_text "$rubric_body" "## 공개 인터페이스"
+  require_text "$rubric_body" "## Public Interface"
 done
 
 # The catalog states which axis it grades on, because the default rubric uses another one.
-require_text skills/version-rubric/rubrics/INDEX.md "SemVer 소비자 호환 축"
+require_text skills/version-rubric/rubrics/INDEX.md "SemVer consumer-compatibility axis"
 require_text skills/version-rubric/SKILL.md "human-intervention axis"
 
-# Ordered questions stop at the first match, so question 1 must not swallow question 2.
-# A rubric whose patch question accepts "added" leaves minor unreachable.
+# Ordered questions stop at the first match, so a rubric needs exactly three of them
+# landing on patch, then minor, then major. A missing or reordered grade makes one
+# grade unreachable no matter how the questions are worded.
 for rubric_body in skills/version-rubric/rubrics/*.md; do
   case "$(basename "$rubric_body")" in INDEX.md|_template.md|common.md) continue ;; esac
-  first_question=$(awk '/^## 판정 순서/{p=1;next} /^## /{p=0} p&&/^1\./{print;exit}' "$rubric_body")
-  case "$first_question" in
-    *추가했는가*|*더했는가*)
-      case "$first_question" in
-        *기존*) : ;;
-        *) fail "patch question swallows the minor question in $rubric_body: $first_question" ;;
-      esac
-      ;;
-  esac
+  ordered_grades=$(awk '
+    /^## Decision Order/ { p = 1; next }
+    /^## / { p = 0 }
+    p && /^[123]\./ {
+      if (match($0, /`patch`/)) printf "patch "
+      else if (match($0, /`minor`/)) printf "minor "
+      else if (match($0, /`major`/)) printf "major "
+      else printf "none "
+    }
+  ' "$rubric_body")
+  [ "$ordered_grades" = "patch minor major " ] \
+    || fail "decision order must be patch, minor, major in $rubric_body (found: $ordered_grades)"
 done
 
-# 강경 규칙 is the escalation section: every rule must name the grade it forces.
+# Hard Rules is the escalation section: every rule must name the grade it forces.
 for rubric_body in skills/version-rubric/rubrics/*.md; do
   case "$(basename "$rubric_body")" in INDEX.md|_template.md|common.md) continue ;; esac
   awk -v file="$rubric_body" '
-    /^## 강경 규칙/ { p = 1; next }
+    /^## Hard Rules/ { p = 1; next }
     /^## / { p = 0 }
     p && /^>/ && !/`major`/ && !/`minor`/ { print file ": " $0; found = 1 }
     END { exit found ? 1 : 0 }

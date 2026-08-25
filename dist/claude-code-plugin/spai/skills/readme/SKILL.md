@@ -1,6 +1,6 @@
 ---
 name: readme
-description: "Use when writing or updating a project README.md: scan the repository to classify the project type (CLI tool, library, service or app), draft a new README when none exists, or compare the existing README's claims (commands, options, paths, links) against the repository and fix the drift. Writes only verified facts; keeps the existing README language and defaults to Korean for new files."
+description: "Use when writing or updating a project README.md: scan the repository to classify the project type (CLI tool, library, service or app), draft a new README when none exists, or compare the existing README's claims (commands, options, paths, links) against the repository and fix the drift. Writes only verified facts; keeps the existing README language and defaults to the language the repository already writes in for new files."
 ---
 
 # README
@@ -49,7 +49,7 @@ Optional: documentation links, license.
 ## Language Rules
 
 - An existing README keeps its language.
-- A new README is written in Korean with technical terms in backticks.
+- A new README is written in the language the repository already uses for its documents, defaulting to English, with technical terms in backticks.
 - An explicit language request from the user overrides both.
 
 ## Report

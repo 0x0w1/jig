@@ -1,80 +1,80 @@
-# 공통 SemVer 원칙
+# Common SemVer Principles
 
-프로젝트 유형이 달라도 `major`, `minor`, `patch`의 의미는 바뀌지 않습니다. 달라지는 것은 그 프로젝트에서 무엇을 공개 인터페이스로 보는가입니다.
+`major`, `minor`, and `patch` mean the same thing in every project type. What changes from type to type is what counts as the public interface.
 
-## 판정 대상
+## What Is Graded
 
-릴리즈 직전 버전을 사용하던 소비자가 새 버전으로 이동할 때 필요한 변화를 봅니다. 소비자는 최종 사용자뿐 아니라 API 호출자, 다른 패키지, 자동화 스크립트, 저장된 데이터, 플러그인, 운영자일 수 있습니다.
+Look at what someone using the version just before this release has to change to move to the new one. A consumer is not only an end user: it can be an API caller, another package, an automation script, stored data, a plugin, or an operator.
 
-다음 항목은 등급의 근거가 아닙니다.
+None of the following is grounds for a grade:
 
-- AI 또는 사람이 작성했는지 여부
-- 변경한 코드·문서·파일의 양
-- 구현 난이도나 작업 시간
-- 커밋 수와 참여자 수
-- 모델이나 프레임워크의 세대 교체 자체
+- Whether a human or an AI wrote it
+- How much code, documentation, or how many files changed
+- How hard it was or how long it took
+- The number of commits and contributors
+- A model or framework generation turning over, by itself
 
-세대 교체가 공개 계약을 그대로 유지하면 `patch`, 하위 호환 기능을 더하면 `minor`, 기존 소비자를 깨뜨리면 `major`입니다.
+A generation change that keeps the public contract is `patch`, one that adds backward-compatible capability is `minor`, and one that breaks existing consumers is `major`.
 
-## 공통 판정 순서
+## Common Decision Order
 
-1. 공개 인터페이스를 유지하며 잘못된 동작만 고쳤는가? → `patch`
-2. 기존 소비자가 수정 없이 계속 사용할 수 있고 새 기능만 추가됐는가? → `minor`
-3. 기존 소비자가 코드·설정·데이터·작업 방식을 바꿔야 하는가? → `major`
+1. Did it fix wrong behavior while keeping the public interface? → `patch`
+2. Can existing consumers keep going untouched, with only new capability added? → `minor`
+3. Must existing consumers change code, configuration, data, or the way they work? → `major`
 
-처음 일치하는 등급에서 멈춥니다. 여러 공개 인터페이스에 영향을 주면 각 인터페이스를 따로 판정한 뒤 가장 높은 등급을 사용합니다.
+Stop at the first grade that matches. When several public interfaces are affected, grade each one separately and use the highest grade.
 
-## 호환성 판단
+## Judging Compatibility
 
 ### `patch`
 
-- 문서, 테스트, 내부 구조만 바뀌고 공개 동작은 동일함
-- 명세와 다르게 동작하던 버그를 호환 가능한 방식으로 수정함
-- 성능과 안정성을 개선하지만 입력·출력·부작용 계약은 유지함
-- 의존성을 올렸지만 소비자의 지원 환경과 사용법은 그대로임
+- Only documentation, tests, or internal structure changed; public behavior is identical
+- Behavior that contradicted the spec was fixed in a compatible way
+- Performance or stability improved while the input, output, and side-effect contract held
+- A dependency was raised without changing what consumers support or how they call it
 
-버그에 의존하던 사용자가 있더라도 명시된 계약을 회복하는 수정은 원칙적으로 `patch`입니다. 다만 그 동작이 오랫동안 사실상의 공개 계약이 되었거나 수정 후 기존 데이터·자동화가 깨진다면 `major`로 판정합니다.
+Restoring the documented contract is a `patch` even when someone depended on the bug. It becomes `major` when that behavior had long been the de facto public contract, or when existing data or automation breaks after the fix.
 
 ### `minor`
 
-- 선택적 기능, 새 API, 새 command처럼 기존 사용법과 공존하는 기능을 추가함
-- 기존 입력과 결과를 유지하면서 허용 범위를 넓힘
-- 새 플랫폼이나 런타임을 지원함
-- 기존 기능을 유지한 채 폐기 예정 표시를 추가함
+- Optional features, new APIs, or new commands were added and coexist with the existing usage
+- The accepted range widened while existing inputs and results stayed the same
+- A new platform or runtime is supported
+- A deprecation notice was added while the existing behavior kept working
 
-새 기능이 기존 기본값이나 기존 호출 결과를 바꾸면 하위 호환 추가가 아니므로 `minor`로 판정하지 않습니다.
+If a new feature changes an existing default or the result of an existing call, it is not a backward-compatible addition and does not grade as `minor`.
 
 ### `major`
 
-- 공개 이름, signature, schema, 파일 형식 또는 URL을 제거·변경함
-- 필수 설정이나 필수 입력을 새로 요구함
-- 기존 입력이 성공하지만 의미나 결과가 조용히 달라짐
-- 지원하던 플랫폼·런타임·프로토콜을 제거함
-- 수동 데이터 변환이나 소비자 코드 수정이 필요함
+- A public name, signature, schema, file format, or URL was removed or changed
+- New required configuration or required input is demanded
+- Existing input still succeeds but its meaning or result quietly differs
+- A supported platform, runtime, or protocol was dropped
+- Manual data conversion or consumer code changes are required
 
-명확한 오류와 migration 안내를 제공해도 비호환 변경이라는 사실은 달라지지 않습니다. 안내 품질은 릴리즈 안전성을 높이지만 SemVer 등급을 낮추지는 않습니다.
+Clear errors and a migration guide do not change the fact that the change is incompatible. Good guidance makes the release safer; it does not lower the SemVer grade.
 
-## AI 동작과 프롬프트
+## AI Behavior and Prompts
 
-AI 모델, 프롬프트, agent instruction은 구현 세부사항일 수도 있고 공개 인터페이스일 수도 있습니다.
+An AI model, a prompt, or an agent instruction can be an implementation detail or a public interface.
 
-- 같은 입력에 대해 허용된 결과 범위와 보장사항이 유지되는 내부 프롬프트 개선 → `patch`
-- 기존 보장을 유지하면서 새로운 opt-in 능력을 추가 → `minor`
-- 기본 응답 정책, tool 실행 조건, 안전 경계 또는 출력 schema가 기존 소비자에게 비호환으로 변경 → `major`
+- Internal prompt work that keeps the allowed range of results and the guarantees for the same input → `patch`
+- New opt-in capability added while existing guarantees hold → `minor`
+- The default response policy, the conditions for running a tool, a safety boundary, or the output schema changed incompatibly for existing consumers → `major`
 
-비결정성 자체를 이유로 모든 변경을 `major`로 올리지 않습니다. 문서화된 보장과 허용 범위를 기준으로 판정합니다.
+Do not raise every change to `major` merely because the system is non-deterministic. Grade against the documented guarantees and the allowed range.
 
-## 1.0 이전과 prerelease
+## Before 1.0 and Prereleases
 
-SemVer에 따라 `0.y.z`는 공개 인터페이스가 안정적이지 않을 수 있음을 나타냅니다. 그래도 변경을 `patch`·`minor`·`major` 의미로 먼저 판정하고 기록해야 합니다. SPAI 기본 형식을 따르면 `0.x`에서 `major` 판정은 `v0.(Y+1).0`으로 표현합니다.
+Under SemVer, `0.y.z` signals that the public interface may not be stable. Even so, grade and record the change as `patch`, `minor`, or `major` first. Under the SPAI default format, a `major` grade in `0.x` is expressed as `v0.(Y+1).0`.
 
-`alpha`, `beta`, `rc` 같은 prerelease 표시는 안정성 단계이지 호환성 등급의 대체물이 아닙니다. 기준 버전을 먼저 정한 뒤 prerelease 식별자를 붙입니다.
+Prerelease markers such as `alpha`, `beta`, and `rc` are stability stages, not substitutes for a compatibility grade. Settle the base version first, then attach the prerelease identifier.
 
-## 합성 프로젝트
+## Composite Projects
 
-한 릴리즈가 서버, 클라이언트, SDK를 함께 포함하면 다음 순서를 따릅니다.
+When one release ships a server, a client, and an SDK together, follow this order.
 
-1. 각 산출물의 공개 인터페이스를 독립적으로 판정합니다.
-2. 함께 버전이 올라가는 단일 제품이면 가장 높은 등급을 제품 버전에 적용합니다.
-3. 독립 버전이면 영향을 받은 산출물만 각각 올립니다.
-4. 산출물 사이의 호환 범위가 바뀌면 그 범위 자체를 공개 인터페이스로 판정합니다.
+1. Grade each artifact's public interface independently.
+2. If they version together as one product, apply the highest grade to the product version.
+3. If they version independently, raise only the affected artifacts.
+4. If the compatible range between artifacts changes, grade that range itself as a public interface.

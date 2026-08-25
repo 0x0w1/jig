@@ -1,46 +1,46 @@
-# 백그라운드 워커 버전 정책
+# Background Worker Version Policy
 
-> 기준: SemVer 백그라운드 워커형, `<날짜>` 채택
+> Basis: SemVer background worker, adopted `<date>`
 
-## 공개 인터페이스
+## Public Interface
 
-- queue·stream·event message schema와 의미
-- topic, routing key, partition key
-- retry, timeout, dead-letter, idempotency 정책
-- 처리 순서와 delivery guarantee
-- database·외부 시스템에 만드는 side effect
-- producer·consumer와의 지원 버전 범위
-- 운영자가 사용하는 metric, alert, replay 절차
+- Queue, stream, and event message schemas and their meaning
+- Topics, routing keys, partition keys
+- Retry, timeout, dead-letter, and idempotency policy
+- Processing order and delivery guarantees
+- Side effects written to databases and external systems
+- The supported version range for producers and consumers
+- Metrics, alerts, and replay procedures operators rely on
 
-내부 concurrency 모델과 worker framework는 처리 계약을 바꾸지 않는 한 내부 구현입니다.
+The internal concurrency model and the worker framework are implementation details unless they change the processing contract.
 
-## 판정 순서
+## Decision Order
 
-1. 기존 메시지·처리 결과·운영 계약을 유지하며 결함만 수정했는가? → `patch`
-2. 기존 producer와 consumer를 유지하면서 선택적 메시지·handler·metric만 추가했는가? → `minor`
-3. 기존 producer·consumer·데이터·운영 절차를 바꿔야 하는가? → `major`
+1. Did it fix defects while keeping existing messages, results, and operational contracts? → `patch`
+2. Did it only add optional messages, handlers, or metrics while existing producers and consumers keep working? → `minor`
+3. Must existing producers, consumers, data, or operational procedures change? → `major`
 
-## 등급 정의
+## Grade Definitions
 
-| bump | 정의 | 예 |
+| bump | definition | examples |
 |---|---|---|
-| `patch` | 기존 처리 계약을 유지하는 수정 | 중복 처리 버그 수정, 처리량 개선, retry 구현 복구 |
-| `minor` | 기존 메시지 흐름과 공존하는 확장 | 새 event type, optional field, opt-in handler 추가 |
-| `major` | 메시지·순서·부작용과 비호환인 변경 | 필수 field 추가, topic 이동, idempotency key 변경, delivery 의미 변경 |
+| `patch` | A fix that keeps the processing contract | duplicate-processing bug fixed, throughput improved, retry behavior restored |
+| `minor` | Growth that coexists with the existing message flow | new event type, optional field, opt-in handler |
+| `major` | A change incompatible with messages, ordering, or side effects | required field added, topic moved, idempotency key changed, delivery semantics changed |
 
-## 강경 규칙
+## Hard Rules
 
-> 같은 메시지가 성공 처리되지만 데이터 side effect나 전달 보장이 달라지면 `major`다.
+> If the same message still processes successfully but the data side effect or the delivery guarantee differs, it is `major`.
 
-> backlog replay가 이전과 다른 결과를 만들거나 수동 데이터 정리가 필요하면 `major`다.
+> If replaying the backlog produces a different result than before, or manual data cleanup is required, it is `major`.
 
-## 릴리즈 전 검증
+## Pre-Release Checks
 
-- 이전 producer와 새 consumer, 새 producer와 지원 중인 consumer 조합을 시험한다.
-- 중복·지연·역순·실패 메시지의 contract test를 수행한다.
-- backlog replay, dead-letter 복구, rollback 영향을 확인한다.
+- Test old producer with new consumer, and new producer with every supported consumer.
+- Run contract tests for duplicate, delayed, out-of-order, and failing messages.
+- Check backlog replay, dead-letter recovery, and rollback impact.
 
-## 버전 형식
+## Version Format
 
-- 배포 revision과 공개 계약의 SemVer를 분리한다.
-- `0.x`에서 `major` 판정은 `v0.Y.Z` → `v0.(Y+1).0`으로 표현하되 판정 결과는 `major`로 기록한다.
+- Keep the deployment revision separate from the SemVer of the public contract.
+- A `major` grade in `0.x` is expressed as `v0.Y.Z` → `v0.(Y+1).0`, while the grade is still recorded as `major`.
