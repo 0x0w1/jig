@@ -35,7 +35,7 @@
 
 - [설치 가이드](docs/installation.md): CLI별로 무엇이 어디에 설치되고, 이후 어떻게 관리·제거되는지 설명합니다.
 - [버전 판정 기준](docs/version-rubric.md): 설치된 프로젝트가 자기 기준으로 `patch`/`minor`/`major`를 가르는 방법, `.spai/versioning.md` 파일 계약과 설정값입니다.
-- [프로젝트 유형별 기준 카탈로그](skills/version-rubric/rubrics/INDEX.md): API 서버·클라이언트·라이브러리·CLI·워커·인프라 같은 개발 유형 11종과 문서 관리·콘텐츠·디자인 자산·데이터셋·설정 모음·교육 자료 같은 비개발 유형 6종의 기준 초안, 그리고 `rubric-scan`이 쓰는 탐지 신호표입니다.
+- [프로젝트 유형별 기준 카탈로그](skills/version-rubric/rubrics/INDEX.md): API 서버·클라이언트·라이브러리·CLI·워커·인프라부터 문서 관리·콘텐츠·디자인 자산·데이터셋·설정 모음·교육 자료까지 17종의 기준 초안과, `rubric-scan`이 쓰는 탐지 신호표입니다.
 - [버전 정책](docs/versioning.md): SPAI 자신의 판정 기준 해설입니다. 규범 원본은 `.spai/versioning.md`입니다.
 - [GitHub Repository Settings](docs/github-repository-settings.md): installer가 project scope에서 적용하는 GitHub 설정과, 수동으로 안내하는 branch protection입니다.
 - [Roadmap](docs/roadmap.md): SPAI의 정체성과 방향 후보(트리거 조건부) 기록입니다.

@@ -159,12 +159,12 @@ for catalog_file in \
   rubrics/INDEX.md \
   rubrics/_template.md \
   rubrics/common.md \
-  rubrics/developer/api-server.md \
-  rubrics/developer/infrastructure.md \
-  rubrics/developer/agent-skill-pack.md \
-  rubrics/non-developer/document-archive.md \
-  rubrics/non-developer/content-site.md \
-  rubrics/non-developer/dataset.md; do
+  rubrics/api-server.md \
+  rubrics/infrastructure.md \
+  rubrics/agent-skill-pack.md \
+  rubrics/document-archive.md \
+  rubrics/content-site.md \
+  rubrics/dataset.md; do
   require_text dist/files.tsv "version-rubric	$catalog_file"
   require_file "dist/claude-code-plugin/spai/skills/version-rubric/$catalog_file"
   require_file "dist/codex/.agents/skills/spai-version-rubric/$catalog_file"
@@ -182,7 +182,8 @@ awk -F '|' '/^\| \[/ { print $2 }' skills/version-rubric/rubrics/INDEX.md \
 
 # Every rubric body must carry the two required sections and stay copy-ready: a body with
 # frontmatter cannot be moved into .spai/versioning.md as-is.
-for rubric_body in skills/version-rubric/rubrics/developer/*.md skills/version-rubric/rubrics/non-developer/*.md; do
+for rubric_body in skills/version-rubric/rubrics/*.md; do
+  case "$(basename "$rubric_body")" in INDEX.md|_template.md|common.md) continue ;; esac
   require_text "$rubric_body" "## 판정 순서"
   require_text "$rubric_body" "## 등급 정의"
   if head -n 1 "$rubric_body" | grep -qx -- '---'; then
@@ -191,6 +192,46 @@ for rubric_body in skills/version-rubric/rubrics/developer/*.md skills/version-r
   if ! grep -q '^# ' "$rubric_body"; then
     fail "rubric body has no title: $rubric_body"
   fi
+done
+
+if find skills/version-rubric/rubrics -mindepth 1 -type d | grep -q .; then
+  fail "rubric catalog must stay flat: INDEX.md carries the grouping, not directories"
+fi
+
+# Every rubric body names its consumer contract under one section title.
+for rubric_body in skills/version-rubric/rubrics/*.md; do
+  case "$(basename "$rubric_body")" in INDEX.md|_template.md|common.md) continue ;; esac
+  require_text "$rubric_body" "## 공개 인터페이스"
+done
+
+# The catalog states which axis it grades on, because the default rubric uses another one.
+require_text skills/version-rubric/rubrics/INDEX.md "SemVer 소비자 호환 축"
+require_text skills/version-rubric/SKILL.md "human-intervention axis"
+
+# Ordered questions stop at the first match, so question 1 must not swallow question 2.
+# A rubric whose patch question accepts "added" leaves minor unreachable.
+for rubric_body in skills/version-rubric/rubrics/*.md; do
+  case "$(basename "$rubric_body")" in INDEX.md|_template.md|common.md) continue ;; esac
+  first_question=$(awk '/^## 판정 순서/{p=1;next} /^## /{p=0} p&&/^1\./{print;exit}' "$rubric_body")
+  case "$first_question" in
+    *추가했는가*|*더했는가*)
+      case "$first_question" in
+        *기존*) : ;;
+        *) fail "patch question swallows the minor question in $rubric_body: $first_question" ;;
+      esac
+      ;;
+  esac
+done
+
+# 강경 규칙 is the escalation section: every rule must name the grade it forces.
+for rubric_body in skills/version-rubric/rubrics/*.md; do
+  case "$(basename "$rubric_body")" in INDEX.md|_template.md|common.md) continue ;; esac
+  awk -v file="$rubric_body" '
+    /^## 강경 규칙/ { p = 1; next }
+    /^## / { p = 0 }
+    p && /^>/ && !/`major`/ && !/`minor`/ { print file ": " $0; found = 1 }
+    END { exit found ? 1 : 0 }
+  ' "$rubric_body" || fail "escalation rule names no grade (see line above); move it to the section that owns it"
 done
 
 # rubric-scan reads the catalog and hands the write to version-rubric; it never writes.

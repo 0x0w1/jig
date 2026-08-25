@@ -29,19 +29,37 @@ SPAI가 릴리즈 등급(`patch`/`minor`/`major`)을 어떤 기준으로 가를�
 
 ```text
 rubrics/
-├── INDEX.md            # 유형 목록과 탐지 신호. 스캔은 이 파일만 읽습니다
-├── _template.md        # 카탈로그에 없는 유형을 새로 쓸 때의 골격
-├── common.md           # 유형과 무관한 공통 SemVer 원칙
-├── developer/          # 호출·import·배포 계약으로 판정하는 11개 유형
-└── non-developer/      # 문서·자산·데이터·발행물로 판정하는 6개 유형
+├── INDEX.md         # 유형 목록과 탐지 신호. 스캔은 이 파일만 읽습니다
+├── _template.md     # 카탈로그에 없는 유형을 새로 쓸 때의 골격
+├── common.md        # 유형과 무관한 공통 SemVer 원칙
+└── <유형>.md         # 유형별 초안 17종. 분류 디렉토리 없이 한 층
 ```
 
-두 디렉토리는 난이도가 아니라 **공개 인터페이스의 종류**로 갈립니다. `developer/`는 코드 소비자와의 계약, `non-developer/`는 산출물 자체가 계약입니다. 비개발자가 관리하는 저장소라도 API를 배포하면 `developer/`를 씁니다.
+유형 문서는 평평하게 둡니다. 분류는 `INDEX.md` 표의 `소비자` 열이 하고, 한 프로젝트가 여러 성격을 겸하는 일이 흔하기 때문입니다. 디렉토리로 갈라 두면 겸하는 유형이 한쪽으로 밀려나고, 성격이 바뀔 때 경로까지 움직입니다.
 
-| 축 | 유형 |
+| 소비자 성격 | 유형 |
 |---|---|
-| developer | `api-server`, `web-client`, `mobile-app`, `desktop-app`, `library-sdk`, `cli-tool`, `background-worker`, `infrastructure`, `monorepo`, `data-pipeline`, `agent-skill-pack` |
-| non-developer | `document-archive`, `content-site`, `design-assets`, `dataset`, `config-collection`, `course-material` |
+| 호출·실행되는 것 | `api-server`, `background-worker`, `data-pipeline` |
+| 설치해 쓰는 화면 | `web-client`, `mobile-app`, `desktop-app` |
+| 가져다 쓰는 코드 | `library-sdk`, `cli-tool`, `agent-skill-pack` |
+| 환경을 바꾸는 것 | `infrastructure`, `config-collection` |
+| 여러 패키지를 감싸는 것 | `monorepo` |
+| 읽고 보는 것 | `document-archive`, `content-site`, `course-material` |
+| 가져다 쓰는 자산·데이터 | `design-assets`, `dataset` |
+
+프로젝트를 만든 사람이 개발자인지 아닌지는 판정과 무관합니다. 문서만 있는 저장소를 개발자가 관리해도 `document-archive`이고, 디자이너가 관리하는 저장소가 API를 배포하면 `api-server`입니다.
+
+### 카탈로그와 기본 기준은 축이 다릅니다
+
+카탈로그 17종은 **SemVer 소비자 호환 축**으로 판정합니다. 위의 [기본 기준](#기본-기준-사람-개입-축)은 **사람 개입 축**입니다. 두 축은 같은 변경을 다르게 판정합니다.
+
+| 변경 | 카탈로그 | 기본 기준 |
+|---|---|---|
+| 기능·endpoint 제거 | `major` | `minor` |
+| 세대 교체, 계약 유지 | `patch` | `minor` |
+| 조용한 동작 변경 | `major` | `major` |
+
+둘 중 하나만 씁니다. 문항을 섞으면 판정 순서가 어디서 멈추는지가 흐려집니다. 설치본·호출자·독자처럼 **바깥 소비자가 분명한 프로젝트**는 카탈로그가, 소비자가 자기 자신이거나 아직 정해지지 않은 프로젝트는 기본 기준이 맞습니다.
 
 카탈로그 파일은 그대로 `.spai/versioning.md`가 될 수 있게 쓰여 있습니다. 복사한 뒤 `> 기준:` 줄의 날짜와 공개 인터페이스 목록만 프로젝트에 맞게 고칩니다. 카탈로그 자체는 payload라서 `spai-update`가 갱신합니다 — 프로젝트의 결정은 카탈로그가 아니라 기준 파일에 적습니다.
 
@@ -58,7 +76,7 @@ rubrics/
 
 ### 새 유형 추가
 
-카탈로그에 없는 성격의 프로젝트는 `_template.md`를 복사해 `developer/` 또는 `non-developer/` 아래에 만들고, `INDEX.md` 표에 행을 추가합니다. **표에 없는 파일은 스캔이 찾지 못합니다.** 강한 신호는 그 유형에서만 나오는 경로여야 합니다 — `README.md`처럼 어디에나 있는 파일은 신호가 아닙니다.
+카탈로그에 없는 성격의 프로젝트는 `_template.md`를 복사해 같은 층에 `<id>.md`로 만들고, `INDEX.md` 표에서 소비자가 비슷한 행 옆에 행을 추가합니다. **표에 없는 파일은 스캔이 찾지 못합니다.** 강한 신호는 그 유형에서만 나오는 경로여야 합니다 — `README.md`처럼 어디에나 있는 파일은 신호가 아닙니다.
 
 ## 설정값
 
@@ -163,7 +181,7 @@ Claude Code는 `/spai:version-rubric`, Codex와 Antigravity는 `spai-version-rub
 
 ### 문서 관리 프로젝트
 
-카탈로그의 `non-developer/document-archive.md`가 이 경우입니다. 직접 쓰면 이런 모양이 됩니다.
+카탈로그의 `document-archive.md`가 이 경우입니다. 직접 쓰면 이런 모양이 됩니다.
 
 ```md
 # 버전 정책

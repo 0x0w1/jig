@@ -97,13 +97,13 @@ rubrics/
 ├── INDEX.md            # type list, detection signals, scoring and merge rules
 ├── _template.md        # skeleton for a type the catalog does not cover yet
 ├── common.md           # SemVer principles that hold across every type
-├── developer/          # graded by call, import, and deployment contracts
-└── non-developer/      # graded by the documents, assets, and data themselves
+└── <type>.md           # one draft per project type, all on one level
 ```
 
 - Read `INDEX.md` first. It is the only file that lists the types, so a draft not indexed there is invisible to the scan.
-- The `non-developer/` drafts title their interface section `## 소비자와 약속한 것`. It means the same thing as `## 공개 인터페이스`; the reader is not a developer.
+- Drafts are not grouped into subdirectories. The `소비자` column in `INDEX.md` carries the grouping, because a project often serves several kinds of consumer at once and a directory would force it into one.
 - Do not read every body. Read `INDEX.md`, pick the type, read that one file.
+- The catalog grades on the SemVer consumer-compatibility axis, not the human-intervention axis the default rubric uses. The two disagree — removing a feature is `major` in the catalog and `minor` in the default. Adopt one whole; never merge questions from both into one rubric.
 - The catalog is payload: `spai-update` replaces it. Never edit a catalog file to record a project's decision — the decision lives in the resolved rubric path.
 
 When the project type is not obvious, run `rubric-scan` (or the installed `spai-rubric-scan`) first. It scans the repository, scores it against `INDEX.md`, and hands back a type with the paths that produced it. This skill still owns the write.

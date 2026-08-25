@@ -28,7 +28,7 @@ If no catalog is found, do not guess type names. Report that the catalog is miss
 Read only. Never modify a file, never install anything, never run a build.
 
 1. **Inventory** — `git ls-files` for the tracked file list. Untracked build output and dependency directories are not evidence.
-2. **Shape** — count files by extension and top-level directory. A repository whose tracked files are overwhelmingly documents or assets is a `non-developer` candidate even when a stray script exists.
+2. **Shape** — count files by extension and top-level directory. A repository whose tracked files are overwhelmingly documents or assets is graded by what those files promise, even when a stray script exists.
 3. **Manifests** — read the dependency and packaging files that exist (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pubspec.yaml`, `Gemfile`, `*.csproj`, and the like). Dependency names are the strongest single source of type evidence.
 4. **Entrypoints** — look for what the project hands to someone: published package metadata, executable names, server routes, deployment manifests, site config, exported assets.
 5. **Distribution** — check `.github/workflows`, `Dockerfile`, `install.sh`, release automation, and store or registry configuration for how a release reaches its consumers.
@@ -47,12 +47,12 @@ Match what you found against the signal table in `INDEX.md` and score it by that
 
 | 순위 | 유형 | 점수 | 근거 경로 |
 |---|---|---|---|
-| 1 | <id> (<developer|non-developer>) | <n> | `<path>`, `<path>` |
+| 1 | <id> | <n> | `<path>`, `<path>` |
 | 2 | <id> | <n> | `<path>` |
 
 - 추천: <id> — <한 문장 이유>
 - 함께 볼 유형: <id> (<이유>) | 없음
-- 채택 시 초안: <catalog>/<audience>/<id>.md
+- 채택 시 초안: <catalog>/<id>.md
 - 다음 조치: `version-rubric`으로 초안 작성 | 기본 기준 채택 | 유형 선택 필요
 ```
 
@@ -62,6 +62,7 @@ Rules for the report:
 - Say what would be inherited: the recommended draft's `## 판정 순서` three questions, so the user judges the rubric and not just the type name.
 - When two candidates are within 2 points, present them as a composite rather than picking one, and follow the merge rule in `INDEX.md`.
 - When the top score is below 3, recommend the default rubric and say which signals were missing.
+- Say which axis the recommendation grades on. A catalog draft grades by SemVer consumer compatibility; the default rubric grades by whether a human must step in. When the repository already has a rubric on the other axis, say so plainly — adopting the draft replaces the axis, it does not extend it.
 
 ## Handoff
 
