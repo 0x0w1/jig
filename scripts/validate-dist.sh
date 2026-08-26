@@ -156,6 +156,16 @@ require_text .spai/versioning.md "## 판정 순서"
 require_text .spai/versioning.md "## 등급 정의"
 require_text .spai/versioning.md "## 강경 규칙"
 require_text .spai/versioning.md "sh scripts/validate-dist.sh"
+# Every linked document exists in both languages and the pair links each other.
+for doc_page in installation version-rubric versioning github-repository-settings roadmap; do
+  require_file "docs/$doc_page.md"
+  require_file "docs/$doc_page.ko.md"
+  require_text "docs/$doc_page.md" "($doc_page.ko.md)"
+  require_text "docs/$doc_page.ko.md" "($doc_page.md)"
+done
+require_text README.ko.md "docs/installation.ko.md"
+require_text README.md "docs/installation.md"
+
 require_file docs/version-rubric.md
 require_text docs/version-rubric.md "skills/version-rubric/rubrics/INDEX.md"
 require_text README.md "docs/version-rubric.md"

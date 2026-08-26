@@ -34,7 +34,7 @@ curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
   | sh -s -- --target codex --scope project        # 또는 --target antigravity
 ```
 
-옵션, 설치 위치, 스킬 네임스페이스, 제거는 [설치 가이드](docs/installation.md)에 있습니다.
+옵션, 설치 위치, 스킬 네임스페이스, 제거는 [설치 가이드](docs/installation.ko.md)에 있습니다.
 
 ### 2. 저장소에 연결
 
@@ -75,12 +75,12 @@ SPAI는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니�
 
 ## 문서
 
-- [설치 가이드](docs/installation.md): CLI별 설치 위치, installer 옵션, 스킬 네임스페이스, 제거 방법입니다.
-- [버전 판정 기준](docs/version-rubric.md): 설치된 프로젝트가 자기 기준으로 `patch`/`minor`/`major`를 가르는 방법과 `.spai/versioning.md` 파일 계약입니다.
+- [설치 가이드](docs/installation.ko.md): CLI별 설치 위치, installer 옵션, 스킬 네임스페이스, 제거 방법입니다.
+- [버전 판정 기준](docs/version-rubric.ko.md): 설치된 프로젝트가 자기 기준으로 `patch`/`minor`/`major`를 가르는 방법과 `.spai/versioning.md` 파일 계약입니다.
 - [프로젝트 유형별 기준 카탈로그](skills/version-rubric/rubrics/INDEX.md): 기준 초안 17종과 `rubric-scan`이 쓰는 탐지 신호표입니다. 영어로 쓰여 있습니다.
-- [버전 정책](docs/versioning.md): SPAI 자신의 판정 기준 해설입니다. 규범 원본은 `.spai/versioning.md`입니다.
-- [GitHub Repository Settings](docs/github-repository-settings.md): installer가 적용하는 GitHub 설정과, 선택 기능인 branch protection을 정하는 방식입니다.
-- [Roadmap](docs/roadmap.md): SPAI의 정체성과 방향 후보(트리거 조건부) 기록입니다.
+- [버전 정책](docs/versioning.ko.md): SPAI 자신의 판정 기준 해설입니다. 규범 원본은 `.spai/versioning.md`입니다.
+- [GitHub Repository Settings](docs/github-repository-settings.ko.md): installer가 적용하는 GitHub 설정과, 선택 기능인 branch protection을 정하는 방식입니다.
+- [Roadmap](docs/roadmap.ko.md): SPAI의 정체성과 방향 후보(트리거 조건부) 기록입니다.
 
 ## 업데이트
 
