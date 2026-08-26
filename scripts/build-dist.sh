@@ -4,12 +4,12 @@ set -eu
 SKILLS=$(awk -F '\t' '!/^#/ && NF >= 3 { printf "%s ", $1 }' manifest.tsv)
 
 # Codex and Antigravity have no plugin system, so their skill directories carry a
-# spai- prefix to stay out of the way of skills the user wrote. Claude Code needs no
-# prefix: plugin skills are namespaced by the host as /spai:<skill>.
+# jig- prefix to stay out of the way of skills the user wrote. Claude Code needs no
+# prefix: plugin skills are namespaced by the host as /jig:<skill>.
 prefixed_skill_name() {
   case "$1" in
-    spai-*) printf '%s' "$1" ;;
-    *) printf 'spai-%s' "$1" ;;
+    jig-*) printf '%s' "$1" ;;
+    *) printf 'jig-%s' "$1" ;;
   esac
 }
 
@@ -18,13 +18,13 @@ skill_summary() {
     github-sync) printf '%s' "repository setup and synchronization; not for creating releases." ;;
     github-release) printf '%s' "release execution promoting develop to main with a fast-forward push and a tagged GitHub release." ;;
     develop-task-flow) printf '%s' "normal development tasks on feature/fix/chore branches squash-merged back into develop." ;;
-    project-setup) printf '%s' "install SPAI for a repository and select its GitHub CLI profile without changing the global active account." ;;
-    spai-update) printf '%s' "update the installed SPAI skills to the latest SPAI release and converge repository settings." ;;
-    spai-doctor) printf '%s' "diagnose the installed SPAI state (profile, version, protection, legacy); read-only." ;;
+    project-setup) printf '%s' "install jig for a repository and select its GitHub CLI profile without changing the global active account." ;;
+    jig-update) printf '%s' "update the installed jig skills to the latest jig release and converge repository settings." ;;
+    jig-doctor) printf '%s' "diagnose the installed jig state (profile, version, protection, legacy); read-only." ;;
     readme) printf '%s' "write or update the project README from the repository state; drafts one when missing, fixes drift when present." ;;
-    version-rubric) printf '%s' "decide and maintain how this project grades patch, minor, and major in .spai/versioning.md; ships the project-type rubric catalog." ;;
+    version-rubric) printf '%s' "decide and maintain how this project grades patch, minor, and major in .jig/versioning.md; ships the project-type rubric catalog." ;;
     rubric-scan) printf '%s' "scan the repository to classify its project type and recommend a version rubric from the catalog; read-only." ;;
-    *) printf '%s' "SPAI procedure." ;;
+    *) printf '%s' "jig procedure." ;;
   esac
 }
 
@@ -60,13 +60,13 @@ append_skill_list() {
 append_managed_block() {
   block_intro="$1"
 
-  printf 'Scaffolded Procedures for AI Agents\n\n'
-  printf '<!-- spai:start github-release-setup -->\n'
-  printf '<!-- spai:version dev -->\n\n'
+  printf 'jig - repository procedures for AI agent CLIs\n\n'
+  printf '<!-- jig:start github-release-setup -->\n'
+  printf '<!-- jig:version dev -->\n\n'
   printf '%s\n\n' "$block_intro"
   append_skill_list
   printf '\n%s\n' "Use these skills when the matching workflow is requested. Preserve unrelated user changes, never force push, and never delete branches or labels without explicit confirmation."
-  printf '\n<!-- spai:end github-release-setup -->\n'
+  printf '\n<!-- jig:end github-release-setup -->\n'
 }
 
 rm -rf dist
@@ -78,11 +78,11 @@ mkdir -p \
 cp manifest.tsv dist/manifest.tsv
 
 append_managed_block \
-  "SPAI installs these repository workflow skills under .agents/skills. Every SPAI skill name carries the spai- prefix so it stays out of the way of skills you wrote yourself." \
+  "jig installs these repository workflow skills under .agents/skills. Every jig skill name carries the jig- prefix so it stays out of the way of skills you wrote yourself." \
   > dist/codex/AGENTS.md
 
 append_managed_block \
-  "SPAI installs these repository workflow skills under .agents/skills. Every SPAI skill name carries the spai- prefix so it stays out of the way of skills you wrote yourself." \
+  "jig installs these repository workflow skills under .agents/skills. Every jig skill name carries the jig- prefix so it stays out of the way of skills you wrote yourself." \
   > dist/antigravity/GEMINI.md
 
 # The installer downloads one file at a time, so it needs the file list the payload
@@ -118,7 +118,7 @@ build_claude_plugin() {
   cat > "$plugin_root/.claude-plugin/plugin.json" <<EOF
 {
   "name": "$plugin_name",
-  "description": "SPAI repository workflow skills: project setup, develop flow, CLI releases, repository sync, and lifecycle management",
+  "description": "jig repository workflow skills: project setup, develop flow, CLI releases, repository sync, and lifecycle management",
   "author": { "name": "0x0w1" },
   "homepage": "https://github.com/0x0w1/spai",
   "license": "MIT"
@@ -137,7 +137,7 @@ EOF
   done
 }
 
-build_claude_plugin spai
+build_claude_plugin jig
 
 echo "Generated dist files:"
 find dist -type f | sort

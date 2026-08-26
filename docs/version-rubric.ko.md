@@ -2,7 +2,7 @@
 
 [English](version-rubric.md)
 
-SPAI가 릴리즈 등급(`patch`/`minor`/`major`)을 어떤 기준으로 가를지는 **프로젝트가 결정합니다.** 그 결정은 저장소 안의 파일 하나에 담기고 `github-release`가 릴리즈할 때 그 파일을 읽습니다.
+jig가 릴리즈 등급(`patch`/`minor`/`major`)을 어떤 기준으로 가를지는 **프로젝트가 결정합니다.** 그 결정은 저장소 안의 파일 하나에 담기고 `github-release`가 릴리즈할 때 그 파일을 읽습니다.
 
 판정 축은 프로젝트마다 다릅니다. 기본은 사람이 손대야 하는지로 가르고 문서 관리 프로젝트는 산출물 종류로 가릅니다. 같은 임계값을 조절하는 문제가 아니라 축 자체가 다르기 때문에 판정 기준을 스킬에 고정하지 않고 프로젝트로 내보냈습니다.
 
@@ -11,12 +11,12 @@ SPAI가 릴리즈 등급(`patch`/`minor`/`major`)을 어떤 기준으로 가를�
 ## 파일 위치
 
 ```text
-.spai/
+.jig/
 └── versioning.md
 ```
 
-- `.spai/`는 **프로젝트가 소유합니다.** installer와 `spai-update`는 이 디렉토리를 쓰지도 지우지도 않고 `spai-doctor`는 이 안의 내용을 드리프트로 보지 않습니다. 직접 고친 내용이 정답입니다.
-- 이 파일은 **커밋해야 합니다.** 커밋하지 않으면 clone과 CI에 전달되지 않아 사람마다 다른 기준으로 판정합니다. `spai-doctor`가 미커밋 상태를 경고합니다.
+- `.jig/`는 **프로젝트가 소유합니다.** installer와 `jig-update`는 이 디렉토리를 쓰지도 지우지도 않고 `jig-doctor`는 이 안의 내용을 드리프트로 보지 않습니다. 직접 고친 내용이 정답입니다.
+- 이 파일은 **커밋해야 합니다.** 커밋하지 않으면 clone과 CI에 전달되지 않아 사람마다 다른 기준으로 판정합니다. `jig-doctor`가 미커밋 상태를 경고합니다.
 - `.gitignore`에 넣지 마세요.
 
 ## 기준 카탈로그
@@ -26,8 +26,8 @@ SPAI가 릴리즈 등급(`patch`/`minor`/`major`)을 어떤 기준으로 가를�
 | 환경 | 카탈로그 경로 |
 |---|---|
 | Claude Code | `${CLAUDE_PLUGIN_ROOT}/skills/version-rubric/rubrics` |
-| Codex · Antigravity (project) | `.agents/skills/spai-version-rubric/rubrics` |
-| SPAI 저장소 자체 | [`skills/version-rubric/rubrics`](../skills/version-rubric/rubrics/INDEX.md) |
+| Codex · Antigravity (project) | `.agents/skills/jig-version-rubric/rubrics` |
+| jig 저장소 자체 | [`skills/version-rubric/rubrics`](../skills/version-rubric/rubrics/INDEX.md) |
 
 ```text
 rubrics/
@@ -63,11 +63,11 @@ rubrics/
 
 둘 중 하나만 씁니다. 문항을 섞으면 판정 순서가 어디서 멈추는지가 흐려집니다. 설치본·호출자·독자처럼 **바깥 소비자가 분명한 프로젝트**는 카탈로그가, 소비자가 자기 자신이거나 아직 정해지지 않은 프로젝트는 기본 기준이 맞습니다.
 
-카탈로그 파일은 그대로 `.spai/versioning.md`가 될 수 있게 쓰여 있습니다. 복사한 뒤 `> Basis:` 줄의 날짜와 `## Public Interface` 목록만 프로젝트에 맞게 고칩니다. 카탈로그 자체는 payload라서 `spai-update`가 갱신합니다 — 프로젝트의 결정은 카탈로그가 아니라 기준 파일에 적습니다.
+카탈로그 파일은 그대로 `.jig/versioning.md`가 될 수 있게 쓰여 있습니다. 복사한 뒤 `> Basis:` 줄의 날짜와 `## Public Interface` 목록만 프로젝트에 맞게 고칩니다. 카탈로그 자체는 payload라서 `jig-update`가 갱신합니다 — 프로젝트의 결정은 카탈로그가 아니라 기준 파일에 적습니다.
 
 ### 유형 스캔
 
-`rubric-scan` 스킬은 저장소를 읽어 유형 후보를 고릅니다. Claude Code는 `/spai:rubric-scan`, Codex와 Antigravity는 `spai-rubric-scan`입니다.
+`rubric-scan` 스킬은 저장소를 읽어 유형 후보를 고릅니다. Claude Code는 `/jig:rubric-scan`, Codex와 Antigravity는 `jig-rubric-scan`입니다.
 
 1. 추적 파일 목록, 확장자 분포, 의존성 manifest, 배포 설정, 커밋 이력을 읽습니다.
 2. `INDEX.md`의 신호 표와 맞춰 점수를 냅니다 — 강한 신호 2점, 약한 신호 1점, 3점 미만은 후보에서 제외합니다.
@@ -84,17 +84,17 @@ rubrics/
 
 | 키 | 종류 | 기본값 | clone 전파 | 용도 |
 |---|---|---|---|---|
-| `SPAI_VERSION_RUBRIC` | 환경 변수 | 없음 | 안 됨 (세션 한정) | 일회성 경로 override, CI |
-| `spai.versionRubric` | `git config --local` | 없음 | 안 됨 | 관례 경로를 못 쓸 때의 저장소 override |
-| (관례 경로) | 파일 | `.spai/versioning.md` | 됨 | 정상 경로 |
+| `JIG_VERSION_RUBRIC` | 환경 변수 | 없음 | 안 됨 (세션 한정) | 일회성 경로 override, CI |
+| `jig.versionRubric` | `git config --local` | 없음 | 안 됨 | 관례 경로를 못 쓸 때의 저장소 override |
+| (관례 경로) | 파일 | `.jig/versioning.md` | 됨 | 정상 경로 |
 
-해석 순서는 환경 변수 → 로컬 설정 → 관례 경로입니다. `SPAI_GITHUB_PROFILE`/`spai.githubProfile` 쌍과 같은 형태입니다.
+해석 순서는 환경 변수 → 로컬 설정 → 관례 경로입니다. `JIG_GITHUB_PROFILE`/`jig.githubProfile` 쌍과 같은 형태입니다.
 
 설정 키에는 **경로만** 넣습니다. "기본 기준을 채택했다" 같은 상태는 파일 상단의 `> Basis:` 줄에만 기록합니다. `git config --local`은 `.git/config`에 저장되어 clone에 전달되지 않으므로 상태를 그쪽에 두면 같은 저장소가 사람마다 다르게 판정합니다.
 
 ## 사용법
 
-Claude Code는 `/spai:version-rubric`, Codex와 Antigravity는 `spai-version-rubric`으로 실행합니다. 인자는 없습니다. 스킬이 현재 상태를 먼저 확인한 뒤 무엇을 할지 묻습니다.
+Claude Code는 `/jig:version-rubric`, Codex와 Antigravity는 `jig-version-rubric`으로 실행합니다. 인자는 없습니다. 스킬이 현재 상태를 먼저 확인한 뒤 무엇을 할지 묻습니다.
 
 | 하고 싶은 것 | 스킬이 하는 일 |
 |---|---|
@@ -116,7 +116,7 @@ Claude Code는 `/spai:version-rubric`, Codex와 Antigravity는 `spai-version-rub
 ```md
 # Version Policy
 
-> Basis: SPAI default (human-intervention axis), adopted <date>
+> Basis: jig default (human-intervention axis), adopted <date>
 
 ## Decision Order
 1. Is this a fix inside what the project already does? → `patch`
@@ -166,7 +166,7 @@ Claude Code는 `/spai:version-rubric`, Codex와 Antigravity는 `spai-version-rub
 
 계약 제목은 영어입니다. 스킬 본문이 전부 영어라 제목만 한글이면 같은 파일 안에서 어휘가 갈리고 설치본이 어느 쪽을 써야 하는지 매번 판단해야 합니다.
 
-**한글 제목으로 쓰인 기존 기준 파일은 그대로 동작합니다.** rubric을 읽는 모든 스킬(`github-release`, `spai-doctor`, `version-rubric`, `rubric-scan`)이 양쪽 철자를 모두 인식합니다.
+**한글 제목으로 쓰인 기존 기준 파일은 그대로 동작합니다.** rubric을 읽는 모든 스킬(`github-release`, `jig-doctor`, `version-rubric`, `rubric-scan`)이 양쪽 철자를 모두 인식합니다.
 
 | 영어 (표준) | 한글 (레거시) |
 |---|---|
@@ -229,11 +229,11 @@ Claude Code는 `/spai:version-rubric`, Codex와 Antigravity는 `spai-version-rub
 
 ### 설치본을 가진 도구
 
-SPAI 자신이 이 경우입니다. [`.spai/versioning.md`](../.spai/versioning.md)를 참고하세요. 판정 축이 "설치본이 치르는 비용"이고 기본과는 다른 강경 규칙 두 개("조용한 동작 변경은 `major`", "`migration-manual` 블록이 있으면 `major`")와 공개 인터페이스 목록을 함께 둡니다.
+jig 자신이 이 경우입니다. [`.jig/versioning.md`](../.jig/versioning.md)를 참고하세요. 판정 축이 "설치본이 치르는 비용"이고 기본과는 다른 강경 규칙 두 개("조용한 동작 변경은 `major`", "`migration-manual` 블록이 있으면 `major`")와 공개 인터페이스 목록을 함께 둡니다.
 
 ## 관련 문서
 
 - [기준 카탈로그 색인](../skills/version-rubric/rubrics/INDEX.md)
 - [공통 SemVer 원칙](../skills/version-rubric/rubrics/common.md)
-- [SPAI 버전 정책 해설](versioning.ko.md)
+- [jig 버전 정책 해설](versioning.ko.md)
 - [설치 가이드](installation.ko.md)

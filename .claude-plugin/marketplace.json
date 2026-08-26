@@ -1,15 +1,15 @@
 {
-  "name": "spai",
-  "description": "Scaffolded Procedures for AI Agents: repository workflow skills for the develop/main CLI release flow.",
+  "name": "jig",
+  "description": "jig — repository procedures for AI agent CLIs: same cut, every project. Skills for the develop/main CLI release flow.",
   "owner": {
     "name": "0x0w1",
     "url": "https://github.com/0x0w1"
   },
   "plugins": [
     {
-      "name": "spai",
-      "source": "./dist/claude-code-plugin/spai",
-      "description": "SPAI repository workflow skills: project setup, develop flow, CLI releases, repository sync, and lifecycle management. Skills are namespaced as /spai:<skill>."
+      "name": "jig",
+      "source": "./dist/claude-code-plugin/jig",
+      "description": "jig repository workflow skills: project setup, develop flow, CLI releases, repository sync, and lifecycle management. Skills are namespaced as /jig:<skill>."
     }
   ]
 }

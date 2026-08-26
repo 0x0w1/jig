@@ -13,7 +13,7 @@ Use this repository skill only for setup and synchronization of GitHub repositor
 - Branch protection for `main` and `develop`: **optional**, and only when the repository can have it. Direct pushes allowed, force pushes and deletion blocked. See Branch Protection Is Optional.
 - Local guard: a git `pre-push` hook that blocks force pushes to and deletion of `main`/`develop` and restricts direct `main` pushes to the release fast-forward (`develop:main`). Local defense only; server-side protection stays the final barrier.
 - No release-drafter files, no pull request template, no label sync; the release flow is CLI-driven (`github-release`) and does not use pull requests.
-- Sync is convergent and idempotent: one run aligns the repository with the current model even when several SPAI versions were skipped. `spai-update` runs it after updating installed files.
+- Sync is convergent and idempotent: one run aligns the repository with the current model even when several jig versions were skipped. `jig-update` runs it after updating installed files.
 
 ## Branch Protection Is Optional
 
@@ -40,18 +40,19 @@ Confirm the private case against the API rather than guessing a plan from `gh ap
 
 > This repository is public (or on a plan that includes it), so `main` and `develop` can be protected against force pushes and deletion. Set that up now?
 
-- Yes → apply the policy in Procedure step 6, then record `git config --local spai.branchProtection enabled`.
-- No → record `git config --local spai.branchProtection skipped` and continue. The local `pre-push` guard still covers force pushes, deletion, and direct pushes to `main` on this machine.
+- Yes → apply the policy in Procedure step 6, then record `git config --local jig.branchProtection enabled`.
+- No → record `git config --local jig.branchProtection skipped` and continue. The local `pre-push` guard still covers force pushes, deletion, and direct pushes to `main` on this machine.
 - Already protected with the policy in Procedure step 6 → record `enabled` and do not ask. The repository is already where the answer would put it, so the question has nothing to decide.
+- Recorded only under the legacy key `spai.branchProtection` → read it, copy it to `jig.branchProtection`, and do not ask again.
 - Already recorded → do not ask again. `enabled` re-applies the policy convergently; `skipped` skips with a one-line log. Re-ask only when the user asks to change it.
 
-`spai.branchProtection` lives in `.git/config`, so it does not reach clones or CI. It records a choice about this checkout, not a repository contract; a collaborator is asked separately on their own machine.
+`jig.branchProtection` lives in `.git/config`, so it does not reach clones or CI. It records a choice about this checkout, not a repository contract; a collaborator is asked separately on their own machine.
 
 **Without server-side protection, the local guard is the only barrier.** Say that plainly in the report when protection is skipped or unavailable, because a `--no-verify` push then reaches `main` with nothing in the way.
 
 ## GitHub Profile
 
-Before any `gh` command, resolve the host from `SPAI_GITHUB_HOST`, local `spai.githubHost`, then `github.com`, and resolve the profile from `SPAI_GITHUB_PROFILE`, then local `spai.githubProfile`. If a profile is configured, read its credential with `gh auth token --hostname <host> --user <profile>` without printing it and run every `gh` command with that credential through `GH_TOKEN` (`github.com` or `*.ghe.com`) or `GH_ENTERPRISE_TOKEN` (other hosts). Verify `gh api user --jq .login` matches the profile. Do not use `gh auth switch`; fall back to the globally active account only when neither the environment nor local config selects a profile.
+Before any `gh` command, resolve the host from `JIG_GITHUB_HOST`, local `jig.githubHost`, then `github.com`, and resolve the profile from `JIG_GITHUB_PROFILE`, then local `jig.githubProfile`. If a profile is configured, read its credential with `gh auth token --hostname <host> --user <profile>` without printing it and run every `gh` command with that credential through `GH_TOKEN` (`github.com` or `*.ghe.com`) or `GH_ENTERPRISE_TOKEN` (other hosts). Verify `gh api user --jq .login` matches the profile. Do not use `gh auth switch`; fall back to the globally active account only when neither the environment nor local config selects a profile.
 
 ## Phase Rules
 
@@ -85,24 +86,25 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
 3. Run `gh repo view` and `gh auth status`. If GitHub CLI is unavailable, unauthenticated, or lacks permission, report the remaining GitHub steps.
 4. Confirm `main` exists locally and remotely when possible.
 5. Confirm `develop` exists locally and remotely when possible. If missing, create it from `main` and push without force.
-6. Settle branch protection per Branch Protection Is Optional: probe, then ask unless `spai.branchProtection` already records a choice. When applying, protect `main` and `develop` with the same policy:
+6. Settle branch protection per Branch Protection Is Optional: probe, then ask unless `jig.branchProtection` already records a choice. When applying, protect `main` and `develop` with the same policy:
    - no required pull request reviews
    - no required status checks
    - force pushes disabled
    - deletion disabled
 
-   A `403` from the protection API at this point means the plan does not include it. Skip, log one line, and continue with the remaining steps; never retry it as an error. SPAI does not configure rulesets — a repository already governed by a ruleset is left alone.
+   A `403` from the protection API at this point means the plan does not include it. Skip, log one line, and continue with the remaining steps; never retry it as an error. jig does not configure rulesets — a repository already governed by a ruleset is left alone.
 7. Install or update the local pre-push guard at `.git/hooks/pre-push`:
    - Skip with a pass log when the directory is not a git repository.
    - If the file is missing, write the script below verbatim and `chmod +x` it.
-   - If the file exists and line 2 matches `# spai:pre-push v<N>`: rewrite it only when `<N>` is lower than the version below (idempotent).
+   - If the file exists and line 2 matches `# jig:pre-push v<N>`: rewrite it only when `<N>` is lower than the version below (idempotent).
+   - If line 2 matches `# spai:pre-push v<N>`, it is this guard from before the rename. Replace it with the version below and say so in the report.
    - If the file exists without that marker, it is the user's hook: stop this step, report it, and replace it only with explicit confirmation, keeping a `.bak` backup.
    - Never bypass the installed hook with `--no-verify`.
 
    ```sh
    #!/bin/sh
-   # spai:pre-push v1
-   # SPAI local guard. Blocks force pushes to and deletion of main/develop, and
+   # jig:pre-push v1
+   # jig local guard. Blocks force pushes to and deletion of main/develop, and
    # direct pushes to main that do not come from develop. Server-side branch
    # protection remains the final defense. Do not bypass with --no-verify.
 
@@ -115,18 +117,18 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
      esac
 
      if [ "$local_sha" = "$zero" ]; then
-       echo "spai pre-push: deleting $remote_ref is blocked. Protected branches are never deleted." >&2
+       echo "jig pre-push: deleting $remote_ref is blocked. Protected branches are never deleted." >&2
        exit 1
      fi
 
      if [ "$remote_ref" = "refs/heads/main" ] && [ "$local_ref" != "refs/heads/develop" ]; then
-       echo "spai pre-push: direct push to main is blocked. Release with: git push origin develop:main" >&2
+       echo "jig pre-push: direct push to main is blocked. Release with: git push origin develop:main" >&2
        exit 1
      fi
 
      if [ "$remote_sha" != "$zero" ] && git cat-file -e "$remote_sha" 2>/dev/null; then
        if ! git merge-base --is-ancestor "$remote_sha" "$local_sha"; then
-         echo "spai pre-push: non-fast-forward push to $remote_ref is blocked. Never force push a protected branch." >&2
+         echo "jig pre-push: non-fast-forward push to $remote_ref is blocked. Never force push a protected branch." >&2
          exit 1
        fi
      fi

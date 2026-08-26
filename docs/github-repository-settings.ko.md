@@ -2,9 +2,9 @@
 
 [English](github-repository-settings.md)
 
-이 문서는 `install.sh`(Codex, Antigravity CLI 대상)의 GitHub 동작을 설명합니다. Claude Code는 플러그인으로 설치되어 installer를 거치지 않으므로 저장소 프로필 설정과 수렴은 설치 후 `/spai:project-setup`으로 처리합니다.
+이 문서는 `install.sh`(Codex, Antigravity CLI 대상)의 GitHub 동작을 설명합니다. Claude Code는 플러그인으로 설치되어 installer를 거치지 않으므로 저장소 프로필 설정과 수렴은 설치 후 `/jig:project-setup`으로 처리합니다.
 
-SPAI project scope 스킬 설치에는 GitHub 프로필이 필요하지 않습니다. 프로필 없이 설치하면 GitHub Repository 설정 동기화만 건너뜁니다. 설치된 `project-setup`이 이후 `SPAI_GITHUB_PROFILE` 또는 로컬 `spai.githubProfile`을 설정합니다. 프로필 credential은 명령별 환경으로 전달하며 전역 active account를 바꾸지 않습니다.
+jig project scope 스킬 설치에는 GitHub 프로필이 필요하지 않습니다. 프로필 없이 설치하면 GitHub Repository 설정 동기화만 건너뜁니다. 설치된 `project-setup`이 이후 `JIG_GITHUB_PROFILE` 또는 로컬 `jig.githubProfile`을 설정합니다. 프로필 credential은 명령별 환경으로 전달하며 전역 active account를 바꾸지 않습니다.
 
 ## Repository 운영 규칙
 
@@ -18,14 +18,14 @@ SPAI project scope 스킬 설치에는 GitHub 프로필이 필요하지 않습�
 `install.sh --target <codex|antigravity> --scope project`는 Agent 스킬/룰 파일을 먼저 설치합니다. 프로필이 이미 제공된 경우에만 이어서 다음 GitHub 작업을 시도합니다.
 
 - GitHub CLI 계정 선택:
-  - `--github-profile` → `SPAI_GITHUB_PROFILE` → 로컬 `spai.githubProfile` 순서로 프로필을 확정합니다.
-  - `--github-account`와 `SPAI_GITHUB_ACCOUNT`는 호환 alias로 유지합니다.
+  - `--github-profile` → `JIG_GITHUB_PROFILE` → 로컬 `jig.githubProfile` 순서로 프로필을 확정합니다.
+  - `--github-account`와 `JIG_GITHUB_ACCOUNT`는 호환 alias로 유지합니다.
   - 입력 받은 계정이 `gh`에 없으면 `gh auth login`을 실행합니다.
   - `gh auth token --user <profile>`로 credential을 읽어 각 `gh` 명령에만 전달합니다. 토큰은 출력하거나 파일에 저장하지 않습니다.
-  - GitHub Enterprise 호스트는 `--github-host` 또는 `SPAI_GITHUB_HOST`로 지정할 수 있습니다.
+  - GitHub Enterprise 호스트는 `--github-host` 또는 `JIG_GITHUB_HOST`로 지정할 수 있습니다.
 - 로컬 git user 설정:
   - `--configure-git-user`를 사용하면 `user.name`, `user.email`을 입력 받아 `git config --local`에 저장합니다.
-  - `--git-user-name`, `--git-user-email` 또는 `SPAI_GIT_USER_NAME`, `SPAI_GIT_USER_EMAIL`을 사용하면 비대화식으로 저장합니다.
+  - `--git-user-name`, `--git-user-email` 또는 `JIG_GIT_USER_NAME`, `JIG_GIT_USER_EMAIL`을 사용하면 비대화식으로 저장합니다.
 - Repository context 확인:
   - `gh repo view --json visibility,viewerPermission`으로 repository visibility와 현재 `gh` 계정 권한을 확인합니다.
 - `develop` 브랜치 보장:
@@ -44,13 +44,13 @@ SPAI project scope 스킬 설치에는 GitHub 프로필이 필요하지 않습�
 1. `gh api repos/<owner>/<repo>`로 `private`와 `permissions.admin`을 확인합니다.
 2. 적용할 수 없는 저장소면 한 줄 로그를 남기고 넘어갑니다. 실패로 처리하지 않습니다.
 3. 적용할 수 있으면 **한 번 묻습니다** — "이 저장소는 public이거나 해당 플랜이라 `main`·`develop`을 보호할 수 있습니다. 지금 설정할까요?"
-4. 대답은 `git config --local spai.branchProtection`에 `enabled` 또는 `skipped`로 남습니다. 다음 sync는 다시 묻지 않습니다. 이 값은 `.git/config`에 있어 clone에는 전달되지 않으므로 다른 사람은 자기 머신에서 따로 답합니다.
+4. 대답은 `git config --local jig.branchProtection`에 `enabled` 또는 `skipped`로 남습니다. 다음 sync는 다시 묻지 않습니다. 이 값은 `.git/config`에 있어 clone에는 전달되지 않으므로 다른 사람은 자기 머신에서 따로 답합니다.
 
-`spai-doctor`도 같은 기준으로 읽습니다. `403`은 "플랜 밖"이라 결함이 아닙니다. `404`인데 `skipped`가 기록돼 있으면 "사용자가 안 하기로 함"입니다. 둘 다 권장 조치를 만들지 않습니다.
+`jig-doctor`도 같은 기준으로 읽습니다. `403`은 "플랜 밖"이라 결함이 아닙니다. `404`인데 `skipped`가 기록돼 있으면 "사용자가 안 하기로 함"입니다. 둘 다 권장 조치를 만들지 않습니다.
 
 **보호를 걸지 않으면 로컬 `pre-push` 가드가 유일한 방어선입니다.** 두 스킬 모두 이 사실을 보고에 적습니다.
 
-SPAI는 ruleset을 만들거나 고치지 않습니다. 이미 ruleset으로 보호된 저장소는 그대로 두고 보호된 것으로 보고합니다.
+jig는 ruleset을 만들거나 고치지 않습니다. 이미 ruleset으로 보호된 저장소는 그대로 두고 보호된 것으로 보고합니다.
 
 ### 적용되는 정책
 
@@ -103,7 +103,7 @@ installer는 다음 상황에서 GitHub Repository 설정 작업을 건너뛰고
 
 ## 레거시 정리
 
-이전 버전의 SPAI는 release-drafter 기반 PR flow를 설치했습니다. 다음 항목이 남아 있으면 더 이상 사용되지 않으므로 `github-sync` 스킬로 확인 후 정리할 수 있습니다.
+이전 버전의 jig는 release-drafter 기반 PR flow를 설치했습니다. 다음 항목이 남아 있으면 더 이상 사용되지 않으므로 `github-sync` 스킬로 확인 후 정리할 수 있습니다.
 
 - `.github/drafter-config.yaml`
 - `.github/workflows/drafter.yaml`
@@ -119,7 +119,7 @@ installer는 다음 상황에서 GitHub Repository 설정 작업을 건너뛰고
 sh install.sh --target codex --scope project --dry-run
 ```
 
-위 명령은 프로필 없이 스킬 설치 계획을 검증합니다. 설치 후 `spai-project-setup`을 실행하면 프로필을 선택하고 `develop` 브랜치와 branch protection을 수렴합니다. 설치 중 GitHub 연동까지 하려면 선택적으로 다음처럼 프로필을 전달할 수 있습니다.
+위 명령은 프로필 없이 스킬 설치 계획을 검증합니다. 설치 후 `jig-project-setup`을 실행하면 프로필을 선택하고 `develop` 브랜치와 branch protection을 수렴합니다. 설치 중 GitHub 연동까지 하려면 선택적으로 다음처럼 프로필을 전달할 수 있습니다.
 
 ```bash
 sh install.sh --target codex --scope project --github-profile your-account
@@ -133,4 +133,4 @@ sh install.sh --target codex --scope project --github-profile your-account
 - `main`/`develop` 원격 삭제 차단
 - `develop:main` fast-forward(릴리즈) 이외의 `main` 직접 push 차단
 
-`--no-verify`로 우회할 수 있는 것이 git hook의 한계입니다. SPAI 스킬은 우회를 금지합니다. Claude Code에서는 `spai` 플러그인의 PreToolUse hook이 `--no-verify`를 포함한 위반 push 명령을 실행 전에 차단합니다. 저장소가 보호를 걸 수 있으면 서버측 branch protection이 최종 방어선이고, 걸 수 없으면 이 로컬 가드가 유일한 방어선입니다. 진단은 `spai-doctor`, 재설치·갱신은 `github-sync`가 담당합니다.
+`--no-verify`로 우회할 수 있는 것이 git hook의 한계입니다. jig 스킬은 우회를 금지합니다. Claude Code에서는 `jig` 플러그인의 PreToolUse hook이 `--no-verify`를 포함한 위반 push 명령을 실행 전에 차단합니다. 저장소가 보호를 걸 수 있으면 서버측 branch protection이 최종 방어선이고, 걸 수 없으면 이 로컬 가드가 유일한 방어선입니다. 진단은 `jig-doctor`, 재설치·갱신은 `github-sync`가 담당합니다.

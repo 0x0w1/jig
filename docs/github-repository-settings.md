@@ -2,9 +2,9 @@
 
 [한국어](github-repository-settings.ko.md)
 
-This document describes what `install.sh` (for Codex and Antigravity CLI) does on GitHub. Claude Code installs as a plugin and never goes through the installer, so profile selection and convergence happen afterwards through `/spai:project-setup`.
+This document describes what `install.sh` (for Codex and Antigravity CLI) does on GitHub. Claude Code installs as a plugin and never goes through the installer, so profile selection and convergence happen afterwards through `/jig:project-setup`.
 
-Installing SPAI skills in project scope needs no GitHub profile. Installing without one only skips the GitHub repository settings sync; the installed `project-setup` sets `SPAI_GITHUB_PROFILE` or the local `spai.githubProfile` later. A profile's credential is passed per command through the environment and never changes the globally active account.
+Installing jig skills in project scope needs no GitHub profile. Installing without one only skips the GitHub repository settings sync; the installed `project-setup` sets `JIG_GITHUB_PROFILE` or the local `jig.githubProfile` later. A profile's credential is passed per command through the environment and never changes the globally active account.
 
 ## Repository Rules
 
@@ -18,14 +18,14 @@ Installing SPAI skills in project scope needs no GitHub profile. Installing with
 `install.sh --target <codex|antigravity> --scope project` installs the agent skill and rules files first. It attempts the GitHub work below only when a profile was already provided.
 
 - Selecting the GitHub CLI account:
-  - The profile resolves in order: `--github-profile` → `SPAI_GITHUB_PROFILE` → local `spai.githubProfile`.
-  - `--github-account` and `SPAI_GITHUB_ACCOUNT` remain supported aliases.
+  - The profile resolves in order: `--github-profile` → `JIG_GITHUB_PROFILE` → local `jig.githubProfile`.
+  - `--github-account` and `JIG_GITHUB_ACCOUNT` remain supported aliases.
   - If the given account is unknown to `gh`, it runs `gh auth login`.
   - It reads the credential with `gh auth token --user <profile>` and passes it to each `gh` command only. The token is never printed or written to a file.
-  - A GitHub Enterprise host is set with `--github-host` or `SPAI_GITHUB_HOST`.
+  - A GitHub Enterprise host is set with `--github-host` or `JIG_GITHUB_HOST`.
 - Local git user:
   - With `--configure-git-user` it prompts for `user.name` and `user.email` and stores them in `git config --local`.
-  - With `--git-user-name` and `--git-user-email`, or `SPAI_GIT_USER_NAME` and `SPAI_GIT_USER_EMAIL`, it stores them non-interactively.
+  - With `--git-user-name` and `--git-user-email`, or `JIG_GIT_USER_NAME` and `JIG_GIT_USER_EMAIL`, it stores them non-interactively.
 - Repository context:
   - `gh repo view --json visibility,viewerPermission` reports repository visibility and the current account's permission.
 - Ensuring `develop`:
@@ -44,13 +44,13 @@ So `github-sync` never applies it silently.
 1. It reads `private` and `permissions.admin` from `gh api repos/<owner>/<repo>`.
 2. If the repository cannot have protection, it logs one line and moves on. Not a failure.
 3. If it can, it **asks once** — "this repository is public (or on a plan that includes it), so `main` and `develop` can be protected. Set that up now?"
-4. The answer is recorded in `git config --local spai.branchProtection` as `enabled` or `skipped`, and the next sync does not ask again. The value lives in `.git/config`, so it does not reach clones; a collaborator answers separately on their own machine.
+4. The answer is recorded in `git config --local jig.branchProtection` as `enabled` or `skipped`, and the next sync does not ask again. The value lives in `.git/config`, so it does not reach clones; a collaborator answers separately on their own machine.
 
-`spai-doctor` reads the same way. A `403` means "outside this plan" and is not a defect; a `404` with `skipped` recorded means the user declined. Neither produces a recommended action.
+`jig-doctor` reads the same way. A `403` means "outside this plan" and is not a defect; a `404` with `skipped` recorded means the user declined. Neither produces a recommended action.
 
 **Without protection, the local `pre-push` guard is the only barrier.** Both skills say so in their report.
 
-SPAI never creates or edits rulesets. A repository already governed by one is left alone and reported as protected.
+jig never creates or edits rulesets. A repository already governed by one is left alone and reported as protected.
 
 ### The Policy That Gets Applied
 
@@ -103,7 +103,7 @@ The installer skips the GitHub repository settings work and continues installing
 
 ## Legacy Cleanup
 
-Older SPAI versions installed a release-drafter PR flow. If any of the following is left behind it is no longer used, and the `github-sync` skill can confirm and clean it up.
+Older jig versions installed a release-drafter PR flow. If any of the following is left behind it is no longer used, and the `github-sync` skill can confirm and clean it up.
 
 - `.github/drafter-config.yaml`
 - `.github/workflows/drafter.yaml`
@@ -119,7 +119,7 @@ To see the planned work without changing files or GitHub settings, use dry-run m
 sh install.sh --target codex --scope project --dry-run
 ```
 
-That validates the skill install plan without a profile. After installing, running `spai-project-setup` selects the profile, ensures `develop`, and settles branch protection. To wire up GitHub during the install, pass a profile:
+That validates the skill install plan without a profile. After installing, running `jig-project-setup` selects the profile, ensures `develop`, and settles branch protection. To wire up GitHub during the install, pass a profile:
 
 ```bash
 sh install.sh --target codex --scope project --github-profile your-account
@@ -133,4 +133,4 @@ Separately from server-side protection, `github-sync` installs a local guard at 
 - blocks remote deletion of `main` and `develop`
 - blocks direct pushes to `main` other than the `develop:main` fast-forward release
 
-A git hook can be bypassed with `--no-verify`; that is its limit. SPAI skills forbid the bypass, and on Claude Code the `spai` plugin's PreToolUse hook blocks an offending push command — `--no-verify` included — before it runs. Server-side branch protection is the last line when the repository can have it; when it cannot, this guard is the only one. `spai-doctor` diagnoses it, and `github-sync` installs or refreshes it.
+A git hook can be bypassed with `--no-verify`; that is its limit. jig skills forbid the bypass, and on Claude Code the `jig` plugin's PreToolUse hook blocks an offending push command — `--no-verify` included — before it runs. Server-side branch protection is the last line when the repository can have it; when it cannot, this guard is the only one. `jig-doctor` diagnoses it, and `github-sync` installs or refreshes it.

@@ -2,13 +2,13 @@
 
 [한국어](installation.ko.md)
 
-SPAI **installs differently on each supported CLI.** There is no way to install everything at once; pick the CLI you use.
+jig **installs differently on each supported CLI.** There is no way to install everything at once; pick the CLI you use.
 
 | CLI | How it installs | Unit | Owner |
 |---|---|---|---|
-| Claude Code | plugin marketplace | the `spai` plugin | the Claude Code host |
-| Codex | `install.sh` | `.agents/skills/spai-*` files | the SPAI installer |
-| Antigravity CLI | `install.sh` | `.agents/skills/spai-*` files | the SPAI installer |
+| Claude Code | plugin marketplace | the `jig` plugin | the Claude Code host |
+| Codex | `install.sh` | `.agents/skills/jig-*` files | the jig installer |
+| Antigravity CLI | `install.sh` | `.agents/skills/jig-*` files | the jig installer |
 
 For just the commands, see [Quick Start in the README](../README.md#quick-start). This document explains **what each path installs, where, and how it is managed afterwards.**
 
@@ -36,15 +36,15 @@ Commit that file and collaborators get the same plugin when they open the reposi
 The host namespaces the skills.
 
 ```text
-/spai:github-sync
-/spai:develop-task-flow
-/spai:github-release
-/spai:project-setup
-/spai:spai-update
-/spai:spai-doctor
-/spai:readme
-/spai:version-rubric
-/spai:rubric-scan
+/jig:github-sync
+/jig:develop-task-flow
+/jig:github-release
+/jig:project-setup
+/jig:jig-update
+/jig:jig-doctor
+/jig:readme
+/jig:version-rubric
+/jig:rubric-scan
 ```
 
 A custom skill of your own with the same name (`/github-release`) **survives alongside it**, because the namespaces differ.
@@ -54,21 +54,21 @@ A custom skill of your own with the same name (`/github-release`) **survives alo
 The host manages the version. No version stamp is left in the repository.
 
 ```text
-/plugin marketplace update spai          # move to the latest
+/plugin marketplace update jig          # move to the latest
 /reload-plugins                          # apply it to the current session
 ```
 
 To pin a specific release, re-add the marketplace at a tag ref.
 
 ```text
-/plugin marketplace add https://github.com/your-account/spai.git#v0.2.0
+/plugin marketplace add https://github.com/your-account/jig.git#v0.2.0
 ```
 
 ### Removing it
 
 ```text
-/plugin uninstall spai@spai    # remove entirely
-/plugin disable spai@spai      # only disable
+/plugin uninstall jig@jig    # remove entirely
+/plugin disable jig@jig      # only disable
 ```
 
 ---
@@ -82,55 +82,55 @@ Codex has no plugin system, so the installer copies files.
 project scope:
 
 ```text
-./AGENTS.md                       # SPAI managed block added or replaced
+./AGENTS.md                       # jig managed block added or replaced
 .agents/skills/
-  spai-github-sync/SKILL.md
-  spai-github-release/SKILL.md
-  spai-develop-task-flow/SKILL.md
-  spai-project-setup/SKILL.md
-  spai-update/SKILL.md
-  spai-doctor/SKILL.md
-  spai-readme/SKILL.md
-  spai-version-rubric/SKILL.md
-  spai-version-rubric/rubrics/      # the per-type rubric catalog
-  spai-rubric-scan/SKILL.md
+  jig-github-sync/SKILL.md
+  jig-github-release/SKILL.md
+  jig-develop-task-flow/SKILL.md
+  jig-project-setup/SKILL.md
+  jig-update/SKILL.md
+  jig-doctor/SKILL.md
+  jig-readme/SKILL.md
+  jig-version-rubric/SKILL.md
+  jig-version-rubric/rubrics/      # the per-type rubric catalog
+  jig-rubric-scan/SKILL.md
 ```
 
-A skill is a directory, not a single file. A skill that ships reference files alongside it, such as `spai-version-rubric`, installs those too; the installer downloads whatever the release's `dist/files.tsv` lists.
+A skill is a directory, not a single file. A skill that ships reference files alongside it, such as `jig-version-rubric`, installs those too; the installer downloads whatever the release's `dist/files.tsv` lists.
 
 global scope:
 
 ```text
 ~/.codex/AGENTS.md
-~/.agents/skills/spai-*/
+~/.agents/skills/jig-*/
 ```
 
 ### Using it
 
-Codex recognizes the `SKILL.md` under `.agents/skills/*` as a native skill. Both the directory name and the frontmatter `name` carry the `spai-` prefix, so they never collide with skills you wrote. The managed block in `AGENTS.md` holds only the list of installed skills; the procedures themselves load from each `SKILL.md`.
+Codex recognizes the `SKILL.md` under `.agents/skills/*` as a native skill. Both the directory name and the frontmatter `name` carry the `jig-` prefix, so they never collide with skills you wrote. The managed block in `AGENTS.md` holds only the list of installed skills; the procedures themselves load from each `SKILL.md`.
 
 ### Versions
 
 The installed version and skill selection are stamped inside the managed block.
 
 ```text
-<!-- spai:version v0.2.0 skills=github-sync,github-release,develop-task-flow,project-setup,spai-update,spai-doctor -->
+<!-- jig:version v0.2.0 skills=github-sync,github-release,develop-task-flow,project-setup,jig-update,jig-doctor -->
 ```
 
-The `spai-update` skill reads that stamp to reinstall the same selection at the latest release, and `spai-doctor` uses it as the basis for diagnosis. To update, run the same command again — the installer is idempotent and refreshes only what changed.
+The `jig-update` skill reads that stamp to reinstall the same selection at the latest release, and `jig-doctor` uses it as the basis for diagnosis. To update, run the same command again — the installer is idempotent and refreshes only what changed.
 
 ### Removing it
 
 The installer deletes nothing. Remove it yourself.
 
 ```bash
-rm -rf .agents/skills/spai-github-sync .agents/skills/spai-github-release \
-  .agents/skills/spai-develop-task-flow .agents/skills/spai-update .agents/skills/spai-doctor \
-  .agents/skills/spai-project-setup .agents/skills/spai-readme \
-  .agents/skills/spai-version-rubric .agents/skills/spai-rubric-scan
+rm -rf .agents/skills/jig-github-sync .agents/skills/jig-github-release \
+  .agents/skills/jig-develop-task-flow .agents/skills/jig-update .agents/skills/jig-doctor \
+  .agents/skills/jig-project-setup .agents/skills/jig-readme \
+  .agents/skills/jig-version-rubric .agents/skills/jig-rubric-scan
 ```
 
-In `AGENTS.md`, delete only the span between `<!-- spai:start ... -->` and `<!-- spai:end ... -->`. SPAI never touched anything outside the block.
+In `AGENTS.md`, delete only the span between `<!-- jig:start ... -->` and `<!-- jig:end ... -->`. jig never touched anything outside the block.
 
 ---
 
@@ -143,15 +143,15 @@ The same file-copy approach as Codex; only the rules file name and the global sc
 project scope:
 
 ```text
-./GEMINI.md                       # SPAI managed block added or replaced
-.agents/skills/spai-*/
+./GEMINI.md                       # jig managed block added or replaced
+.agents/skills/jig-*/
 ```
 
 global scope:
 
 ```text
 ~/.gemini/GEMINI.md
-~/.gemini/config/skills/spai-*/
+~/.gemini/config/skills/jig-*/
 ```
 
 ### Using it
@@ -178,11 +178,11 @@ Applies to Codex and Antigravity installs only.
 | `--scope project\|global` | Install scope; defaults to `project` |
 | `--github-profile <profile>` | Profile to use when the install should also wire up GitHub (optional). `--github-account` also works |
 | `--github-host <host>` | GitHub Enterprise host |
-| `--version vX.Y.Z` | Install or roll back to a specific SPAI release |
+| `--version vX.Y.Z` | Install or roll back to a specific jig release |
 | `--skills a,b,c` | Install only the selected skills from the manifest |
 | `--configure-git-user` | Set the local `user.name` and `user.email` |
 | `--dry-run` | Print the planned work without changing files |
-| `--force` | Replace an existing managed file that carries no SPAI marker |
+| `--force` | Replace an existing managed file that carries no jig marker |
 
 The installer is for Codex and Antigravity only. Claude Code's plugin host owns install, update, and removal, so it never uses `install.sh`.
 
@@ -190,7 +190,7 @@ A normal install does not prompt to change the local git user. Terminal input ma
 
 ### Reserved names
 
-SPAI claims only the `spai` plugin name and skill names starting with `spai-`. Keep that prefix off your own skills and nothing collides. On Claude Code the host namespaces plugin skills, so even identical names leave both in place.
+jig claims only the `jig` plugin name and skill names starting with `jig-`. Keep that prefix off your own skills and nothing collides. On Claude Code the host namespaces plugin skills, so even identical names leave both in place.
 
 ### Idempotency
 
@@ -200,11 +200,11 @@ The installer checks the current state before writing. When a file is already wh
 
 ### The managed block
 
-SPAI owns only the span between the markers in `AGENTS.md` and `GEMINI.md`.
+jig owns only the span between the markers in `AGENTS.md` and `GEMINI.md`.
 
 - With markers present, only that span is replaced.
 - Without markers, existing content is **preserved** and the block is appended at the end of the file.
-- Use `--force` to replace the whole file with the SPAI template.
+- Use `--force` to replace the whole file with the jig template.
 
 ### Selective install
 
@@ -214,14 +214,14 @@ SPAI owns only the span between the markers in `AGENTS.md` and `GEMINI.md`.
 
 The default is the latest GitHub release tag. If the lookup fails, it falls back to the `main` branch.
 
-- `--version vX.Y.Z` or `SPAI_VERSION`: pin to or roll back to a specific release
+- `--version vX.Y.Z` or `JIG_VERSION`: pin to or roll back to a specific release
 - `REPO_RAW_URL`: skip version resolution and use that URL as-is
 
 ### GitHub settings sync
 
 In project scope, when a GitHub profile is already settled and `gh` is usable, the installer also does the following.
 
-1. Settles the profile from `SPAI_GITHUB_PROFILE`, the local `spai.githubProfile`, or `--github-profile`, running `gh auth login` if needed. It uses that profile's credential per command and never changes the globally active account.
+1. Settles the profile from `JIG_GITHUB_PROFILE`, the local `jig.githubProfile`, or `--github-profile`, running `gh auth login` if needed. It uses that profile's credential per command and never changes the globally active account.
 2. Creates `develop` from the current commit of `main` when the remote has no `develop`.
 
 Without a profile, the skill files still install and only this step is deferred until `project-setup`. It is also skipped, with a pass log, when there is no `.git` repository or the repository is not connected to GitHub.
@@ -233,17 +233,17 @@ Without a profile, the skill files still install and only this step is deferred 
 Persistent settings store only the login name and host in the repository's `.git/config`. The OAuth token stays in the `gh` credential store.
 
 ```bash
-git config --local spai.githubProfile your-account
-git config --local spai.githubHost github.com
+git config --local jig.githubProfile your-account
+git config --local jig.githubHost github.com
 ```
 
 For a one-off or per-session override, set it in the environment that starts the agent.
 
 ```bash
-SPAI_GITHUB_PROFILE=your-account SPAI_GITHUB_HOST=github.com <agent-command>
+JIG_GITHUB_PROFILE=your-account JIG_GITHUB_HOST=github.com <agent-command>
 ```
 
-The environment variables win over the local config. Either way, SPAI skills never run `gh auth switch`.
+The environment variables win over the local config. Either way, jig skills never run `gh auth switch`.
 
 ### Local git author
 
@@ -264,9 +264,9 @@ sh install.sh --target codex --scope project \
 
 ## First Step After Installing
 
-Whichever CLI you installed, the GitHub profile can be settled afterwards. Run the `project-setup` skill to verify the installation and the profile, and to converge the repository onto the SPAI branch model.
+Whichever CLI you installed, the GitHub profile can be settled afterwards. Run the `project-setup` skill to verify the installation and the profile, and to converge the repository onto the jig branch model.
 
-- Claude Code: `/spai:project-setup`
-- Codex and Antigravity: `spai-project-setup`
+- Claude Code: `/jig:project-setup`
+- Codex and Antigravity: `jig-project-setup`
 
-The skill stores no token; it uses only the profile name from `SPAI_GITHUB_PROFILE` or the local `git config`. It then runs `github-sync` to ensure `develop` and settle branch protection, and `spai-doctor` to check the state.
+The skill stores no token; it uses only the profile name from `JIG_GITHUB_PROFILE` or the local `git config`. It then runs `github-sync` to ensure `develop` and settle branch protection, and `jig-doctor` to check the state.

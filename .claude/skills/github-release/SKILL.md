@@ -18,7 +18,7 @@ Use this repository skill for release execution.
 
 ## GitHub Profile
 
-Before any `gh` command, resolve the host from `SPAI_GITHUB_HOST`, local `spai.githubHost`, then `github.com`, and resolve the profile from `SPAI_GITHUB_PROFILE`, then local `spai.githubProfile`. If a profile is configured, read its credential with `gh auth token --hostname <host> --user <profile>` without printing it and run every `gh` command with that credential through `GH_TOKEN` (`github.com` or `*.ghe.com`) or `GH_ENTERPRISE_TOKEN` (other hosts). Verify `gh api user --jq .login` matches the profile. Do not use `gh auth switch`; fall back to the globally active account only when neither the environment nor local config selects a profile.
+Before any `gh` command, resolve the host from `JIG_GITHUB_HOST`, local `jig.githubHost`, then `github.com`, and resolve the profile from `JIG_GITHUB_PROFILE`, then local `jig.githubProfile`. If a profile is configured, read its credential with `gh auth token --hostname <host> --user <profile>` without printing it and run every `gh` command with that credential through `GH_TOKEN` (`github.com` or `*.ghe.com`) or `GH_ENTERPRISE_TOKEN` (other hosts). Verify `gh api user --jq .login` matches the profile. Do not use `gh auth switch`; fall back to the globally active account only when neither the environment nor local config selects a profile.
 
 ## Version Rubric
 
@@ -26,9 +26,10 @@ The grading rubric is not in this skill. It is a project-owned file, so every pr
 
 Resolve the rubric path in this order:
 
-1. `SPAI_VERSION_RUBRIC` environment variable (session-only override).
-2. `git config --local --get spai.versionRubric` (repository override).
-3. `.spai/versioning.md` (the convention).
+1. `JIG_VERSION_RUBRIC` environment variable (session-only override).
+2. `git config --local --get jig.versionRubric` (repository override).
+3. `.jig/versioning.md` (the convention).
+4. `.spai/versioning.md` (legacy, from before the rename to jig). `SPAI_VERSION_RUBRIC` and `spai.versionRubric` are read the same way.
 
 Apply it like this:
 
@@ -84,21 +85,21 @@ The `### Migration` section is not prose. It is the input an updating agent exec
 ```md
 ### Migration
 
-<!-- spai:start migration-auto -->
+<!-- jig:start migration-auto -->
 - `rm -f .github/workflows/drafter.yaml`
-- Move `.agents/skills/github-sync/` to `.agents/skills/spai-github-sync/` when it exists
-<!-- spai:end migration-auto -->
+- Move `.agents/skills/github-sync/` to `.agents/skills/jig-github-sync/` when it exists
+<!-- jig:end migration-auto -->
 
-<!-- spai:start migration-manual -->
-- Decide whether `develop` keeps its required status checks; SPAI no longer sets them.
-<!-- spai:end migration-manual -->
+<!-- jig:start migration-manual -->
+- Decide whether `develop` keeps its required status checks; jig no longer sets them.
+<!-- jig:end migration-manual -->
 ```
 
 - `migration-auto`: mechanical steps an agent finishes unattended. Every item must be **idempotent** and be either a single command or an unambiguous file operation. A target that is already absent counts as done.
-- `migration-manual`: steps needing a human judgement, a choice, or an irreversible action. `spai-update` presents these and does not run them without approval.
+- `migration-manual`: steps needing a human judgement, a choice, or an irreversible action. `jig-update` presents these and does not run them without approval.
 - When in doubt, an item is `manual`. Either block may be omitted; omit the whole section when neither applies.
-- **A marker counts only when it is the entire line**, matching `^<!-- spai:(start|end) migration-(auto|manual) -->$`. Release notes routinely name these markers in prose, so a mention inside backticks or mid-sentence is text, not a marker. Keep marker lines flush left with nothing else on them, and always close a block with its matching end marker.
-- A rubric may key an escalation rule off these blocks; SPAI's own rubric grades any `migration-manual` block as `major`. When applying such a rule, count line-anchored markers only.
+- **A marker counts only when it is the entire line**, matching `^<!-- jig:(start|end) migration-(auto|manual) -->$`. Release notes routinely name these markers in prose, so a mention inside backticks or mid-sentence is text, not a marker. Keep marker lines flush left with nothing else on them, and always close a block with its matching end marker.
+- A rubric may key an escalation rule off these blocks; jig's own rubric grades any `migration-manual` block as `major`. When applying such a rule, count line-anchored markers only.
 
 ## Safety Rules
 
@@ -132,7 +133,7 @@ The `### Migration` section is not prose. It is the input an updating agent exec
    - If the graded bump is lower, use the requested one; a user may always release higher than required.
 4. Verify `origin/develop` already contains every intended release change. If not, stop and run the Develop-First Gate.
 5. Compose the release notes from `git log <previous>..HEAD --no-merges` per Release Notes. Do this **before** promoting or tagging, because the notes can still change the version.
-6. Re-check the bump against the composed notes when the rubric has a `## Hard Rules` section that keys off them, counting **line-anchored markers only** (`grep -cE '^<!-- spai:start migration-manual -->$'`; a bare substring search also matches prose that names the marker):
+6. Re-check the bump against the composed notes when the rubric has a `## Hard Rules` section that keys off them, counting **line-anchored markers only** (`grep -cE '^<!-- jig:start migration-manual -->$'`; a bare substring search also matches prose that names the marker):
    - an opened block with no matching end marker is a defect; fix the notes before publishing
    - if the rule raises the grade from step 3, go back to step 3 and resolve it with the user. Never weaken the notes to fit a version.
 7. Compute the new version from the settled bump type per Version Format, or validate the explicit version. It must not exist as a tag or release.

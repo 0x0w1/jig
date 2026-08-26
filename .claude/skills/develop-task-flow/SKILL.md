@@ -43,7 +43,7 @@ If the task is large, split it into phases:
 - If a change affects installation behavior, user-facing workflows, supported targets, repository policy, CLI output, or public project usage, update `README.md` in the same task.
 - If the change is broad or would make `README.md` too dense, create or update a focused Markdown file under top-level `docs/` and add a link near the top of `README.md`.
 - If top-level `docs/` already exists, reuse it instead of creating another documentation directory.
-- This repository is itself managed by the SPAI setup skills, and its documentation, skills, and installer are distributed publicly. Every example must stay generic: use placeholders such as `your-account`, `your@email.com`, and `/absolute/path/to/<name>`. Never include local machine paths, personal identifiers, or examples taken from local or other projects.
+- This repository is itself managed by the jig setup skills, and its documentation, skills, and installer are distributed publicly. Every example must stay generic: use placeholders such as `your-account`, `your@email.com`, and `/absolute/path/to/<name>`. Never include local machine paths, personal identifiers, or examples taken from local or other projects.
 - During validation, check that the README/docs update explains the new behavior clearly.
 
 ## Safety Rules

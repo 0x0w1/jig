@@ -50,6 +50,6 @@ How to write this file
 - `## Hard Rules` holds **only conditions that always escalate**. Statements about what is not grounds for a grade belong in common.md, and version-number notation belongs in `## Version Format`.
 - Check that question 1 does not swallow question 2. Putting "was something added?" in question 1 stops every addition at `patch` and makes `minor` unreachable.
 - `## Public Interface` applies to projects that ship documents, assets, or data too. If consumers depend on it, it is a public interface even when it is not code.
-- Delete this comment block when finished. The body must be able to become `.spai/versioning.md` as-is.
+- Delete this comment block when finished. The body must be able to become `.jig/versioning.md` as-is.
 - Finally, add a row to the table in INDEX.md.
 -->

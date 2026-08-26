@@ -1,6 +1,6 @@
 # Version Rubric Catalog Index
 
-Ready-made `.spai/versioning.md` drafts, one per project type. `rubric-scan` scans the repository and reads only this file to pick candidate types; `version-rubric` then writes the chosen type's body as the draft. A person can also pick straight from the table.
+Ready-made `.jig/versioning.md` drafts, one per project type. `rubric-scan` scans the repository and reads only this file to pick candidate types; `version-rubric` then writes the chosen type's body as the draft. A person can also pick straight from the table.
 
 ## Directory
 
@@ -24,7 +24,7 @@ The rubric `version-rubric` offers by default uses a different axis. That one is
 
 The two axes grade the same change differently.
 
-| Change | Catalog (SemVer compatibility) | SPAI default (human intervention) |
+| Change | Catalog (SemVer compatibility) | jig default (human intervention) |
 |---|---|---|
 | A feature or endpoint removed | `major` | `minor` |
 | Generation replaced, contract intact | `patch` | `minor` |
@@ -96,4 +96,4 @@ Several consumers mean several types. Do not pick one; do this instead.
 2. Add a row to the table above, next to the rows with a similar consumer. **A file missing from the table is invisible to the scan.**
 3. A strong signal must be a path that appears only in that type. Files that exist everywhere, such as `README.md` or `.gitignore`, are not signals.
 4. Fill both required sections (`## Decision Order`, `## Grade Definitions`). The rest are optional.
-5. The file must be copyable to `.spai/versioning.md` as-is. Keep catalog commentary and frontmatter out of the body.
+5. The file must be copyable to `.jig/versioning.md` as-is. Keep catalog commentary and frontmatter out of the body.

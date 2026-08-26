@@ -1,6 +1,6 @@
 ---
 name: version-rubric
-description: "Use when creating, reviewing, or re-setting this repository's version grading rubric at .spai/versioning.md: adopt the SPAI default human-intervention rubric, write a project-specific one, edit one grade, or reset to the default. Owns the rubric file; never runs a release."
+description: "Use when creating, reviewing, or re-setting this repository's version grading rubric at .jig/versioning.md: adopt the jig default human-intervention rubric, write a project-specific one, edit one grade, or reset to the default. Owns the rubric file; never runs a release."
 ---
 
 # Version Rubric
@@ -13,11 +13,13 @@ Run this skill whenever the rubric needs to be created, reviewed, or changed. It
 
 Resolve the rubric path in this order:
 
-1. `SPAI_VERSION_RUBRIC` environment variable (session-only override).
-2. `git config --local --get spai.versionRubric` (repository override; not propagated by clone).
-3. `.spai/versioning.md` (the convention).
+1. `JIG_VERSION_RUBRIC` environment variable (session-only override).
+2. `git config --local --get jig.versionRubric` (repository override; not propagated by clone).
+3. `.jig/versioning.md` (the convention).
+4. `.spai/versioning.md` (legacy, from before the rename to jig).
 
-- `.spai/` is owned by the project, not by SPAI. The installer and `spai-update` never write or delete it, and `spai-doctor` never treats it as drift.
+- Legacy keys are read too: `SPAI_VERSION_RUBRIC` and `spai.versionRubric` resolve when the `JIG_` and `jig.` forms are unset. Write new files at `.jig/versioning.md`, and offer — never force — to move a legacy one.
+- `.jig/` is owned by the project, not by jig. The installer and `jig-update` never write or delete it, and `jig-doctor` never treats it as drift.
 - The file must be committed. `git config --local` lives in `.git/config` and is not propagated by clone or CI checkout, so a config-only setup grades differently for different people.
 - Never store state such as "the default was adopted" in a config key. That belongs in the file's `> Basis:` line, which is the single record of the decision.
 
@@ -28,7 +30,7 @@ Two required sections, four optional. The section titles are the contract.
 ```md
 # Version Policy
 
-> Basis: SPAI default (human-intervention axis) | project-specific, <date>
+> Basis: jig default (human-intervention axis) | project-specific, <date>
 
 ## Decision Order        (required)
 1. <question> → `patch`
@@ -51,7 +53,7 @@ Two required sections, four optional. The section titles are the contract.
 
 ### Legacy Section Titles
 
-Rubrics written before this contract switched to English carry Korean titles. They stay valid, and every SPAI skill that reads a rubric accepts either spelling:
+Rubrics written before this contract switched to English carry Korean titles. They stay valid, and every jig skill that reads a rubric accepts either spelling:
 
 | English (canonical) | Korean (legacy) |
 |---|---|
@@ -74,7 +76,7 @@ Offer this as-is. It grades by whether a human has to step in. Scale alone does 
 ```md
 # Version Policy
 
-> Basis: SPAI default (human-intervention axis), adopted <date>
+> Basis: jig default (human-intervention axis), adopted <date>
 
 ## Decision Order
 1. Is this a fix inside what the project already does? → `patch`
@@ -122,9 +124,9 @@ rubrics/
 - Drafts are not grouped into subdirectories. The `consumer` column in `INDEX.md` carries the grouping, because a project often serves several kinds of consumer at once and a directory would force it into one.
 - Do not read every body. Read `INDEX.md`, pick the type, read that one file.
 - The catalog grades on the SemVer consumer-compatibility axis, not the human-intervention axis the default rubric uses. The two disagree — removing a feature is `major` in the catalog and `minor` in the default. Adopt one whole; never merge questions from both into one rubric.
-- The catalog is payload: `spai-update` replaces it. Never edit a catalog file to record a project's decision — the decision lives in the resolved rubric path.
+- The catalog is payload: `jig-update` replaces it. Never edit a catalog file to record a project's decision — the decision lives in the resolved rubric path.
 
-When the project type is not obvious, run `rubric-scan` (or the installed `spai-rubric-scan`) first. It scans the repository, scores it against `INDEX.md`, and hands back a type with the paths that produced it. This skill still owns the write.
+When the project type is not obvious, run `rubric-scan` (or the installed `jig-rubric-scan`) first. It scans the repository, scores it against `INDEX.md`, and hands back a type with the paths that produced it. This skill still owns the write.
 
 ## Actions
 
@@ -149,8 +151,8 @@ Called without arguments. Determine the current state first, then confirm the us
    - No → offer the catalog before drafting from scratch. Read `rubrics/INDEX.md`, name the types that fit what this repository ships, and let the user pick one; when the type is unclear, run `rubric-scan` and use its recommendation. A chosen draft is written as-is except for the `> Basis:` line and the interface list.
    - No catalog type fits → ask, for each of the three grades, which changes in this project belong there. Put the user's own wording into `## Decision Order` and `## Grade Definitions`.
 4. If the user skips the question or does not answer, adopt the default and record it. Do not ask again.
-5. Keep the user's vocabulary, including the language they answered in. Only normalize the sentence shape into `<question> → \`patch\`` form. Translating their words into SPAI terms such as "silent behavior change" makes the next release grade differently than they intended.
-6. Write the file, creating `.spai/` when missing. Then hand the commit to the repository's flow: if `develop-task-flow` (or the installed `spai-develop-task-flow`) exists, follow it with a `chore/<slug>` branch, a `chore:` squash commit, and a `develop` push. Otherwise propose a normal commit on the current branch.
+5. Keep the user's vocabulary, including the language they answered in. Only normalize the sentence shape into `<question> → \`patch\`` form. Translating their words into jig terms such as "silent behavior change" makes the next release grade differently than they intended.
+6. Write the file, creating `.jig/` when missing. Then hand the commit to the repository's flow: if `develop-task-flow` (or the installed `jig-develop-task-flow`) exists, follow it with a `chore/<slug>` branch, a `chore:` squash commit, and a `develop` push. Otherwise propose a normal commit on the current branch.
 7. Report.
 
 ## Safety Rules
@@ -160,8 +162,8 @@ Called without arguments. Determine the current state first, then confirm the us
 - Do not translate or retitle an existing rubric without being asked. The questions are the project's own words.
 - Do not grade a release or write release notes; `github-release` owns that.
 - Do not touch branches, branch protection, tags, releases, or GitHub settings.
-- Do not write anything outside the resolved rubric path and its parent `.spai/` directory.
-- Do not modify `rubrics/`. It is shipped payload that `spai-update` replaces; a project's decision belongs in the rubric file.
+- Do not write anything outside the resolved rubric path and its parent `.jig/` directory.
+- Do not modify `rubrics/`. It is shipped payload that `jig-update` replaces; a project's decision belongs in the rubric file.
 - Do not force a commit. If the user declines, report the uncommitted state.
 - Preserve unrelated user changes.
 
@@ -173,7 +175,7 @@ Write the report in the language the repository already uses for its own documen
 ## Version Rubric
 
 - Path: <path> (source: environment variable | local config | convention)
-- Basis: SPAI default (human-intervention axis) | catalog <type> | project-specific
+- Basis: jig default (human-intervention axis) | catalog <type> | project-specific
 - Titles: English | Korean (legacy, still read)
 - patch: <question>
 - minor: <question>

@@ -1,6 +1,6 @@
-# SPAI
+# jig
 
-**Scaffolded Procedures for AI Agents** — a harness setup tool that installs repository operating procedures into AI agent CLI environments.
+**same cut, every project** — a jig holds the work so every cut lands the same. This one holds your repository procedures so every project and every AI agent CLI runs them the same way.
 
 [한국어](README.ko.md)
 
@@ -8,13 +8,13 @@
 
 ## What This Is
 
-Using AI agents (Claude Code, Codex, Antigravity CLI) across side projects means re-explaining branch rules, commit rules, and release procedures to every project and every agent. SPAI removes that repetition: it installs the same set of procedure skills into any agent environment, and manages updates and health checks after the install.
+Using AI agents (Claude Code, Codex, Antigravity CLI) across side projects means re-explaining branch rules, commit rules, and release procedures to every project and every agent. jig removes that repetition: it installs the same set of procedure skills into any agent environment, and manages updates and health checks after the install.
 
 Supported: **Claude Code** (recommended), **Codex**, **Antigravity CLI**
 
 ## Quick Start
 
-![SPAI quick start: install into one CLI, run project-setup for profile, rubric, branch convergence and a check, verify with spai-doctor, then work through develop-task-flow and github-release](docs/assets/quick-start.svg)
+![jig quick start: install into one CLI, run project-setup for profile, rubric, branch convergence and a check, verify with jig-doctor, then work through develop-task-flow and github-release](docs/assets/quick-start.svg)
 
 You need a git repository, plus `curl` or `wget` for Codex and Antigravity. A `gh` login is required to converge GitHub settings, but not to install the skills.
 
@@ -24,7 +24,7 @@ You need a git repository, plus `curl` or `wget` for Codex and Antigravity. A `g
 
 ```text
 /plugin marketplace add 0x0w1/spai
-/plugin install spai@spai
+/plugin install jig@jig
 ```
 
 **Codex** and **Antigravity CLI** — run from the repository root.
@@ -38,24 +38,24 @@ Options, install layout, skill namespacing, and removal: [installation guide](do
 
 ### 2. Bind the repository
 
-Run `project-setup` in an agent session: `/spai:project-setup` on Claude Code, `spai-project-setup` on Codex and Antigravity.
+Run `project-setup` in an agent session: `/jig:project-setup` on Claude Code, `jig-project-setup` on Codex and Antigravity.
 
 One run settles four things.
 
 1. Selects and verifies the GitHub profile this repository uses (the globally active account is left alone)
-2. Settles the version grading rubric and records it in `.spai/versioning.md`
+2. Settles the version grading rubric and records it in `.jig/versioning.md`
 3. Converges the `main` and `develop` branches through `github-sync`, and asks before setting up branch protection — optional, since GitHub allows it on public repositories and on private ones only with a paid plan
-4. Checks the installation with `spai-doctor`
+4. Checks the installation with `jig-doctor`
 
 ### 3. Verify
 
-Run `/spai:spai-doctor` (`spai-doctor` on Codex and Antigravity) for a read-only report on the installed version, file drift, branch protection, the GitHub profile, and the rubric file. Anything that needs fixing is reported along with the skill that fixes it.
+Run `/jig:jig-doctor` (`jig-doctor` on Codex and Antigravity) for a read-only report on the installed version, file drift, branch protection, the GitHub profile, and the rubric file. Anything that needs fixing is reported along with the skill that fixes it.
 
 From there, call a skill by name or just say what you want; the agent picks it.
 
 ## Skills
 
-Unlike a plain collection of skills, SPAI converges *repository state* — the branch model, branch protection, release discipline — and not only session procedures, then manages the install afterwards with `spai-update` and `spai-doctor`. One procedure source (`skills/`) is rendered into each CLI's native format: a plugin for Claude Code, `spai-` prefixed files for Codex and Antigravity.
+Unlike a plain collection of skills, jig converges *repository state* — the branch model, branch protection, release discipline — and not only session procedures, then manages the install afterwards with `jig-update` and `jig-doctor`. One procedure source (`skills/`) is rendered into each CLI's native format: a plugin for Claude Code, `jig-` prefixed files for Codex and Antigravity.
 
 | Skill | Role |
 |---|---|
@@ -63,10 +63,10 @@ Unlike a plain collection of skills, SPAI converges *repository state* — the b
 | `github-release` | Fast-forward `develop` to `main`, tag, publish notes |
 | `github-sync` | Branches, optional protection, local `pre-push` guard |
 | `project-setup` | Bind the repository to a GitHub CLI profile |
-| `spai-update` | Update an installation to the latest release |
-| `spai-doctor` | Read-only health check of the installation |
+| `jig-update` | Update an installation to the latest release |
+| `jig-doctor` | Read-only health check of the installation |
 | `readme` | Draft a README, or fix its drift against the code |
-| `version-rubric` | Settle `patch`/`minor`/`major` in `.spai/versioning.md` |
+| `version-rubric` | Settle `patch`/`minor`/`major` in `.jig/versioning.md` |
 | `rubric-scan` | Classify the project type, recommend a rubric |
 
 There is a **single merge flow, solo-cli**: a work branch is squash-merged into `develop` locally and pushed directly. No pull requests.
@@ -78,24 +78,24 @@ Skill bodies and the rubric catalog are written in English. What a skill **produ
 Written in Korean, except the rubric catalog.
 
 - [Installation guide](docs/installation.md): what lands where for each CLI, installer options, skill namespacing, and removal.
-- [Version rubric](docs/version-rubric.md): how an installed project grades `patch`/`minor`/`major` on its own terms, plus the `.spai/versioning.md` file contract.
+- [Version rubric](docs/version-rubric.md): how an installed project grades `patch`/`minor`/`major` on its own terms, plus the `.jig/versioning.md` file contract.
 - [Rubric catalog by project type](skills/version-rubric/rubrics/INDEX.md): 17 rubric drafts and the detection signal table `rubric-scan` uses. In English.
-- [Versioning policy](docs/versioning.md): commentary on how SPAI itself grades releases. The normative source is `.spai/versioning.md`.
+- [Versioning policy](docs/versioning.md): commentary on how jig itself grades releases. The normative source is `.jig/versioning.md`.
 - [GitHub repository settings](docs/github-repository-settings.md): what the installer applies, and how optional branch protection is decided.
-- [Roadmap](docs/roadmap.md): SPAI's identity and its trigger-conditional direction candidates.
+- [Roadmap](docs/roadmap.md): jig's identity and its trigger-conditional direction candidates.
 
 ## Updating
 
-Run the `spai-update` skill. It compares the installation against the latest release, summarizes the notes in between, updates each target, and converges repository settings with `github-sync`.
+Run the `jig-update` skill. It compares the installation against the latest release, summarizes the notes in between, updates each target, and converges repository settings with `github-sync`.
 
 ```text
-/spai:spai-update
+/jig:jig-update
 ```
 
 To do it by hand instead, use what each CLI provides. On Claude Code the plugin host owns the update:
 
 ```text
-/plugin marketplace update spai
+/plugin marketplace update jig
 /reload-plugins
 ```
 

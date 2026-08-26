@@ -2,15 +2,15 @@
 
 Use these repo-scoped Codex skills:
 
-- Repository setup/sync: `spai-github-sync` from `.agents/skills/spai-github-sync/SKILL.md`.
-- Release: `spai-github-release` from `.agents/skills/spai-github-release/SKILL.md`.
-- Ordinary implementation tasks targeting `develop`: `spai-develop-task-flow` from `.agents/skills/spai-develop-task-flow/SKILL.md`.
-- README writing/updating: `spai-readme` from `.agents/skills/spai-readme/SKILL.md`.
-- SPAI project installation and GitHub profile setup: `spai-project-setup` from `.agents/skills/spai-project-setup/SKILL.md`.
-- SPAI installation updates: `spai-update` from `.agents/skills/spai-update/SKILL.md`.
-- SPAI installation diagnostics: `spai-doctor` from `.agents/skills/spai-doctor/SKILL.md`.
-- Version grading rubric: `spai-version-rubric` from `.agents/skills/spai-version-rubric/SKILL.md`.
-- Project type scan and rubric recommendation: `spai-rubric-scan` from `.agents/skills/spai-rubric-scan/SKILL.md`.
+- Repository setup/sync: `jig-github-sync` from `.agents/skills/jig-github-sync/SKILL.md`.
+- Release: `jig-github-release` from `.agents/skills/jig-github-release/SKILL.md`.
+- Ordinary implementation tasks targeting `develop`: `jig-develop-task-flow` from `.agents/skills/jig-develop-task-flow/SKILL.md`.
+- README writing/updating: `jig-readme` from `.agents/skills/jig-readme/SKILL.md`.
+- jig project installation and GitHub profile setup: `jig-project-setup` from `.agents/skills/jig-project-setup/SKILL.md`.
+- jig installation updates: `jig-update` from `.agents/skills/jig-update/SKILL.md`.
+- jig installation diagnostics: `jig-doctor` from `.agents/skills/jig-doctor/SKILL.md`.
+- Version grading rubric: `jig-version-rubric` from `.agents/skills/jig-version-rubric/SKILL.md`.
+- Project type scan and rubric recommendation: `jig-rubric-scan` from `.agents/skills/jig-rubric-scan/SKILL.md`.
 
 ## Repository Model
 
@@ -24,13 +24,13 @@ Use these repo-scoped Codex skills:
 
 - `skills/` is the source of truth for every skill and is built into `dist/` for distribution.
 - Skill bodies and the rubric catalog are written in English; the rubric file contract uses English section titles with the Korean spellings still accepted as legacy. What a skill *produces* (reports, commit bodies, release notes, README) follows the target repository's own language, defaulting to English.
-- This repository keeps synced copies of its repo-scoped skills under `.agents/skills` (Codex, `spai-` prefixed to match the shipped payload) and `.claude/skills` (Claude Code, unprefixed development copies). When a skill under `skills/` changes, update both copies in the same task.
+- This repository keeps synced copies of its repo-scoped skills under `.agents/skills` (Codex, `jig-` prefixed to match the shipped payload) and `.claude/skills` (Claude Code, unprefixed development copies). When a skill under `skills/` changes, update both copies in the same task.
 
 ## Build
 
 - Rebuild the distribution after any change under `skills/`, `hooks/`, or `manifest.tsv`: `sh scripts/build-dist.sh`.
 - Validate before merging or releasing: `sh scripts/validate-dist.sh`. It checks the payload file list, managed block markers, the rubric catalog contract, and the README layout rules.
-- `dist/` is generated, never hand-edited. The Claude Code plugin payload is `dist/claude-code-plugin/spai` and the marketplace definition is `.claude-plugin/marketplace.json`.
+- `dist/` is generated, never hand-edited. The Claude Code plugin payload is `dist/claude-code-plugin/jig` and the marketplace definition is `.claude-plugin/marketplace.json`.
 
 ## Safety Rules
 
@@ -39,8 +39,8 @@ Use these repo-scoped Codex skills:
 - Do not overwrite user-modified files without explicit user confirmation.
 - Keep repository skill copies under `.agents/skills` and `.claude/skills`, synced from `skills/`.
 - Do not create `.codex` or unrequested AI skill directories beyond those two inside this repository.
-- `.spai/` is project-owned: only `spai-version-rubric` writes `.spai/versioning.md`, and the installer and `spai-update` never touch it.
-- The project-type rubric catalog lives at `skills/version-rubric/rubrics` and ships as payload; `spai-rubric-scan` reads it and never writes. `rubrics/INDEX.md` is the only list of types, so a new rubric file must be added to that table in the same task.
+- `.jig/` is project-owned: only `jig-version-rubric` writes `.jig/versioning.md`, and the installer and `jig-update` never touch it.
+- The project-type rubric catalog lives at `skills/version-rubric/rubrics` and ships as payload; `jig-rubric-scan` reads it and never writes. `rubrics/INDEX.md` is the only list of types, so a new rubric file must be added to that table in the same task.
 - Do not push ordinary work directly to `main`; `main` only updates through the release fast-forward push.
 - Keep all documentation and skill examples generic: use placeholders such as `your-account`, `your@email.com`, and `/absolute/path/to/<name>`. Never include local machine paths, personal identifiers, or examples taken from local or other projects.
 - If a release request includes unfinished code, config, documentation, generated `dist`, or workflow changes, stop release execution and complete those changes first through `develop-task-flow`.
@@ -51,7 +51,7 @@ Use these repo-scoped Codex skills:
 
 ## Develop Task Rules
 
-- Use `spai-develop-task-flow` for normal code/config/docs work.
+- Use `jig-develop-task-flow` for normal code/config/docs work.
 - Create task branches from `origin/develop` using `feature/<slug>`, `fix/<slug>`, or `chore/<slug>`.
 - Run relevant tests before merging.
 - Finish by `git merge --squash` into `develop` and a single conventional commit, then push `develop`.
@@ -61,7 +61,7 @@ Use these repo-scoped Codex skills:
 ## Release Rules
 
 - Release only when the user explicitly asks for a release.
-- Grade the bump against this repository's version rubric at `.spai/versioning.md`, which grades by what installed projects pay: `patch` when the public interface is unchanged, `minor` for new capability or a break that fails loudly and names its own fix, `major` when a human decision is needed or behavior changes silently. A silent behavior change is always `major`, and any `migration-manual` block forces `major`. `docs/versioning.md` is the human-readable commentary; `docs/version-rubric.md` explains the rubric contract for installed projects.
+- Grade the bump against this repository's version rubric at `.jig/versioning.md`, which grades by what installed projects pay: `patch` when the public interface is unchanged, `minor` for new capability or a break that fails loudly and names its own fix, `major` when a human decision is needed or behavior changes silently. A silent behavior change is always `major`, and any `migration-manual` block forces `major`. `docs/versioning.md` is the human-readable commentary; `docs/version-rubric.md` explains the rubric contract for installed projects.
 - While the major version is `0`, a `major` grade raises the minor position (`v0.Y.Z` → `v0.(Y+1).0`).
 - Compute the next version from the latest `vX.Y.Z` tag using the graded bump type; an explicit `vX.Y.Z` from the user overrides it. If the grade exceeds the requested bump, report the reason and ask before continuing.
 - Verify a clean worktree, `develop` synced with `origin/develop`, and a non-existing tag before promoting.

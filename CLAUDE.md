@@ -6,9 +6,9 @@ Use these repo-scoped Claude Code skills:
 - Release: `github-release` from `.claude/skills/github-release/SKILL.md`.
 - Ordinary implementation tasks targeting `develop`: `develop-task-flow` from `.claude/skills/develop-task-flow/SKILL.md`.
 - README writing/updating: `readme` from `.claude/skills/readme/SKILL.md`.
-- SPAI project installation and GitHub profile setup: `project-setup` from `.claude/skills/project-setup/SKILL.md`.
-- SPAI installation updates: `spai-update` from `.claude/skills/spai-update/SKILL.md`.
-- SPAI installation diagnostics: `spai-doctor` from `.claude/skills/spai-doctor/SKILL.md`.
+- jig project installation and GitHub profile setup: `project-setup` from `.claude/skills/project-setup/SKILL.md`.
+- jig installation updates: `jig-update` from `.claude/skills/jig-update/SKILL.md`.
+- jig installation diagnostics: `jig-doctor` from `.claude/skills/jig-doctor/SKILL.md`.
 - Version grading rubric: `version-rubric` from `.claude/skills/version-rubric/SKILL.md`.
 - Project type scan and rubric recommendation: `rubric-scan` from `.claude/skills/rubric-scan/SKILL.md`.
 
@@ -24,13 +24,13 @@ Use these repo-scoped Claude Code skills:
 
 - `skills/` is the source of truth for every skill and is built into `dist/` for distribution.
 - Skill bodies and the rubric catalog are written in English; the rubric file contract uses English section titles with the Korean spellings still accepted as legacy. What a skill *produces* (reports, commit bodies, release notes, README) follows the target repository's own language, defaulting to English.
-- This repository keeps synced copies of its repo-scoped skills under `.agents/skills` (Codex, `spai-` prefixed to match the shipped payload) and `.claude/skills` (Claude Code, unprefixed development copies). When a skill under `skills/` changes, update both copies in the same task.
+- This repository keeps synced copies of its repo-scoped skills under `.agents/skills` (Codex, `jig-` prefixed to match the shipped payload) and `.claude/skills` (Claude Code, unprefixed development copies). When a skill under `skills/` changes, update both copies in the same task.
 
 ## Build
 
 - Rebuild the distribution after any change under `skills/`, `hooks/`, or `manifest.tsv`: `sh scripts/build-dist.sh`.
 - Validate before merging or releasing: `sh scripts/validate-dist.sh`. It checks the payload file list, managed block markers, the rubric catalog contract, and the README layout rules.
-- `dist/` is generated, never hand-edited. The Claude Code plugin payload is `dist/claude-code-plugin/spai` and the marketplace definition is `.claude-plugin/marketplace.json`.
+- `dist/` is generated, never hand-edited. The Claude Code plugin payload is `dist/claude-code-plugin/jig` and the marketplace definition is `.claude-plugin/marketplace.json`.
 
 ## Safety Rules
 
@@ -38,7 +38,7 @@ Use these repo-scoped Claude Code skills:
 - Do not delete branches without explicit user confirmation.
 - Do not overwrite user-modified files without explicit user confirmation.
 - Do not create unrequested AI skill directories beyond `.agents/skills` and `.claude/skills`.
-- `.spai/` is project-owned: only `version-rubric` writes `.spai/versioning.md`, and the installer and `spai-update` never touch it.
+- `.jig/` is project-owned: only `version-rubric` writes `.jig/versioning.md`, and the installer and `jig-update` never touch it.
 - The project-type rubric catalog lives at `skills/version-rubric/rubrics` and ships as payload; `rubric-scan` reads it and never writes. `rubrics/INDEX.md` is the only list of types, so a new rubric file must be added to that table in the same task.
 - Do not push ordinary work directly to `main`; `main` only updates through the release fast-forward push.
 - Keep all documentation and skill examples generic: use placeholders such as `your-account`, `your@email.com`, and `/absolute/path/to/<name>`. Never include local machine paths, personal identifiers, or examples taken from local or other projects.
@@ -60,7 +60,7 @@ Use these repo-scoped Claude Code skills:
 ## Release Rules
 
 - Release only when the user explicitly asks for a release.
-- Grade the bump against this repository's version rubric at `.spai/versioning.md`, which grades by what installed projects pay: `patch` when the public interface is unchanged, `minor` for new capability or a break that fails loudly and names its own fix, `major` when a human decision is needed or behavior changes silently. A silent behavior change is always `major`, and any `migration-manual` block forces `major`. `docs/versioning.md` is the human-readable commentary; `docs/version-rubric.md` explains the rubric contract for installed projects.
+- Grade the bump against this repository's version rubric at `.jig/versioning.md`, which grades by what installed projects pay: `patch` when the public interface is unchanged, `minor` for new capability or a break that fails loudly and names its own fix, `major` when a human decision is needed or behavior changes silently. A silent behavior change is always `major`, and any `migration-manual` block forces `major`. `docs/versioning.md` is the human-readable commentary; `docs/version-rubric.md` explains the rubric contract for installed projects.
 - While the major version is `0`, a `major` grade raises the minor position (`v0.Y.Z` → `v0.(Y+1).0`).
 - Compute the next version from the latest `vX.Y.Z` tag using the graded bump type; an explicit `vX.Y.Z` from the user overrides it. If the grade exceeds the requested bump, report the reason and ask before continuing.
 - Verify a clean worktree, `develop` synced with `origin/develop`, and a non-existing tag before promoting.

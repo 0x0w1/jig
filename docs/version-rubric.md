@@ -2,7 +2,7 @@
 
 [한국어](version-rubric.ko.md)
 
-How SPAI grades a release as `patch`, `minor`, or `major` is **the project's decision.** That decision lives in one file in the repository, and `github-release` reads it at release time.
+How jig grades a release as `patch`, `minor`, or `major` is **the project's decision.** That decision lives in one file in the repository, and `github-release` reads it at release time.
 
 The axis differs per project. The default splits on whether a human has to step in; a document-management project splits by the kind of artifact. These are different axes, not different thresholds on one axis, so the rubric was pushed out of the skill and into the project.
 
@@ -11,12 +11,12 @@ Per-type drafts ship with the skill in a **rubric catalog**, so nothing has to b
 ## Where the File Lives
 
 ```text
-.spai/
+.jig/
 └── versioning.md
 ```
 
-- `.spai/` is **owned by the project.** The installer and `spai-update` never write or delete it, and `spai-doctor` never treats its contents as drift. What you edited is the answer.
-- The file **must be committed.** Uncommitted, it does not reach clones or CI, so different people grade differently. `spai-doctor` warns when it is uncommitted.
+- `.jig/` is **owned by the project.** The installer and `jig-update` never write or delete it, and `jig-doctor` never treats its contents as drift. What you edited is the answer.
+- The file **must be committed.** Uncommitted, it does not reach clones or CI, so different people grade differently. `jig-doctor` warns when it is uncommitted.
 - Do not put it in `.gitignore`.
 
 ## Rubric Catalog
@@ -26,8 +26,8 @@ The per-type drafts install inside the `version-rubric` skill payload. Where the
 | Environment | Catalog path |
 |---|---|
 | Claude Code | `${CLAUDE_PLUGIN_ROOT}/skills/version-rubric/rubrics` |
-| Codex, Antigravity (project) | `.agents/skills/spai-version-rubric/rubrics` |
-| The SPAI repository itself | [`skills/version-rubric/rubrics`](../skills/version-rubric/rubrics/INDEX.md) |
+| Codex, Antigravity (project) | `.agents/skills/jig-version-rubric/rubrics` |
+| The jig repository itself | [`skills/version-rubric/rubrics`](../skills/version-rubric/rubrics/INDEX.md) |
 
 ```text
 rubrics/
@@ -63,11 +63,11 @@ The 17 catalog drafts grade on the **SemVer consumer-compatibility axis**. The [
 
 Use one or the other. Mixing the questions blurs where the decision order stops. A project with clear outside consumers — installs, callers, readers — fits the catalog; a project whose only consumer is itself, or whose consumers are not settled yet, fits the default.
 
-A catalog file is written so it can become `.spai/versioning.md` as-is. Copy it, then adjust only the date on the `> Basis:` line and the `## Public Interface` list. The catalog itself is payload that `spai-update` refreshes — the project's decision belongs in the rubric file, never in the catalog.
+A catalog file is written so it can become `.jig/versioning.md` as-is. Copy it, then adjust only the date on the `> Basis:` line and the `## Public Interface` list. The catalog itself is payload that `jig-update` refreshes — the project's decision belongs in the rubric file, never in the catalog.
 
 ### Type Scan
 
-The `rubric-scan` skill reads the repository and picks candidate types. It is `/spai:rubric-scan` on Claude Code and `spai-rubric-scan` on Codex and Antigravity.
+The `rubric-scan` skill reads the repository and picks candidate types. It is `/jig:rubric-scan` on Claude Code and `jig-rubric-scan` on Codex and Antigravity.
 
 1. It reads the tracked file list, the extension mix, dependency manifests, distribution configuration, and commit history.
 2. It scores against the signal table in `INDEX.md` — a strong signal is 2 points, a weak one 1 point, and anything under 3 points is dropped.
@@ -84,17 +84,17 @@ For a project the catalog does not cover, copy `_template.md` to `<id>.md` on th
 
 | Key | Kind | Default | Reaches clones | Purpose |
 |---|---|---|---|---|
-| `SPAI_VERSION_RUBRIC` | environment variable | none | no (session only) | one-off path override, CI |
-| `spai.versionRubric` | `git config --local` | none | no | repository override when the conventional path cannot be used |
-| (conventional path) | file | `.spai/versioning.md` | yes | the normal path |
+| `JIG_VERSION_RUBRIC` | environment variable | none | no (session only) | one-off path override, CI |
+| `jig.versionRubric` | `git config --local` | none | no | repository override when the conventional path cannot be used |
+| (conventional path) | file | `.jig/versioning.md` | yes | the normal path |
 
-Resolution order is environment variable → local config → conventional path, the same shape as the `SPAI_GITHUB_PROFILE`/`spai.githubProfile` pair.
+Resolution order is environment variable → local config → conventional path, the same shape as the `JIG_GITHUB_PROFILE`/`jig.githubProfile` pair.
 
 A config key holds **a path only.** State such as "the default was adopted" belongs on the `> Basis:` line at the top of the file. `git config --local` lives in `.git/config` and does not reach clones, so state kept there makes one repository grade differently for different people.
 
 ## Using It
 
-Run `/spai:version-rubric` on Claude Code, `spai-version-rubric` on Codex and Antigravity. No arguments. The skill checks the current state first, then asks what to do.
+Run `/jig:version-rubric` on Claude Code, `jig-version-rubric` on Codex and Antigravity. No arguments. The skill checks the current state first, then asks what to do.
 
 | What you want | What the skill does |
 |---|---|
@@ -116,7 +116,7 @@ The full text the skill writes. Why the section titles are English is in [sectio
 ```md
 # Version Policy
 
-> Basis: SPAI default (human-intervention axis), adopted <date>
+> Basis: jig default (human-intervention axis), adopted <date>
 
 ## Decision Order
 1. Is this a fix inside what the project already does? → `patch`
@@ -166,7 +166,7 @@ Two required sections, four optional. **The section titles are the contract.**
 
 The contract titles are English. The skills are written in English throughout, so Korean-only titles would split the vocabulary inside one file and leave every installation deciding which spelling to use.
 
-**A rubric already written with Korean titles keeps working.** Every skill that reads a rubric — `github-release`, `spai-doctor`, `version-rubric`, `rubric-scan` — accepts both spellings.
+**A rubric already written with Korean titles keeps working.** Every skill that reads a rubric — `github-release`, `jig-doctor`, `version-rubric`, `rubric-scan` — accepts both spellings.
 
 | English (canonical) | Korean (legacy) |
 |---|---|
@@ -227,11 +227,11 @@ Use the default as-is. Fixes inside the existing feature set are `patch`; adding
 
 ### A tool with installations
 
-SPAI itself is this case; see [`.spai/versioning.md`](../.spai/versioning.md). Its axis is "what an installation pays", and it carries two hard rules different from the default ("a silent behavior change is `major`", "any `migration-manual` block makes it `major`") along with a public interface list.
+jig itself is this case; see [`.jig/versioning.md`](../.jig/versioning.md). Its axis is "what an installation pays", and it carries two hard rules different from the default ("a silent behavior change is `major`", "any `migration-manual` block makes it `major`") along with a public interface list.
 
 ## Related
 
 - [Rubric catalog index](../skills/version-rubric/rubrics/INDEX.md)
 - [Common SemVer principles](../skills/version-rubric/rubrics/common.md)
-- [SPAI versioning policy](versioning.md)
+- [jig versioning policy](versioning.md)
 - [Installation guide](installation.md)

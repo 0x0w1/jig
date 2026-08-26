@@ -2,8 +2,8 @@ github-sync	solo-cli	yes
 github-release	solo-cli	yes
 develop-task-flow	solo-cli	yes
 project-setup	solo-cli	yes
-spai-update	solo-cli	yes
-spai-doctor	solo-cli	yes
+jig-update	solo-cli	yes
+jig-doctor	solo-cli	yes
 readme	solo-cli	yes
 version-rubric	solo-cli	yes
 rubric-scan	solo-cli	yes

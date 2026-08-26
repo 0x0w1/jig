@@ -66,7 +66,7 @@ Do not raise every change to `major` merely because the system is non-determinis
 
 ## Before 1.0 and Prereleases
 
-Under SemVer, `0.y.z` signals that the public interface may not be stable. Even so, grade and record the change as `patch`, `minor`, or `major` first. Under the SPAI default format, a `major` grade in `0.x` is expressed as `v0.(Y+1).0`.
+Under SemVer, `0.y.z` signals that the public interface may not be stable. Even so, grade and record the change as `patch`, `minor`, or `major` first. Under the jig default format, a `major` grade in `0.x` is expressed as `v0.(Y+1).0`.
 
 Prerelease markers such as `alpha`, `beta`, and `rc` are stability stages, not substitutes for a compatibility grade. Settle the base version first, then attach the prerelease identifier.
 

@@ -19,7 +19,7 @@ Use this skill to create or update the repository's `README.md` from the actual 
    - `README.md` exists → **update path**: check every verifiable claim in the README — commands, options, file paths, links, feature statements — against the repository. Collect mismatches into a drift list, report the list, then apply the fixes. Leave sections that are still accurate untouched.
 4. Apply the accuracy rules to every line written.
 5. Merge the change:
-   - When the repository has the `develop-task-flow` skill (or the installed `spai-develop-task-flow`), follow it: a `chore/<slug>` branch, a squash merge with a `docs:` commit, then push `develop`.
+   - When the repository has the `develop-task-flow` skill (or the installed `jig-develop-task-flow`), follow it: a `chore/<slug>` branch, a squash merge with a `docs:` commit, then push `develop`.
    - Otherwise propose a normal commit on the current branch.
 
 ## Section Layout

@@ -5,25 +5,29 @@ TARGET=""
 SCOPE="project"
 DRY_RUN=0
 FORCE=0
-GITHUB_ACCOUNT="${SPAI_GITHUB_PROFILE:-${SPAI_GITHUB_ACCOUNT:-}}"
-GITHUB_HOST="${SPAI_GITHUB_HOST:-}"
+GITHUB_ACCOUNT="${JIG_GITHUB_PROFILE:-${JIG_GITHUB_ACCOUNT:-${SPAI_GITHUB_PROFILE:-${SPAI_GITHUB_ACCOUNT:-}}}}"
+GITHUB_HOST="${JIG_GITHUB_HOST:-${SPAI_GITHUB_HOST:-}}"
 GITHUB_AUTH_TOKEN=""
 GITHUB_PROFILE_SOURCE=""
-if [ -n "${SPAI_GITHUB_PROFILE:-}" ]; then
-  GITHUB_PROFILE_SOURCE="SPAI_GITHUB_PROFILE"
+if [ -n "${JIG_GITHUB_PROFILE:-}" ]; then
+  GITHUB_PROFILE_SOURCE="JIG_GITHUB_PROFILE"
+elif [ -n "${JIG_GITHUB_ACCOUNT:-}" ]; then
+  GITHUB_PROFILE_SOURCE="JIG_GITHUB_ACCOUNT"
+elif [ -n "${SPAI_GITHUB_PROFILE:-}" ]; then
+  GITHUB_PROFILE_SOURCE="SPAI_GITHUB_PROFILE (legacy)"
 elif [ -n "${SPAI_GITHUB_ACCOUNT:-}" ]; then
-  GITHUB_PROFILE_SOURCE="SPAI_GITHUB_ACCOUNT"
+  GITHUB_PROFILE_SOURCE="SPAI_GITHUB_ACCOUNT (legacy)"
 fi
-CONFIGURE_GIT_USER="${SPAI_CONFIGURE_GIT_USER:-0}"
-GIT_USER_NAME="${SPAI_GIT_USER_NAME:-}"
-GIT_USER_EMAIL="${SPAI_GIT_USER_EMAIL:-}"
+CONFIGURE_GIT_USER="${JIG_CONFIGURE_GIT_USER:-${SPAI_CONFIGURE_GIT_USER:-0}}"
+GIT_USER_NAME="${JIG_GIT_USER_NAME:-${SPAI_GIT_USER_NAME:-}}"
+GIT_USER_EMAIL="${JIG_GIT_USER_EMAIL:-${SPAI_GIT_USER_EMAIL:-}}"
 REPO_RAW_URL_INPUT="${REPO_RAW_URL:-}"
 REPO_RAW_URL=""
-REPO_RAW_BASE="${SPAI_REPO_RAW_BASE:-https://raw.githubusercontent.com/0x0w1/spai}"
-SPAI_RELEASES_API="${SPAI_RELEASES_API:-https://api.github.com/repos/0x0w1/spai/releases/latest}"
-REQUESTED_VERSION="${SPAI_VERSION:-}"
-SPAI_VERSION_STAMP="main"
-SKILLS_INPUT="${SPAI_SKILLS:-}"
+REPO_RAW_BASE="${JIG_REPO_RAW_BASE:-${SPAI_REPO_RAW_BASE:-https://raw.githubusercontent.com/0x0w1/spai}}"
+JIG_RELEASES_API="${JIG_RELEASES_API:-${SPAI_RELEASES_API:-https://api.github.com/repos/0x0w1/spai/releases/latest}}"
+REQUESTED_VERSION="${JIG_VERSION:-${SPAI_VERSION:-}}"
+JIG_VERSION_STAMP="main"
+SKILLS_INPUT="${JIG_SKILLS:-${SPAI_SKILLS:-}}"
 SELECTED_SKILLS=""
 MANIFEST_TMP=""
 FILES_TMP=""
@@ -35,13 +39,13 @@ VERIFIED_BRANCHES=""
 
 print_help() {
   cat <<'EOF'
-SPAI - Scaffolded Procedures for AI Agents
+jig - repository procedures for AI agent CLIs: same cut, every project
 
 This installer covers the CLIs that have no plugin system. Claude Code is not a target:
-it installs the spai plugin from the Claude Code marketplace instead.
+it installs the jig plugin from the Claude Code marketplace instead.
 
   /plugin marketplace add 0x0w1/spai
-  /plugin install spai@spai
+  /plugin install jig@jig
 
 Usage:
   sh install.sh --target <target> [--scope <scope>] [--github-profile <profile>] [--version vX.Y.Z] [--skills a,b,c] [--configure-git-user] [--dry-run] [--force]
@@ -51,7 +55,7 @@ Merge flow:
 
 Skills:
   Default: every skill marked default in dist/manifest.tsv.
-  Use --skills a,b,c (or SPAI_SKILLS) to install a subset; names must exist in the manifest.
+  Use --skills a,b,c (or JIG_SKILLS) to install a subset; names must exist in the manifest.
 
 Targets:
   codex
@@ -74,53 +78,53 @@ Examples:
     | sh -s -- --target antigravity --scope project
 
 Environment:
-  SPAI_GITHUB_PROFILE=your-account sh install.sh --target codex --scope project
-  REPO_RAW_URL=https://raw.githubusercontent.com/my-org/spai/main SPAI_GITHUB_PROFILE=your-account sh install.sh --target codex
-  SPAI_VERSION=v0.1.0 SPAI_GITHUB_PROFILE=your-account sh install.sh --target codex --scope project
-  SPAI_SKILLS=github-release,develop-task-flow SPAI_GITHUB_PROFILE=your-account sh install.sh --target codex --scope project
-  SPAI_GITHUB_HOST=github.example.com SPAI_GITHUB_PROFILE=your-account sh install.sh --target codex --scope project
-  SPAI_GIT_USER_NAME="Your Name" SPAI_GIT_USER_EMAIL=your@email.com sh install.sh --target codex --scope project --github-profile your-account
+  JIG_GITHUB_PROFILE=your-account sh install.sh --target codex --scope project
+  REPO_RAW_URL=https://raw.githubusercontent.com/my-org/jig/main JIG_GITHUB_PROFILE=your-account sh install.sh --target codex
+  JIG_VERSION=v0.1.0 JIG_GITHUB_PROFILE=your-account sh install.sh --target codex --scope project
+  JIG_SKILLS=github-release,develop-task-flow JIG_GITHUB_PROFILE=your-account sh install.sh --target codex --scope project
+  JIG_GITHUB_HOST=github.example.com JIG_GITHUB_PROFILE=your-account sh install.sh --target codex --scope project
+  JIG_GIT_USER_NAME="Your Name" JIG_GIT_USER_EMAIL=your@email.com sh install.sh --target codex --scope project --github-profile your-account
 
 Version:
   By default the installer resolves the latest GitHub release tag and installs the payload
   pinned to that tag (raw.githubusercontent.com/0x0w1/spai/vX.Y.Z). If the release lookup
   fails, it falls back to the main branch.
-  Use --version vX.Y.Z (or SPAI_VERSION) to pin or roll back to a specific release.
+  Use --version vX.Y.Z (or JIG_VERSION) to pin or roll back to a specific release.
   An explicit REPO_RAW_URL overrides version resolution entirely.
   The installed version and skill selection are stamped as
-  <!-- spai:version vX.Y.Z skills=<a,b,c> --> inside the SPAI managed block of
-  AGENTS.md / GEMINI.md; the spai-update and spai-doctor skills read this stamp.
+  <!-- jig:version vX.Y.Z skills=<a,b,c> --> inside the jig managed block of
+  AGENTS.md / GEMINI.md; the jig-update and jig-doctor skills read this stamp.
 
 GitHub profile:
   GitHub profile is optional during installation. Configure it afterward with the installed project-setup skill.
-  When provided, project scope resolves --github-profile, SPAI_GITHUB_PROFILE, then local git config spai.githubProfile.
-  --github-account and SPAI_GITHUB_ACCOUNT remain supported aliases.
-  Use --github-host <host> or SPAI_GITHUB_HOST for GitHub Enterprise hosts.
+  When provided, project scope resolves --github-profile, JIG_GITHUB_PROFILE, then local git config jig.githubProfile.
+  --github-account and JIG_GITHUB_ACCOUNT remain supported aliases.
+  Use --github-host <host> or JIG_GITHUB_HOST for GitHub Enterprise hosts.
   The installer logs in with gh when needed and uses that profile per command without changing the globally active account.
 
 Local git user:
   Use --configure-git-user to prompt for local user.name and user.email.
-  Use --git-user-name and --git-user-email, or SPAI_GIT_USER_NAME and SPAI_GIT_USER_EMAIL, to set them non-interactively.
+  Use --git-user-name and --git-user-email, or JIG_GIT_USER_NAME and JIG_GIT_USER_EMAIL, to set them non-interactively.
 
 Managed files:
-  Use --force to replace an existing managed file entirely when it does not already contain SPAI markers.
+  Use --force to replace an existing managed file entirely when it does not already contain jig markers.
 
 Skill ownership:
-  codex and antigravity have no plugin system, so their skill directories carry a spai- prefix
-  (.agents/skills/spai-github-sync, ...) to stay clear of your own skill names.
+  codex and antigravity have no plugin system, so their skill directories carry a jig- prefix
+  (.agents/skills/jig-github-sync, ...) to stay clear of your own skill names.
 
 Project scope also syncs GitHub repository settings when gh is available:
-  profile: optional; selected by --github-profile, SPAI_GITHUB_PROFILE, or local git config
+  profile: optional; selected by --github-profile, JIG_GITHUB_PROFILE, or local git config
   branches: develop creation from main when missing
 
 Target-specific project installs:
-  codex: AGENTS.md plus .agents/skills/spai-*
-  antigravity: GEMINI.md plus .agents/skills/spai-*
+  codex: AGENTS.md plus .agents/skills/jig-*
+  antigravity: GEMINI.md plus .agents/skills/jig-*
 EOF
 }
 
 log() {
-  printf 'SPAI [info] %s\n' "$*"
+  printf 'jig [info] %s\n' "$*"
 }
 
 pass_task() {
@@ -128,11 +132,11 @@ pass_task() {
 }
 
 warn() {
-  printf 'SPAI [warn] %s\n' "$*" >&2
+  printf 'jig [warn] %s\n' "$*" >&2
 }
 
 error() {
-  printf 'SPAI [error] %s\n' "$*" >&2
+  printf 'jig [error] %s\n' "$*" >&2
   exit 1
 }
 
@@ -141,7 +145,7 @@ print_list() {
   list_items="$2"
 
   [ -n "$list_items" ] || return 0
-  printf '\nSPAI [summary] %s\n' "$list_title"
+  printf '\njig [summary] %s\n' "$list_title"
   printf '%s\n' "$list_items" | sed '/^$/d; s/^/  - /'
 }
 
@@ -187,7 +191,7 @@ is_valid_release_version() {
 
 fetch_latest_release_tag() {
   if command -v gh >/dev/null 2>&1; then
-    gh_latest_tag=$(gh api "$SPAI_RELEASES_API" --jq .tag_name 2>/dev/null || true)
+    gh_latest_tag=$(gh api "$JIG_RELEASES_API" --jq .tag_name 2>/dev/null || true)
     if [ -n "$gh_latest_tag" ]; then
       printf '%s\n' "$gh_latest_tag"
       return 0
@@ -195,17 +199,17 @@ fetch_latest_release_tag() {
   fi
 
   if command -v curl >/dev/null 2>&1; then
-    curl -fsSL "$SPAI_RELEASES_API" 2>/dev/null
+    curl -fsSL "$JIG_RELEASES_API" 2>/dev/null
   elif command -v wget >/dev/null 2>&1; then
-    wget -qO- "$SPAI_RELEASES_API" 2>/dev/null
+    wget -qO- "$JIG_RELEASES_API" 2>/dev/null
   fi | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1
 }
 
 resolve_repo_raw_url() {
   if [ -n "$REPO_RAW_URL_INPUT" ]; then
     REPO_RAW_URL="$REPO_RAW_URL_INPUT"
-    SPAI_VERSION_STAMP="${REQUESTED_VERSION:-custom}"
-    log "SPAI payload source (REPO_RAW_URL override): $REPO_RAW_URL"
+    JIG_VERSION_STAMP="${REQUESTED_VERSION:-custom}"
+    log "jig payload source (REPO_RAW_URL override): $REPO_RAW_URL"
     return 0
   fi
 
@@ -214,30 +218,30 @@ resolve_repo_raw_url() {
       error "--version must match vX.Y.Z: $REQUESTED_VERSION"
     fi
     REPO_RAW_URL="$REPO_RAW_BASE/$REQUESTED_VERSION"
-    SPAI_VERSION_STAMP="$REQUESTED_VERSION"
-    log "SPAI payload source (pinned): $REPO_RAW_URL"
+    JIG_VERSION_STAMP="$REQUESTED_VERSION"
+    log "jig payload source (pinned): $REPO_RAW_URL"
     return 0
   fi
 
   latest_release_tag=$(fetch_latest_release_tag || true)
   if is_valid_release_version "${latest_release_tag:-}"; then
     REPO_RAW_URL="$REPO_RAW_BASE/$latest_release_tag"
-    SPAI_VERSION_STAMP="$latest_release_tag"
-    log "SPAI payload source (latest release): $REPO_RAW_URL"
+    JIG_VERSION_STAMP="$latest_release_tag"
+    log "jig payload source (latest release): $REPO_RAW_URL"
     return 0
   fi
 
   REPO_RAW_URL="$REPO_RAW_BASE/main"
-  SPAI_VERSION_STAMP="main"
+  JIG_VERSION_STAMP="main"
   warn "Latest release lookup failed; falling back to main branch payload."
-  log "SPAI payload source (fallback): $REPO_RAW_URL"
+  log "jig payload source (fallback): $REPO_RAW_URL"
 }
 
-stamp_spai_version() {
+stamp_jig_version() {
   stamp_target="$1"
   stamp_tmp=$(mktemp)
   stamp_skills=$(printf '%s' "$SELECTED_SKILLS" | tr ' ' ',' | sed 's/^,*//; s/,*$//; s/,,*/,/g')
-  sed "s|<!-- spai:version dev -->|<!-- spai:version $SPAI_VERSION_STAMP skills=$stamp_skills -->|" "$stamp_target" > "$stamp_tmp"
+  sed "s|<!-- jig:version dev -->|<!-- jig:version $JIG_VERSION_STAMP skills=$stamp_skills -->|" "$stamp_target" > "$stamp_tmp"
   mv "$stamp_tmp" "$stamp_target"
 }
 
@@ -286,8 +290,8 @@ skill_selected() {
 
 prefixed_skill_name() {
   case "$1" in
-    spai-*) printf '%s' "$1" ;;
-    *) printf 'spai-%s' "$1" ;;
+    jig-*) printf '%s' "$1" ;;
+    *) printf 'jig-%s' "$1" ;;
   esac
 }
 
@@ -346,11 +350,16 @@ $1"
 resolve_github_profile_config() {
   if [ "$SCOPE" = "project" ] && command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     if [ -z "$GITHUB_ACCOUNT" ]; then
-      GITHUB_ACCOUNT=$(git config --local --get spai.githubProfile 2>/dev/null || true)
+      GITHUB_ACCOUNT=$(git config --local --get jig.githubProfile 2>/dev/null || true)
+      if [ -z "$GITHUB_ACCOUNT" ]; then
+        GITHUB_ACCOUNT=$(git config --local --get spai.githubProfile 2>/dev/null || true)
+        [ -n "$GITHUB_ACCOUNT" ] && log "Using legacy local config spai.githubProfile; jig-doctor reports the rename."
+      fi
       [ -z "$GITHUB_ACCOUNT" ] || GITHUB_PROFILE_SOURCE="local git config"
     fi
     if [ -z "$GITHUB_HOST" ]; then
-      GITHUB_HOST=$(git config --local --get spai.githubHost 2>/dev/null || true)
+      GITHUB_HOST=$(git config --local --get jig.githubHost 2>/dev/null || true)
+      [ -n "$GITHUB_HOST" ] || GITHUB_HOST=$(git config --local --get spai.githubHost 2>/dev/null || true)
     fi
   fi
 
@@ -438,7 +447,7 @@ install_managed_block() {
   managed_block_tmp=$(mktemp)
   managed_new_tmp=$(mktemp)
   download_file "$managed_source_url" "$managed_source_tmp"
-  stamp_spai_version "$managed_source_tmp"
+  stamp_jig_version "$managed_source_tmp"
   filter_managed_block_skills "$managed_source_tmp"
   extract_managed_block "$managed_source_tmp" "$managed_block_tmp" "$managed_start_marker" "$managed_end_marker"
 
@@ -454,6 +463,16 @@ install_managed_block() {
     record_installed "$managed_destination"
     rm -f "$managed_source_tmp" "$managed_block_tmp" "$managed_new_tmp"
     return 0
+  fi
+
+  managed_legacy_start=$(printf '%s' "$managed_start_marker" | sed 's/jig:/spai:/')
+  managed_legacy_end=$(printf '%s' "$managed_end_marker" | sed 's/jig:/spai:/')
+  if ! grep -F "$managed_start_marker" "$managed_destination" >/dev/null 2>&1 \
+    && grep -F "$managed_legacy_start" "$managed_destination" >/dev/null 2>&1 \
+    && grep -F "$managed_legacy_end" "$managed_destination" >/dev/null 2>&1; then
+    log "Replacing the legacy spai managed block in $managed_destination."
+    managed_start_marker="$managed_legacy_start"
+    managed_end_marker="$managed_legacy_end"
   fi
 
   if grep -F "$managed_start_marker" "$managed_destination" >/dev/null 2>&1 && grep -F "$managed_end_marker" "$managed_destination" >/dev/null 2>&1; then
@@ -668,7 +687,7 @@ select_github_account() {
   fi
 
   if [ -z "$GITHUB_ACCOUNT" ]; then
-    error "GitHub profile is required for $context_action. Pass --github-profile <profile>, set SPAI_GITHUB_PROFILE, or configure spai.githubProfile locally."
+    error "GitHub profile is required for $context_action. Pass --github-profile <profile>, set JIG_GITHUB_PROFILE, or configure jig.githubProfile locally."
   fi
 
   ensure_github_login
@@ -820,13 +839,13 @@ print_guide() {
   printf '\nGUIDE\n'
   printf '%s\n' '  Remaining manual steps:'
   if [ -z "$GITHUB_ACCOUNT" ]; then
-    printf '%s\n' '    - Run the installed `spai-project-setup` skill to select this repository GitHub profile.'
-    printf '%s\n' '    - Claude Code users run `/spai:project-setup`; Codex and Antigravity users run `spai-project-setup`.'
+    printf '%s\n' '    - Run the installed `jig-project-setup` skill to select this repository GitHub profile.'
+    printf '%s\n' '    - Claude Code users run `/jig:project-setup`; Codex and Antigravity users run `jig-project-setup`.'
     return 0
   fi
   printf '%s\n' '    - Optional: protect `main` and `develop` against force pushes and deletion; do not require pull requests.'
   printf '%s\n' '      GitHub allows this on public repositories, and on private ones only with a paid plan.'
-  printf '%s\n' '    - Run the installed `spai-github-sync` skill: it checks whether this repository can have protection and asks before applying it.'
+  printf '%s\n' '    - Run the installed `jig-github-sync` skill: it checks whether this repository can have protection and asks before applying it.'
   printf '%s\n' '      Either way it installs the local pre-push guard, which is the barrier when protection is unavailable.'
 }
 
@@ -844,7 +863,7 @@ install_codex() {
       copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/$prefixed/$skill_file" "$skill_base/$prefixed/$skill_file"
     done
   done
-  install_managed_block "$REPO_RAW_URL/dist/codex/AGENTS.md" "$destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
+  install_managed_block "$REPO_RAW_URL/dist/codex/AGENTS.md" "$destination" "<!-- jig:start github-release-setup -->" "<!-- jig:end github-release-setup -->"
 }
 
 install_antigravity() {
@@ -861,7 +880,7 @@ install_antigravity() {
       copy_file_with_backup "$REPO_RAW_URL/dist/antigravity/.agents/skills/$prefixed/$skill_file" "$skill_base/$prefixed/$skill_file"
     done
   done
-  install_managed_block "$REPO_RAW_URL/dist/antigravity/GEMINI.md" "$destination" "<!-- spai:start github-release-setup -->" "<!-- spai:end github-release-setup -->"
+  install_managed_block "$REPO_RAW_URL/dist/antigravity/GEMINI.md" "$destination" "<!-- jig:start github-release-setup -->" "<!-- jig:end github-release-setup -->"
 }
 
 install_target() {
@@ -941,8 +960,8 @@ main() {
 
   case "$TARGET" in
     codex|antigravity) ;;
-    "") error "--target is required. Supported targets: codex, antigravity. Claude Code installs the spai plugin instead: /plugin marketplace add 0x0w1/spai then /plugin install spai@spai." ;;
-    claude-code|all) error "unsupported target: $TARGET. Install one of codex or antigravity per run. Claude Code installs the spai plugin instead: /plugin marketplace add 0x0w1/spai then /plugin install spai@spai." ;;
+    "") error "--target is required. Supported targets: codex, antigravity. Claude Code installs the jig plugin instead: /plugin marketplace add 0x0w1/spai then /plugin install jig@jig." ;;
+    claude-code|all) error "unsupported target: $TARGET. Install one of codex or antigravity per run. Claude Code installs the jig plugin instead: /plugin marketplace add 0x0w1/spai then /plugin install jig@jig." ;;
     *) error "unsupported target: $TARGET" ;;
   esac
 
