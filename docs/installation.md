@@ -8,7 +8,7 @@ SPAI는 지원하는 CLI마다 **설치 경로가 다릅니다.** 한 번에 전
 | Codex | `install.sh` | `.agents/skills/spai-*` 파일 | SPAI installer |
 | Antigravity CLI | `install.sh` | `.agents/skills/spai-*` 파일 | SPAI installer |
 
-명령만 필요하면 [README의 설치 방법](../README.md#설치-방법)을 보세요. 이 문서는 각 방식이 **무엇을 어디에 설치하고, 이후 어떻게 관리되는지**를 설명합니다.
+명령만 필요하면 [README의 빠른 시작](../README.ko.md#빠른-시작)을 보세요. 이 문서는 각 방식이 **무엇을 어디에 설치하고, 이후 어떻게 관리되는지**를 설명합니다.
 
 ---
 

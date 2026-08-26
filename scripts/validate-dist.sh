@@ -160,6 +160,19 @@ require_file docs/version-rubric.md
 require_text docs/version-rubric.md "skills/version-rubric/rubrics/INDEX.md"
 require_text README.md "docs/version-rubric.md"
 
+# README.md is the English canonical; README.ko.md is the Korean mirror. Each links the other,
+# so a reader landing on either one can switch.
+require_file README.ko.md
+require_text README.md "[한국어](README.ko.md)"
+require_text README.ko.md "[English](README.md)"
+# Canary words rather than a [가-힣] range: BSD grep matches such ranges bytewise, so an
+# em dash counts as Korean and the check fires on correct English prose.
+for korean_canary in 스킬 설치 저장소 버전 릴리즈 판정; do
+  if grep -F "$korean_canary" README.md >/dev/null 2>&1; then
+    fail "README.md is the English version: move Korean prose to README.ko.md (found: $korean_canary)"
+  fi
+done
+
 # A skill is a directory: dist/files.tsv is what tells the installer which files to fetch.
 require_file dist/files.tsv
 require_text dist/files.tsv "version-rubric	rubrics/INDEX.md"

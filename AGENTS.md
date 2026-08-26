@@ -39,6 +39,7 @@ Use these repo-scoped Codex skills:
 - Keep all documentation and skill examples generic: use placeholders such as `your-account`, `your@email.com`, and `/absolute/path/to/<name>`. Never include local machine paths, personal identifiers, or examples taken from local or other projects.
 - If a release request includes unfinished code, config, documentation, generated `dist`, or workflow changes, stop release execution and complete those changes first through `develop-task-flow`.
 - If `git push origin develop:main` would not fast-forward, stop and report; never force-push to resolve it.
+- `README.md` is the English canonical README and `README.ko.md` is its Korean mirror. A change to one is made in the other in the same task, and Korean prose never lands in `README.md`.
 - Preserve unrelated user changes.
 
 ## Develop Task Rules
