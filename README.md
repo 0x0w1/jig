@@ -8,6 +8,59 @@
 
 지원 대상: **Claude Code**(권장), **Codex**, **Antigravity CLI**
 
+## 빠른 시작
+
+준비물: git 저장소, 그리고 Codex·Antigravity는 `curl` 또는 `wget`. GitHub 연동까지 하려면 `gh` 로그인이 필요하지만, 스킬 설치 자체에는 필요 없습니다.
+
+### 1. 설치 — 쓰는 CLI 하나만
+
+**Claude Code** (권장) — 세션 안에서 실행합니다.
+
+```text
+/plugin marketplace add 0x0w1/spai
+/plugin install spai@spai
+```
+
+**Codex** — 저장소 루트에서 실행합니다.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
+  | sh -s -- --target codex --scope project
+```
+
+**Antigravity CLI**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
+  | sh -s -- --target antigravity --scope project
+```
+
+### 2. 저장소에 연결
+
+에이전트 세션에서 `project-setup`을 실행합니다. Claude Code는 `/spai:project-setup`, Codex와 Antigravity는 `spai-project-setup`입니다.
+
+한 번 실행으로 네 가지가 끝납니다.
+
+1. 이 저장소가 쓸 GitHub 프로필 선택·검증 (전역 active 계정은 건드리지 않음)
+2. 버전 판정 기준을 정해 `.spai/versioning.md`에 기록
+3. `github-sync`로 `main`·`develop` 브랜치와 branch protection 수렴
+4. `spai-doctor`로 설치 상태 점검
+
+### 3. 확인
+
+`/spai:spai-doctor` (Codex·Antigravity는 `spai-doctor`)를 실행하면 설치 버전, 파일 드리프트, 브랜치 보호, GitHub 프로필, 기준 파일 상태를 read-only로 보고합니다. 고칠 것이 있으면 어느 스킬이 고치는지까지 알려줍니다.
+
+### 그다음, 일상 흐름
+
+| 하려는 일 | 실행할 스킬 |
+|---|---|
+| 기능·수정 작업을 `develop`까지 올리기 | `develop-task-flow` |
+| `develop`을 `main`으로 올리고 릴리즈 발행 | `github-release` |
+| 이 프로젝트가 어떤 버전 기준을 쓸지 정하기 | `version-rubric`, 유형을 모르겠으면 `rubric-scan` |
+| 설치본을 최신 SPAI로 올리기 | `spai-update` |
+
+스킬은 이름을 부르거나 하려는 일을 말하면 에이전트가 고릅니다. 설치되는 것과 위치는 [설치 가이드](docs/installation.md)에 있습니다.
+
 ## 제공하는 가치
 
 일반 스킬 모음과 달리 SPAI는 두 가지를 함께 관리합니다.
@@ -42,34 +95,11 @@
 - [GitHub Repository Settings](docs/github-repository-settings.md): installer가 project scope에서 적용하는 GitHub 설정과, 수동으로 안내하는 branch protection입니다.
 - [Roadmap](docs/roadmap.md): SPAI의 정체성과 방향 후보(트리거 조건부) 기록입니다.
 
-## 설치 방법
+## 설치 상세
 
-CLI마다 설치 방식이 다릅니다. **쓰는 CLI 하나만 골라 실행하세요.** 각 방식이 무엇을 설치하는지는 [설치 가이드](docs/installation.md)에 있습니다.
+명령은 [빠른 시작](#빠른-시작)에 있습니다. 여기서는 경로별 차이와 옵션을 설명합니다. 무엇이 어디에 설치되는지는 [설치 가이드](docs/installation.md)에 있습니다.
 
-### Claude Code (권장)
-
-SPAI를 가장 완전하게 지원하는 권장 경로입니다. 플러그인 호스트가 설치·업데이트·삭제를 관리하고, push 명령을 실행 전에 검사하는 `PreToolUse` 가드 hook은 Claude Code 플러그인에만 포함됩니다.
-
-Claude Code 세션 안에서 실행합니다.
-
-```text
-/plugin marketplace add 0x0w1/spai
-/plugin install spai@spai
-```
-
-### Codex
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-  | sh -s -- --target codex --scope project
-```
-
-### Antigravity CLI
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
-  | sh -s -- --target antigravity --scope project
-```
+**Claude Code가 권장 경로입니다.** 플러그인 호스트가 설치·업데이트·삭제를 관리하고, push 명령을 실행 전에 검사하는 `PreToolUse` 가드 hook은 Claude Code 플러그인에만 포함됩니다. Codex와 Antigravity는 플러그인 시스템이 없어 `install.sh`가 파일을 복사합니다.
 
 ### Installer 주요 옵션
 
@@ -113,7 +143,12 @@ SPAI가 설치하는 스킬은 **사용자가 직접 만든 커스텀 스킬과 
 .agents/skills/spai-update/SKILL.md
 .agents/skills/spai-doctor/SKILL.md
 .agents/skills/spai-readme/SKILL.md
+.agents/skills/spai-version-rubric/SKILL.md
+.agents/skills/spai-version-rubric/rubrics/
+.agents/skills/spai-rubric-scan/SKILL.md
 ```
+
+스킬은 파일 하나가 아니라 디렉토리입니다. `spai-version-rubric`처럼 참조 파일을 함께 배포하는 스킬은 `SKILL.md` 외의 파일도 같이 설치되며, installer는 릴리즈의 `dist/files.tsv` 목록대로 내려받습니다.
 
 **예약 이름** — SPAI는 `spai` 플러그인 이름과 `spai-` 로 시작하는 스킬 이름만 점유합니다. 커스텀 스킬에 `spai-` prefix만 쓰지 않으면 충돌하지 않습니다.
 
@@ -142,7 +177,7 @@ sh scripts/build-dist.sh
 sh scripts/validate-dist.sh
 ```
 
-검증은 필수 dist 파일 존재 여부, managed block marker, SPAI 문자열, 금지 문자열을 확인합니다.
+검증은 필수 dist 파일 존재 여부, payload 파일 목록(`dist/files.tsv`), managed block marker, 기준 카탈로그의 계약(평면 구조, 필수 섹션, `patch`→`minor`→`major` 판정 순서, 등급을 명시하는 강경 규칙), 금지 문자열을 확인합니다.
 
 ## 주의사항
 
