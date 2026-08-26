@@ -296,6 +296,19 @@ require_text "dist/claude-code-plugin/spai/hooks/hooks.json" '"PreToolUse"'
 require_text "dist/claude-code-plugin/spai/hooks/hooks.json" 'CLAUDE_PLUGIN_ROOT'
 require_text "dist/claude-code-plugin/spai/hooks/guard-push.sh" "spai:guard-push v1"
 require_text "dist/claude-code-plugin/spai/skills/github-sync/SKILL.md" "spai:pre-push v1"
+
+# Branch protection is optional and plan-gated. Both the applying skill and the diagnosing
+# skill must read a 403 as "not available on this plan", never as an unprotected repository,
+# and both must know the recorded choice key.
+for protection_skill in github-sync spai-doctor; do
+  require_text "dist/claude-code-plugin/spai/skills/$protection_skill/SKILL.md" "spai.branchProtection"
+  require_text "dist/claude-code-plugin/spai/skills/$protection_skill/SKILL.md" "403"
+  require_text "dist/codex/.agents/skills/$(prefixed_skill_name "$protection_skill")/SKILL.md" "spai.branchProtection"
+done
+require_text "dist/claude-code-plugin/spai/skills/spai-doctor/SKILL.md" "rulesets"
+if ! grep -F "Optional: protect" install.sh >/dev/null 2>&1; then
+  fail "install.sh must present branch protection as optional"
+fi
 require_text "dist/codex/.agents/skills/spai-github-sync/SKILL.md" "spai:pre-push v1"
 require_text "dist/antigravity/.agents/skills/spai-github-sync/SKILL.md" "spai:pre-push v1"
 require_text "dist/claude-code-plugin/spai/skills/project-setup/SKILL.md" "spai.githubProfile"

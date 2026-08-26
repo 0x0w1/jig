@@ -47,7 +47,7 @@ One run settles four things.
 
 1. Selects and verifies the GitHub profile this repository uses (the globally active account is left alone)
 2. Settles the version grading rubric and records it in `.spai/versioning.md`
-3. Converges the `main` and `develop` branches and their protection through `github-sync`
+3. Converges the `main` and `develop` branches through `github-sync`, and asks before setting up branch protection — optional, since GitHub allows it on public repositories and on private ones only with a paid plan
 4. Checks the installation with `spai-doctor`
 
 ### 3. Verify
@@ -78,7 +78,7 @@ Skills provided:
 |---|---|
 | `develop-task-flow` | Work on a `feature/fix/chore` branch, then squash merge into `develop` |
 | `github-release` | Fast-forward `develop` to `main`, compute the version, tag and publish the release |
-| `github-sync` | Converge the `main` and `develop` branches and their protection; install the local `pre-push` guard |
+| `github-sync` | Converge the `main` and `develop` branches; offer branch protection where the plan allows it; install the local `pre-push` guard |
 | `project-setup` | Select and verify the per-repository GitHub CLI profile after installing SPAI |
 | `spai-update` | Move an installation to the latest SPAI release |
 | `spai-doctor` | Diagnose the installation (version, drift, protection, legacy leftovers); read-only |

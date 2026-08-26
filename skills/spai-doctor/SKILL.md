@@ -38,7 +38,23 @@ Before any `gh` command, resolve the host from `SPAI_GITHUB_HOST`, local `spai.g
    - Report the counts and quote the manual items in full; those need a human decision and are what makes a release `major`.
    - Do not evaluate whether an item was already applied and never run one. `spai-update` owns execution.
    - Skip this check when there is no stamp or the stamp is already the latest.
-5. **Branch protection**: `gh api repos/<owner>/<repo>/branches/<branch>/protection` for `main` and `develop`. Expected on both branches: no required pull request reviews, no required status checks, `allow_force_pushes.enabled == false`, `allow_deletions.enabled == false`. A 404 means no protection is configured.
+5. **Branch protection** (optional feature — absence is not automatically a defect): `gh api repos/<owner>/<repo>/branches/<branch>/protection` for `main` and `develop`. Expected when it is in place: no required pull request reviews, no required status checks, `allow_force_pushes.enabled == false`, `allow_deletions.enabled == false`.
+
+   Read the answer before judging it:
+
+   | Response | Meaning | Report as |
+   |---|---|---|
+   | `200` with the expected policy | Protected | OK |
+   | `200` with a different policy | Drifted from the model | Finding → `github-sync` |
+   | `403` | The plan does not include protection for this repository (a private repository on the free plan), or the profile has no admin permission | Not available — informational, **never a defect** |
+   | `404`, and `git config --local --get spai.branchProtection` is `skipped` | The user declined it on this checkout | Skipped by choice — informational |
+   | `404`, no recorded choice | Available but never set up | Finding → `github-sync` offers it |
+
+   Distinguish `403` from `404`. Branch protection on a private repository requires a paid plan, so most personal projects answer `403`, and reporting that as "unprotected" turns a plan limit into a permanent red mark.
+
+   When protection is absent for any reason, check whether a ruleset covers the branches instead: `gh api repos/<owner>/<repo>/rulesets`. A `403` here means the same plan limit — report the check as skipped. SPAI never creates or edits rulesets; a repository governed by one is reported as protected by a ruleset and left alone.
+
+   Whenever the branches are not protected server-side, say in the report that the local `pre-push` guard is the only barrier left.
 6. **Branch state**: after `git fetch origin --prune`, run `git rev-list --left-right --count origin/main...origin/develop`. If `main` is ahead of `develop` (left count > 0), the next release cannot fast-forward; report it.
 7. **Legacy leftovers** (report existence only):
    - `.github/drafter-config.yaml`, `.github/workflows/drafter.yaml`, `.github/PULL_REQUEST_TEMPLATE.md`
@@ -76,7 +92,8 @@ Before any `gh` command, resolve the host from `SPAI_GITHUB_HOST`, local `spai.g
 3. Compose the report. For every finding, name the fix owner:
    - version behind, drifted files, missing plugin, or pending `migration-auto` items → `spai-update`
    - pending `migration-manual` items → `spai-update`, but only after the user decides each item
-   - protection mismatch or legacy leftovers → `github-sync` (deletions only with explicit confirmation)
+   - protection mismatch, or protection available but never set up → `github-sync` (deletions only with explicit confirmation)
+   - protection unavailable on this plan, or skipped by choice → no action; do not recommend a fix for something the repository cannot have or the user declined
    - local guard missing, outdated, or modified → `github-sync`
    - GitHub profile missing, ambiguous, or invalid → `project-setup`
    - version rubric missing, contract-broken, or uncommitted → `version-rubric`
@@ -101,9 +118,10 @@ Write the report in the language the repository already uses for its own documen
 ### Pending migrations
 - auto: N | manual: N (items quoted in full) | none
 
-### Branch protection
-- main: OK | mismatches, item by item
-- develop: OK | mismatches, item by item
+### Branch protection (optional)
+- main: OK | mismatches, item by item | not available (plan or permission) | skipped by choice | protected by a ruleset
+- develop: same
+- When not protected: the local pre-push guard is the only barrier
 
 ### Branch state
 - OK | main is N commits ahead (fast-forward release not possible)

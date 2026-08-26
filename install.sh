@@ -824,8 +824,10 @@ print_guide() {
     printf '%s\n' '    - Claude Code users run `/spai:project-setup`; Codex and Antigravity users run `spai-project-setup`.'
     return 0
   fi
-  printf '%s\n' '    - Protect `main` and `develop` against force pushes and deletion; do not require pull requests.'
-  printf '%s\n' '    - Use the installed `spai-github-sync` skill to apply or verify this branch protection.'
+  printf '%s\n' '    - Optional: protect `main` and `develop` against force pushes and deletion; do not require pull requests.'
+  printf '%s\n' '      GitHub allows this on public repositories, and on private ones only with a paid plan.'
+  printf '%s\n' '    - Run the installed `spai-github-sync` skill: it checks whether this repository can have protection and asks before applying it.'
+  printf '%s\n' '      Either way it installs the local pre-push guard, which is the barrier when protection is unavailable.'
 }
 
 install_codex() {

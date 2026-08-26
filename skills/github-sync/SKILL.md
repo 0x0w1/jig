@@ -10,10 +10,43 @@ Use this repository skill only for setup and synchronization of GitHub repositor
 ## Scope
 
 - Branches: `main`, `develop`.
-- Branch protection for `main` and `develop`: direct pushes allowed, force pushes and deletion blocked.
+- Branch protection for `main` and `develop`: **optional**, and only when the repository can have it. Direct pushes allowed, force pushes and deletion blocked. See Branch Protection Is Optional.
 - Local guard: a git `pre-push` hook that blocks force pushes to and deletion of `main`/`develop` and restricts direct `main` pushes to the release fast-forward (`develop:main`). Local defense only; server-side protection stays the final barrier.
 - No release-drafter files, no pull request template, no label sync; the release flow is CLI-driven (`github-release`) and does not use pull requests.
 - Sync is convergent and idempotent: one run aligns the repository with the current model even when several SPAI versions were skipped. `spai-update` runs it after updating installed files.
+
+## Branch Protection Is Optional
+
+GitHub gives branch protection to public repositories on every plan, but a **private repository needs a paid plan** (Pro, Team, or Enterprise). On a private repository on the free plan the API answers `403`, and so does the rulesets API. That is the normal state for most personal projects, not a defect.
+
+So protection is never applied silently. Probe first, ask second, and treat "not available" as a pass.
+
+**Probe** (read-only, before touching anything):
+
+```bash
+gh api repos/<owner>/<repo> --jq '{private: .private, admin: .permissions.admin}'
+```
+
+| Probe result | Meaning | What to do |
+|---|---|---|
+| `admin: false` | The profile cannot change settings on this repository | Skip. Report it as a permission limit, not a failure |
+| `private: false` | Public repository — protection is available on every plan | Ask |
+| `private: true`, protection API answers `403` | Private repository without a plan that includes protection | Skip. Say so in one line and move on |
+| `private: true`, protection API answers `200` or `404` | Paid plan — protection is available | Ask |
+
+Confirm the private case against the API rather than guessing a plan from `gh api user`; the plan on the account is not always the plan that governs the repository.
+
+**Ask, once:**
+
+> This repository is public (or on a plan that includes it), so `main` and `develop` can be protected against force pushes and deletion. Set that up now?
+
+- Yes → apply the policy in Procedure step 6, then record `git config --local spai.branchProtection enabled`.
+- No → record `git config --local spai.branchProtection skipped` and continue. The local `pre-push` guard still covers force pushes, deletion, and direct pushes to `main` on this machine.
+- Already recorded → do not ask again. `enabled` re-applies the policy convergently; `skipped` skips with a one-line log. Re-ask only when the user asks to change it.
+
+`spai.branchProtection` lives in `.git/config`, so it does not reach clones or CI. It records a choice about this checkout, not a repository contract; a collaborator is asked separately on their own machine.
+
+**Without server-side protection, the local guard is the only barrier.** Say that plainly in the report when protection is skipped or unavailable, because a `--no-verify` push then reaches `main` with nothing in the way.
 
 ## GitHub Profile
 
@@ -25,7 +58,7 @@ For broad sync work, split into phases:
 
 1. Inspect repository, working tree, remotes, and `gh` access.
 2. Verify or create `develop` from `main`.
-3. Apply branch protection.
+3. Apply branch protection when it is available and the user wants it.
 4. Install or update the local pre-push guard.
 5. Validate and report.
 
@@ -51,11 +84,13 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
 3. Run `gh repo view` and `gh auth status`. If GitHub CLI is unavailable, unauthenticated, or lacks permission, report the remaining GitHub steps.
 4. Confirm `main` exists locally and remotely when possible.
 5. Confirm `develop` exists locally and remotely when possible. If missing, create it from `main` and push without force.
-6. Protect `main` and `develop` with the same policy:
+6. Settle branch protection per Branch Protection Is Optional: probe, then ask unless `spai.branchProtection` already records a choice. When applying, protect `main` and `develop` with the same policy:
    - no required pull request reviews
    - no required status checks
    - force pushes disabled
    - deletion disabled
+
+   A `403` from the protection API at this point means the plan does not include it. Skip, log one line, and continue with the remaining steps; never retry it as an error. SPAI does not configure rulesets — a repository already governed by a ruleset is left alone.
 7. Install or update the local pre-push guard at `.git/hooks/pre-push`:
    - Skip with a pass log when the directory is not a git repository.
    - If the file is missing, write the script below verbatim and `chmod +x` it.
@@ -106,7 +141,7 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
 Keep reports short and include:
 
 - Branches created or already present
-- Branch protection status
+- Branch protection: applied | skipped by choice | not available (private repository without a plan that includes it) | not permitted (no admin) — and, when it is not in place, that the local guard is the only barrier
 - Local pre-push guard: installed | updated | already current | blocked by user hook
 - Legacy release-drafter files found, if any
 - Commands that could not run and why

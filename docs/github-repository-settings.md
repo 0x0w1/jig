@@ -33,9 +33,26 @@ SPAI project scope 스킬 설치에는 GitHub 프로필이 필요하지 않습�
   - `install.sh`는 branch protection을 직접 적용하지 않습니다.
   - `GUIDE` 출력이 남은 수동 설정을 안내합니다.
 
-## 권장 branch protection
+## branch protection (선택)
 
-설치된 `github-sync` 스킬이 적용을 대신 수행할 수 있습니다. `main`과 `develop` 모두 force push와 branch deletion을 금지합니다.
+**branch protection은 선택 기능입니다.** GitHub는 public 저장소에 모든 플랜에서 이 기능을 주지만, **private 저장소는 유료 플랜(Pro·Team·Enterprise)이 있어야** 합니다. 무료 플랜의 private 저장소에서는 protection API도 rulesets API도 `403`을 돌려줍니다. 개인 프로젝트 대부분이 여기에 해당하며, 이건 결함이 아니라 플랜의 경계입니다.
+
+그래서 `github-sync`는 조용히 적용하지 않습니다.
+
+1. `gh api repos/<owner>/<repo>`로 `private`와 `permissions.admin`을 확인합니다.
+2. 적용할 수 없는 저장소면 한 줄 로그를 남기고 넘어갑니다. 실패로 처리하지 않습니다.
+3. 적용할 수 있으면 **한 번 묻습니다** — "이 저장소는 public이거나 해당 플랜이라 `main`·`develop`을 보호할 수 있습니다. 지금 설정할까요?"
+4. 대답은 `git config --local spai.branchProtection`에 `enabled` 또는 `skipped`로 남습니다. 다음 sync는 다시 묻지 않습니다. 이 값은 `.git/config`에 있어 clone에는 전달되지 않으므로, 다른 사람은 자기 머신에서 따로 답합니다.
+
+`spai-doctor`도 같은 기준으로 읽습니다. `403`은 "플랜 밖"이라 결함이 아니고, `404`인데 `skipped`가 기록돼 있으면 "사용자가 안 하기로 함"입니다. 둘 다 권장 조치를 만들지 않습니다.
+
+**보호를 걸지 않으면 로컬 `pre-push` 가드가 유일한 방어선입니다.** 두 스킬 모두 이 사실을 보고에 적습니다.
+
+SPAI는 ruleset을 만들거나 고치지 않습니다. 이미 ruleset으로 보호된 저장소는 그대로 두고 보호된 것으로 보고합니다.
+
+### 적용되는 정책
+
+`main`과 `develop` 모두 force push와 branch deletion을 금지합니다.
 
 `main`과 `develop`에 같은 정책: Pull Request 불필요, required status check 없음. `develop`에도 같은 body로 `branches/develop/protection`에 적용합니다.
 

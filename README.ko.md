@@ -47,7 +47,7 @@ curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
 
 1. 이 저장소가 쓸 GitHub 프로필 선택·검증 (전역 active 계정은 건드리지 않음)
 2. 버전 판정 기준을 정해 `.spai/versioning.md`에 기록
-3. `github-sync`로 `main`·`develop` 브랜치와 branch protection 수렴
+3. `github-sync`로 `main`·`develop` 브랜치 수렴, branch protection은 물어보고 적용 (public 저장소는 무료, private은 유료 플랜에서만 가능한 선택 기능)
 4. `spai-doctor`로 설치 상태 점검
 
 ### 3. 확인
@@ -78,7 +78,7 @@ curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
 |---|---|
 | `develop-task-flow` | `feature/fix/chore` 브랜치에서 작업 후 `develop`에 squash merge |
 | `github-release` | `develop`을 `main`으로 fast-forward 승격, 버전 계산 후 태그·릴리즈 생성 |
-| `github-sync` | `main`/`develop` 브랜치·branch protection 동기화, 로컬 `pre-push` 가드 설치 |
+| `github-sync` | `main`/`develop` 브랜치 동기화, 플랜이 허용하면 branch protection 제안, 로컬 `pre-push` 가드 설치 |
 | `project-setup` | SPAI 설치 후 저장소별 GitHub CLI 프로필 설정·검증 |
 | `spai-update` | 설치본을 최신 SPAI 릴리즈로 업데이트 |
 | `spai-doctor` | 설치 상태 진단(버전·드리프트·보호 규칙·레거시), read-only |
