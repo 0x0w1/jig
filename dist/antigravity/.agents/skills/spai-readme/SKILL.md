@@ -39,6 +39,13 @@ Additions by project type:
 
 Optional: documentation links, license.
 
+## Layout Rules
+
+- Never put an identifier people copy — a skill name, command, option, or path — in a narrow table column. GitHub sizes columns by content, so `develop-task-flow` in a two-column table wraps mid-name on a narrow viewport and the reader sees a name that does not exist.
+- List such identifiers instead: `- **\`name\`** — description`. The name starts the line with the full width behind it, so any wrapping lands in the description, where it is harmless.
+- A table stays fine when every cell in the identifier column is short, or when the identifiers are prose rather than something to copy.
+- Wrapping inside a description is expected and needs no work.
+
 ## Accuracy Rules
 
 - Write only install and run commands verified against the repository: a script, manifest, or lock file must show them.

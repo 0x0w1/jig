@@ -57,17 +57,15 @@ curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
 
 SPAI는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니다. 브랜치 모델·branch protection·릴리즈 규율이라는 *저장소 상태*를 함께 수렴하고, 설치 이후를 `spai-update`와 `spai-doctor`로 관리합니다. 하나의 절차 원본(`skills/`)을 각 CLI의 네이티브 형식으로 렌더링합니다 — Claude Code는 플러그인, Codex와 Antigravity는 `spai-` prefix 파일입니다.
 
-| 스킬 | 역할 |
-|---|---|
-| `develop-task-flow` | `feature/fix/chore` 브랜치에서 작업 후 `develop`에 squash merge |
-| `github-release` | `develop`을 `main`으로 fast-forward 승격, 버전 계산 후 태그·릴리즈 생성 |
-| `github-sync` | `main`/`develop` 브랜치 동기화, 플랜이 허용하면 branch protection 제안, 로컬 `pre-push` 가드 설치 |
-| `project-setup` | SPAI 설치 후 저장소별 GitHub CLI 프로필 설정·검증 |
-| `spai-update` | 설치본을 최신 SPAI 릴리즈로 업데이트 |
-| `spai-doctor` | 설치 상태 진단(버전·드리프트·보호 규칙·레거시), read-only |
-| `readme` | 프로젝트 타입 판정 후 `README.md` 생성, 기존 README는 코드와 대조해 드리프트 수정 |
-| `version-rubric` | 버전 판정 기준(`patch`/`minor`/`major`)을 `.spai/versioning.md`에 정함. 유형별 기준 카탈로그를 함께 배포 |
-| `rubric-scan` | 저장소를 스캔해 프로젝트 유형을 판정하고 카탈로그에서 맞는 기준을 추천, read-only |
+- **`develop-task-flow`** — `feature/fix/chore` 브랜치에서 작업 후 `develop`에 squash merge
+- **`github-release`** — `develop`을 `main`으로 fast-forward 승격, 버전 계산 후 태그·릴리즈 생성
+- **`github-sync`** — `main`/`develop` 브랜치 동기화, 플랜이 허용하면 branch protection 제안, 로컬 `pre-push` 가드 설치
+- **`project-setup`** — SPAI 설치 후 저장소별 GitHub CLI 프로필 설정·검증
+- **`spai-update`** — 설치본을 최신 SPAI 릴리즈로 업데이트
+- **`spai-doctor`** — 설치 상태 진단(버전·드리프트·보호 규칙·레거시), read-only
+- **`readme`** — 프로젝트 타입 판정 후 `README.md` 생성, 기존 README는 코드와 대조해 드리프트 수정
+- **`version-rubric`** — 버전 판정 기준(`patch`/`minor`/`major`)을 `.spai/versioning.md`에 정함. 유형별 기준 카탈로그를 함께 배포
+- **`rubric-scan`** — 저장소를 스캔해 프로젝트 유형을 판정하고 카탈로그에서 맞는 기준을 추천, read-only
 
 작업 병합 방식은 **solo-cli 하나**입니다. 작업 브랜치를 로컬에서 squash merge로 `develop`에 합치고 직접 push하며 Pull Request를 쓰지 않습니다.
 

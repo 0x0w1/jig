@@ -164,6 +164,12 @@ require_text README.md "docs/version-rubric.md"
 # so a reader landing on either one can switch.
 require_file README.ko.md
 require_file docs/assets/quick-start.svg
+# Skill names must not sit in a table column: GitHub wraps them mid-identifier.
+for readme_file in README.md README.ko.md; do
+  if grep -qE '^\| `(develop-task-flow|github-release|github-sync|project-setup|spai-update|spai-doctor|version-rubric|rubric-scan)`' "$readme_file"; then
+    fail "$readme_file lists skill names in a table column; use a list so the name never wraps"
+  fi
+done
 require_text README.md "docs/assets/quick-start.svg"
 require_text README.ko.md "docs/assets/quick-start.svg"
 # The diagram is read on light and dark GitHub themes; both palettes must stay defined.

@@ -57,17 +57,15 @@ From there, call a skill by name or just say what you want; the agent picks it.
 
 Unlike a plain collection of skills, SPAI converges *repository state* — the branch model, branch protection, release discipline — and not only session procedures, then manages the install afterwards with `spai-update` and `spai-doctor`. One procedure source (`skills/`) is rendered into each CLI's native format: a plugin for Claude Code, `spai-` prefixed files for Codex and Antigravity.
 
-| Skill | Role |
-|---|---|
-| `develop-task-flow` | Work on a `feature/fix/chore` branch, then squash merge into `develop` |
-| `github-release` | Fast-forward `develop` to `main`, compute the version, tag and publish the release |
-| `github-sync` | Converge the `main` and `develop` branches; offer branch protection where the plan allows it; install the local `pre-push` guard |
-| `project-setup` | Select and verify the per-repository GitHub CLI profile after installing SPAI |
-| `spai-update` | Move an installation to the latest SPAI release |
-| `spai-doctor` | Diagnose the installation (version, drift, protection, legacy leftovers); read-only |
-| `readme` | Classify the project type and draft `README.md`; check an existing README against the code and fix the drift |
-| `version-rubric` | Settle how this project grades `patch`/`minor`/`major` in `.spai/versioning.md`. Ships the per-type rubric catalog |
-| `rubric-scan` | Scan the repository to classify its project type and recommend a rubric from the catalog; read-only |
+- **`develop-task-flow`** — Work on a `feature/fix/chore` branch, then squash merge into `develop`
+- **`github-release`** — Fast-forward `develop` to `main`, compute the version, tag and publish the release
+- **`github-sync`** — Converge the `main` and `develop` branches; offer branch protection where the plan allows it; install the local `pre-push` guard
+- **`project-setup`** — Select and verify the per-repository GitHub CLI profile after installing SPAI
+- **`spai-update`** — Move an installation to the latest SPAI release
+- **`spai-doctor`** — Diagnose the installation (version, drift, protection, legacy leftovers); read-only
+- **`readme`** — Classify the project type and draft `README.md`; check an existing README against the code and fix the drift
+- **`version-rubric`** — Settle how this project grades `patch`/`minor`/`major` in `.spai/versioning.md`. Ships the per-type rubric catalog
+- **`rubric-scan`** — Scan the repository to classify its project type and recommend a rubric from the catalog; read-only
 
 There is a **single merge flow, solo-cli**: a work branch is squash-merged into `develop` locally and pushed directly. No pull requests.
 
