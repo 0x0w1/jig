@@ -57,15 +57,17 @@ From there, call a skill by name or just say what you want; the agent picks it.
 
 Unlike a plain collection of skills, SPAI converges *repository state* — the branch model, branch protection, release discipline — and not only session procedures, then manages the install afterwards with `spai-update` and `spai-doctor`. One procedure source (`skills/`) is rendered into each CLI's native format: a plugin for Claude Code, `spai-` prefixed files for Codex and Antigravity.
 
-- **`develop-task-flow`** — Work on a `feature/fix/chore` branch, then squash merge into `develop`
-- **`github-release`** — Fast-forward `develop` to `main`, compute the version, tag and publish the release
-- **`github-sync`** — Converge the `main` and `develop` branches; offer branch protection where the plan allows it; install the local `pre-push` guard
-- **`project-setup`** — Select and verify the per-repository GitHub CLI profile after installing SPAI
-- **`spai-update`** — Move an installation to the latest SPAI release
-- **`spai-doctor`** — Diagnose the installation (version, drift, protection, legacy leftovers); read-only
-- **`readme`** — Classify the project type and draft `README.md`; check an existing README against the code and fix the drift
-- **`version-rubric`** — Settle how this project grades `patch`/`minor`/`major` in `.spai/versioning.md`. Ships the per-type rubric catalog
-- **`rubric-scan`** — Scan the repository to classify its project type and recommend a rubric from the catalog; read-only
+| Skill | Role |
+|---|---|
+| `develop-task-flow` | Branch, work, squash merge into `develop` |
+| `github-release` | Fast-forward `develop` to `main`, tag, publish notes |
+| `github-sync` | Branches, optional protection, local `pre-push` guard |
+| `project-setup` | Bind the repository to a GitHub CLI profile |
+| `spai-update` | Update an installation to the latest release |
+| `spai-doctor` | Read-only health check of the installation |
+| `readme` | Draft a README, or fix its drift against the code |
+| `version-rubric` | Settle `patch`/`minor`/`major` in `.spai/versioning.md` |
+| `rubric-scan` | Classify the project type, recommend a rubric |
 
 There is a **single merge flow, solo-cli**: a work branch is squash-merged into `develop` locally and pushed directly. No pull requests.
 
@@ -84,24 +86,10 @@ Written in Korean, except the rubric catalog.
 
 ## Updating
 
-- **Claude Code**: `/plugin marketplace update spai`, then `/reload-plugins`.
-- **Codex and Antigravity**: run the install command again. The installer is idempotent and backs up changed files as `.bak`.
+Two ways in.
 
-In an agent session the installed `spai-update` skill does the whole path: compare against the latest release, summarize the notes in between, update each target, and converge with `github-sync`.
-
-## Contributing
-
-<details>
-<summary>Rebuilding and validating the distribution</summary>
-
-```bash
-sh scripts/build-dist.sh      # regenerate dist/ from skills/
-sh scripts/validate-dist.sh   # payload, markers, rubric catalog contract
-```
-
-`dist/` is generated from the skills under `skills/`. The Claude Code plugin payload is `dist/claude-code-plugin/spai`, and the marketplace definition is `.claude-plugin/marketplace.json`.
-
-</details>
+- **By hand** — Claude Code: `/plugin marketplace update spai`, then `/reload-plugins`. Codex and Antigravity: run the install command again; the installer is idempotent and backs up changed files as `.bak`.
+- **With the skill** — run `spai-update` in an agent session. It compares the installation against the latest release, summarizes the notes in between, updates each target, and converges repository settings with `github-sync`.
 
 ## License
 

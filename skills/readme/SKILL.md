@@ -41,9 +41,8 @@ Optional: documentation links, license.
 
 ## Layout Rules
 
-- Never put an identifier people copy — a skill name, command, option, or path — in a narrow table column. GitHub sizes columns by content, so `develop-task-flow` in a two-column table wraps mid-name on a narrow viewport and the reader sees a name that does not exist.
-- List such identifiers instead: `- **\`name\`** — description`. The name starts the line with the full width behind it, so any wrapping lands in the description, where it is harmless.
-- A table stays fine when every cell in the identifier column is short, or when the identifiers are prose rather than something to copy.
+- A table is fine for identifiers people copy — skill names, commands, options, paths. What breaks such a name is the **width ratio between columns**: GitHub sizes columns by content, so a description column several times longer than the identifier column squeezes the identifier until it wraps mid-name, and the reader sees a name that does not exist.
+- Keep description cells roughly as short as the identifiers, about one clause. When descriptions run long, either trim them or move the whole thing to a list: `- **\`name\`** — description`.
 - Wrapping inside a description is expected and needs no work.
 
 ## Accuracy Rules

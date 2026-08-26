@@ -57,15 +57,17 @@ curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
 
 SPAI는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니다. 브랜치 모델·branch protection·릴리즈 규율이라는 *저장소 상태*를 함께 수렴하고, 설치 이후를 `spai-update`와 `spai-doctor`로 관리합니다. 하나의 절차 원본(`skills/`)을 각 CLI의 네이티브 형식으로 렌더링합니다 — Claude Code는 플러그인, Codex와 Antigravity는 `spai-` prefix 파일입니다.
 
-- **`develop-task-flow`** — `feature/fix/chore` 브랜치에서 작업 후 `develop`에 squash merge
-- **`github-release`** — `develop`을 `main`으로 fast-forward 승격, 버전 계산 후 태그·릴리즈 생성
-- **`github-sync`** — `main`/`develop` 브랜치 동기화, 플랜이 허용하면 branch protection 제안, 로컬 `pre-push` 가드 설치
-- **`project-setup`** — SPAI 설치 후 저장소별 GitHub CLI 프로필 설정·검증
-- **`spai-update`** — 설치본을 최신 SPAI 릴리즈로 업데이트
-- **`spai-doctor`** — 설치 상태 진단(버전·드리프트·보호 규칙·레거시), read-only
-- **`readme`** — 프로젝트 타입 판정 후 `README.md` 생성, 기존 README는 코드와 대조해 드리프트 수정
-- **`version-rubric`** — 버전 판정 기준(`patch`/`minor`/`major`)을 `.spai/versioning.md`에 정함. 유형별 기준 카탈로그를 함께 배포
-- **`rubric-scan`** — 저장소를 스캔해 프로젝트 유형을 판정하고 카탈로그에서 맞는 기준을 추천, read-only
+| 스킬 | 역할 |
+|---|---|
+| `develop-task-flow` | 작업 브랜치에서 작업 후 `develop`에 squash merge |
+| `github-release` | `develop`을 `main`으로 승격, 태그와 릴리즈 발행 |
+| `github-sync` | 브랜치 수렴, 선택적 보호 설정, 로컬 `pre-push` 가드 |
+| `project-setup` | 저장소에 GitHub CLI 프로필 연결 |
+| `spai-update` | 설치본을 최신 릴리즈로 갱신 |
+| `spai-doctor` | 설치 상태 read-only 진단 |
+| `readme` | README 생성, 기존 README는 코드와 대조해 수정 |
+| `version-rubric` | `patch`/`minor`/`major` 기준을 `.spai/versioning.md`에 확정 |
+| `rubric-scan` | 프로젝트 유형 판정 후 맞는 기준 추천 |
 
 작업 병합 방식은 **solo-cli 하나**입니다. 작업 브랜치를 로컬에서 squash merge로 `develop`에 합치고 직접 push하며 Pull Request를 쓰지 않습니다.
 
@@ -82,24 +84,10 @@ SPAI는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니�
 
 ## 업데이트
 
-- **Claude Code**: `/plugin marketplace update spai` 후 `/reload-plugins`.
-- **Codex / Antigravity**: 설치 명령을 그대로 다시 실행합니다. installer는 멱등이라 바뀐 파일만 갱신하고 `.bak`으로 백업합니다.
+두 가지 방법이 있습니다.
 
-에이전트 세션에서는 설치된 `spai-update` 스킬 하나가 전 과정을 처리합니다. 설치 상태와 최신 릴리즈를 비교하고, 사이 릴리즈 노트를 요약한 뒤, 각 target을 갱신하고 `github-sync`로 수렴합니다.
-
-## 기여
-
-<details>
-<summary>dist 재생성과 검증</summary>
-
-```bash
-sh scripts/build-dist.sh      # skills/ 에서 dist/ 재생성
-sh scripts/validate-dist.sh   # payload, marker, 기준 카탈로그 계약 검사
-```
-
-`dist/`는 `skills/` 하위 스킬들에서 생성됩니다. Claude Code 플러그인 payload는 `dist/claude-code-plugin/spai`이고, 마켓플레이스 정의는 `.claude-plugin/marketplace.json`입니다.
-
-</details>
+- **직접** — Claude Code는 `/plugin marketplace update spai` 후 `/reload-plugins`. Codex와 Antigravity는 설치 명령을 그대로 다시 실행합니다. installer는 멱등이라 바뀐 파일만 갱신하고 `.bak`으로 백업합니다.
+- **스킬로** — 에이전트 세션에서 `spai-update`를 실행합니다. 설치 상태와 최신 릴리즈를 비교하고, 사이 릴리즈 노트를 요약한 뒤, 각 target을 갱신하고 `github-sync`로 저장소 설정까지 수렴합니다.
 
 ## License
 

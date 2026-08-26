@@ -26,6 +26,12 @@ Use these repo-scoped Codex skills:
 - Skill bodies and the rubric catalog are written in English; the rubric file contract uses English section titles with the Korean spellings still accepted as legacy. What a skill *produces* (reports, commit bodies, release notes, README) follows the target repository's own language, defaulting to English.
 - This repository keeps synced copies of its repo-scoped skills under `.agents/skills` (Codex, `spai-` prefixed to match the shipped payload) and `.claude/skills` (Claude Code, unprefixed development copies). When a skill under `skills/` changes, update both copies in the same task.
 
+## Build
+
+- Rebuild the distribution after any change under `skills/`, `hooks/`, or `manifest.tsv`: `sh scripts/build-dist.sh`.
+- Validate before merging or releasing: `sh scripts/validate-dist.sh`. It checks the payload file list, managed block markers, the rubric catalog contract, and the README layout rules.
+- `dist/` is generated, never hand-edited. The Claude Code plugin payload is `dist/claude-code-plugin/spai` and the marketplace definition is `.claude-plugin/marketplace.json`.
+
 ## Safety Rules
 
 - Do not force push.
@@ -39,7 +45,7 @@ Use these repo-scoped Codex skills:
 - Keep all documentation and skill examples generic: use placeholders such as `your-account`, `your@email.com`, and `/absolute/path/to/<name>`. Never include local machine paths, personal identifiers, or examples taken from local or other projects.
 - If a release request includes unfinished code, config, documentation, generated `dist`, or workflow changes, stop release execution and complete those changes first through `develop-task-flow`.
 - If `git push origin develop:main` would not fast-forward, stop and report; never force-push to resolve it.
-- Do not lay out skill names, commands, options, or paths in a narrow table column: they wrap mid-identifier on GitHub. List them as `- **`name`** — description` instead. Wrapping inside a description is fine.
+- In a table whose first column holds identifiers people copy (skill names, commands, options, paths), keep the description cells about as short as the identifiers. GitHub sizes columns by content, so long descriptions squeeze the identifier column until a name wraps mid-word. Trim the description or switch to a list; wrapping inside a description is fine.
 - `README.md` is the English canonical README and `README.ko.md` is its Korean mirror. A change to one is made in the other in the same task, and Korean prose never lands in `README.md`.
 - Preserve unrelated user changes.
 
