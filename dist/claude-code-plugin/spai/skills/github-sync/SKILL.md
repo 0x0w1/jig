@@ -42,6 +42,7 @@ Confirm the private case against the API rather than guessing a plan from `gh ap
 
 - Yes → apply the policy in Procedure step 6, then record `git config --local spai.branchProtection enabled`.
 - No → record `git config --local spai.branchProtection skipped` and continue. The local `pre-push` guard still covers force pushes, deletion, and direct pushes to `main` on this machine.
+- Already protected with the policy in Procedure step 6 → record `enabled` and do not ask. The repository is already where the answer would put it, so the question has nothing to decide.
 - Already recorded → do not ask again. `enabled` re-applies the policy convergently; `skipped` skips with a one-line log. Re-ask only when the user asks to change it.
 
 `spai.branchProtection` lives in `.git/config`, so it does not reach clones or CI. It records a choice about this checkout, not a repository contract; a collaborator is asked separately on their own machine.
