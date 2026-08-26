@@ -23,17 +23,17 @@ Before any `gh` command, resolve the host from `JIG_GITHUB_HOST`, local `jig.git
 1. **Claude Code plugin**: only when the repository is used with Claude Code.
    - `claude plugin list` (or the `enabledPlugins` entry in `.claude/settings.json`) must show `jig@jig`.
    - `.claude/settings.json` should carry the marketplace under `extraKnownMarketplaces`. For project scope this is what shares the plugin with collaborators.
-   - Report a missing entry with the exact fix: `/plugin marketplace add 0x0w1/spai` then `/plugin install jig@jig`.
+   - Report a missing entry with the exact fix: `/plugin marketplace add 0x0w1/jig` then `/plugin install jig@jig`.
    - The plugin version is host-managed; report it as reported by `claude plugin list` and do not compare it against the codex/antigravity stamp.
    - If the `claude` CLI is unavailable and `.claude/settings.json` has no plugin entry, report the check as skipped rather than as a failure.
-2. **Version** (codex and antigravity): read the installed stamp (`grep -h "jig:version" AGENTS.md GEMINI.md 2>/dev/null | head -n 1`) and compare with the latest release tag (`gh api repos/0x0w1/spai/releases/latest --jq .tag_name`). Also read `skills=` from the stamp; a stamp without it means the full default skill set, and a missing stamp means an install without a version stamp. Skip this check when neither file carries the managed block.
+2. **Version** (codex and antigravity): read the installed stamp (`grep -h "jig:version" AGENTS.md GEMINI.md 2>/dev/null | head -n 1`) and compare with the latest release tag (`gh api repos/0x0w1/jig/releases/latest --jq .tag_name`). Also read `skills=` from the stamp; a stamp without it means the full default skill set, and a missing stamp means an install without a version stamp. Skip this check when neither file carries the managed block.
 3. **Drift** (codex and antigravity only; the Claude Code plugin is updated by the host): for each installed skill file, compare with the payload of the stamped version.
-   - A skill is a directory, not always one file. Read the payload file list first (`curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/<stamp>/dist/files.tsv`); each row is `<skill>\t<path relative to the skill directory>`. A version that publishes no `files.tsv` shipped single-file skills, so compare `SKILL.md` alone.
-   - codex: `curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/<stamp>/dist/codex/.agents/skills/jig-<skill>/<path> | cmp -s - .agents/skills/jig-<skill>/<path>`
+   - A skill is a directory, not always one file. Read the payload file list first (`curl -fsSL https://raw.githubusercontent.com/0x0w1/jig/<stamp>/dist/files.tsv`); each row is `<skill>\t<path relative to the skill directory>`. A version that publishes no `files.tsv` shipped single-file skills, so compare `SKILL.md` alone.
+   - codex: `curl -fsSL https://raw.githubusercontent.com/0x0w1/jig/<stamp>/dist/codex/.agents/skills/jig-<skill>/<path> | cmp -s - .agents/skills/jig-<skill>/<path>`
    - antigravity: same with `dist/antigravity/.agents/skills/jig-<skill>/<path>`
    - A `cmp` mismatch means the file was locally modified or partially updated. If the stamp is `main` or `custom`, drift cannot be judged against a fixed payload; report that instead.
    - A file under an installed skill directory that the payload list does not contain is a leftover from an older version, not drift. Report it as a leftover and leave it: only `jig-update` removes it, and only with confirmation.
-4. **Pending migrations**: when the stamp is behind the latest release, read the notes of every release newer than the stamp (`gh release view <tag> --repo 0x0w1/spai`) and count the items inside `<!-- jig:start migration-auto -->` and `<!-- jig:start migration-manual -->` blocks.
+4. **Pending migrations**: when the stamp is behind the latest release, read the notes of every release newer than the stamp (`gh release view <tag> --repo 0x0w1/jig`) and count the items inside `<!-- jig:start migration-auto -->` and `<!-- jig:start migration-manual -->` blocks.
    - Count **line-anchored markers only** (`^<!-- jig:start migration-auto -->$`); notes often name these markers in prose, and a substring search would count those mentions as blocks.
    - Report the counts and quote the manual items in full; those need a human decision and are what makes a release `major`.
    - Do not evaluate whether an item was already applied and never run one. `jig-update` owns execution.

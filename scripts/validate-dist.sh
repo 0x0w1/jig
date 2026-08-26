@@ -165,7 +165,7 @@ if grep -F 'must a human step in to keep using it' dist/claude-code-plugin/jig/s
 fi
 
 # The rubric moved jig's own facts out of the distributed release skill. Keep them out.
-for own_fact in 'scripts/validate-dist.sh' 'jig@jig' '0x0w1/spai' '--target'; do
+for own_fact in 'scripts/validate-dist.sh' 'jig@jig' '0x0w1/jig' '--target'; do
   if grep -F "$own_fact" dist/claude-code-plugin/jig/skills/github-release/SKILL.md >/dev/null 2>&1; then
     fail "dist github-release leaks a jig-specific fact: $own_fact"
   fi

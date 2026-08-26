@@ -38,7 +38,7 @@ jig의 `vX.Y.Z` bump는 **변경의 종류**가 아니라 **설치본이 실제�
 
 1. curl 원라이너와 설치 후 GitHub 프로필 계약: `--target`, `--scope`, 선택 옵션 `--github-profile`/`--github-account`, `JIG_GITHUB_PROFILE`, `jig.githubProfile`
 2. 스킬 호출 이름: `/jig:github-release`, `jig-github-release`
-3. 플러그인·마켓플레이스 이름: `jig@jig`, `0x0w1/spai`
+3. 플러그인·마켓플레이스 이름: `jig@jig`, `0x0w1/jig`
 4. managed block marker 문자열: `<!-- jig:start ... -->`, `<!-- jig:end ... -->`
 5. 저장소 모델: 브랜치 이름, 병합 흐름, 보호 정책
 

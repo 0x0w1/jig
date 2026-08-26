@@ -120,7 +120,7 @@ build_claude_plugin() {
   "name": "$plugin_name",
   "description": "jig repository workflow skills: project setup, develop flow, CLI releases, repository sync, and lifecycle management",
   "author": { "name": "0x0w1" },
-  "homepage": "https://github.com/0x0w1/spai",
+  "homepage": "https://github.com/0x0w1/jig",
   "license": "MIT"
 }
 EOF

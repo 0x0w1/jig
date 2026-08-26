@@ -38,7 +38,7 @@ Resolve the host from `JIG_GITHUB_HOST`, then `git config --local --get jig.gith
    - keep an existing `JIG_GITHUB_PROFILE` as the session override
    - otherwise write the repository-local `jig.githubProfile` and `jig.githubHost` values
 4. Verify the installed target and repair only when incomplete:
-   - Claude Code: confirm `jig@jig` is enabled; when missing, run `claude plugin marketplace add 0x0w1/spai --scope <project|user>` and `claude plugin install jig@jig --scope <project|user>`
+   - Claude Code: confirm `jig@jig` is enabled; when missing, run `claude plugin marketplace add 0x0w1/jig --scope <project|user>` and `claude plugin install jig@jig --scope <project|user>`
    - Codex or Antigravity: confirm the jig version stamp and `jig-project-setup`; when incomplete, rerun `install.sh` for the detected target and preserve the stamped skill selection
 5. Verify:
    - Claude Code: `claude plugin list` shows `jig@jig` enabled

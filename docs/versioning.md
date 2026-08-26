@@ -38,7 +38,7 @@ The list is fixed so that what counts as a break is not re-argued every release.
 
 1. The curl one-liner and the post-install GitHub profile contract: `--target`, `--scope`, the optional `--github-profile`/`--github-account`, `JIG_GITHUB_PROFILE`, `jig.githubProfile`
 2. Skill invocation names: `/jig:github-release`, `jig-github-release`
-3. Plugin and marketplace names: `jig@jig`, `0x0w1/spai`
+3. Plugin and marketplace names: `jig@jig`, `0x0w1/jig`
 4. Managed block marker strings: `<!-- jig:start ... -->`, `<!-- jig:end ... -->`
 5. The repository model: branch names, merge flow, protection policy
 

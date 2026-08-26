@@ -15,7 +15,7 @@ Each CLI updates on its own path; there is no combined update.
 - **Codex and Antigravity** have no plugin system. Their `jig-` prefixed skill directories under `.agents/skills` are refreshed by re-running `install.sh` once per target, pinned to the latest tag. The installer is idempotent: unchanged files pass, changed files are backed up as `*.bak`, and managed blocks are replaced in place.
 - A skill is a directory, not always one `SKILL.md`. The installer reads `dist/files.tsv` from the pinned version and installs every file that skill ships, such as the rubric catalog under `jig-version-rubric/rubrics`. Files an older version installed and the new payload no longer lists stay on disk; report them and remove them only with explicit confirmation.
 - For codex and antigravity, the installed version and skill selection are stamped inside the jig managed block as `<!-- jig:version vX.Y.Z skills=<a,b,c> -->` in `AGENTS.md` or `GEMINI.md`. A stamp without `skills=` means the full default skill set.
-- The latest version is the latest GitHub release tag of `0x0w1/spai`.
+- The latest version is the latest GitHub release tag of `0x0w1/jig`.
 - Repository-side convergence (branch protection, legacy file and label cleanup) is handled by the `github-sync` skill after the update, and is idempotent across skipped versions.
 - `.jig/` is owned by the project, not by the installer. The version rubric at `.jig/versioning.md` is never written, replaced, or removed by an update; `version-rubric` owns it.
 
@@ -50,7 +50,7 @@ An installation made before the rename from `spai` to `jig` is updated in place,
 
 1. Detect it: `.agents/skills/spai-*` directories, a `<!-- spai:version ... -->` stamp, or `spai@spai` in the Claude Code plugin list.
 2. **Codex and Antigravity** — run the installer normally. It writes the `jig-*` skill directories and replaces the legacy `<!-- spai:start ... -->` managed block in place, so no second block appears. Then report the leftover `.agents/skills/spai-*` directories and delete them **only with explicit confirmation**; they are files on the user's disk.
-3. **Claude Code** — the host owns plugin identity, so this part is manual. Tell the user to run `/plugin marketplace add 0x0w1/spai`, `/plugin install jig@jig`, `/plugin uninstall spai@spai`, then `/reload-plugins`. Do not attempt it for them.
+3. **Claude Code** — the host owns plugin identity, so this part is manual. Tell the user to run `/plugin marketplace add 0x0w1/jig`, `/plugin install jig@jig`, `/plugin uninstall spai@spai`, then `/reload-plugins`. Do not attempt it for them.
 4. **Local config** — when only `spai.githubProfile`, `spai.versionRubric`, or `spai.branchProtection` exist, copy each to its `jig.` name with `git config --local` and report both. Remove the old keys only with confirmation.
 5. **`.spai/versioning.md`** — project-owned. Report it, offer to move it to `.jig/versioning.md`, and move it only when the user says so. Every skill reads the legacy path meanwhile.
 6. **Push guard** — `github-sync` replaces a `# spai:pre-push v<N>` hook with the `jig` version when the user reruns it. Report it; do not edit hooks from this skill.
@@ -74,12 +74,12 @@ Nothing here runs unattended except step 2's installer pass. Deleting the user's
    - `grep -h "jig:version" AGENTS.md GEMINI.md 2>/dev/null | head -n 1`
    - A missing stamp means either a Claude Code only install or an install without a version stamp; continue and treat the installed version as unknown.
 2. Determine the latest release:
-   - `gh api repos/0x0w1/spai/releases/latest --jq .tag_name`
-   - Fallback without `gh`: `curl -fsSL https://api.github.com/repos/0x0w1/spai/releases/latest` and read `tag_name`.
+   - `gh api repos/0x0w1/jig/releases/latest --jq .tag_name`
+   - Fallback without `gh`: `curl -fsSL https://api.github.com/repos/0x0w1/jig/releases/latest` and read `tag_name`.
 3. If the installed stamp equals the latest tag and the plugin is current, report up to date and stop.
 4. Collect the release notes between the installed version and the latest:
-   - `gh release list --repo 0x0w1/spai --limit 20`
-   - `gh release view <tag> --repo 0x0w1/spai` for each release newer than the installed version.
+   - `gh release list --repo 0x0w1/jig --limit 20`
+   - `gh release view <tag> --repo 0x0w1/jig` for each release newer than the installed version.
    - Extract the `migration-auto` and `migration-manual` blocks from each and merge them in release order.
 5. Report the version delta with a short summary of the changes in the repository's own language, defaulting to English, the count of auto and manual migration items, and the full text of every manual item. Ask for approval before applying, unless the user already asked for the update to be executed end to end. Approval to update never implies approval for manual migration items; ask for those separately.
 6. Detect the installed targets:
@@ -89,10 +89,10 @@ Nothing here runs unattended except step 2's installer pass. Deleting the user's
 7. Update Claude Code, when the plugin is installed:
    - `/plugin marketplace update jig`
    - Confirm `claude plugin list` still shows `jig@jig` as enabled.
-   - To pin a specific release instead of tracking the default branch, re-add the marketplace at that tag: `/plugin marketplace add https://github.com/0x0w1/spai.git#<latest>`.
+   - To pin a specific release instead of tracking the default branch, re-add the marketplace at that tag: `/plugin marketplace add https://github.com/0x0w1/jig.git#<latest>`.
    - Tell the user to run `/reload-plugins` in their Claude Code session for the new version to take effect.
 8. Update codex and antigravity, when those targets are installed. Run the installer once per target; a GitHub profile is optional for the file update:
-   - `curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh | sh -s -- --target <target> --scope project --version <latest> --skills <stamped skills>`
+   - `curl -fsSL https://raw.githubusercontent.com/0x0w1/jig/main/install.sh | sh -s -- --target <target> --scope project --version <latest> --skills <stamped skills>`
    - When a profile is configured, the installer resolves it from the environment or local git config and also converges GitHub settings. Otherwise it updates the files and defers GitHub convergence to `project-setup`.
    - When the stamp has no `skills=`, omit `--skills` so the installer applies the defaults.
 9. Verify the `AGENTS.md` or `GEMINI.md` stamp now shows the latest version, and that every path in the new `dist/files.tsv` exists under the installed skill directories. Claude Code has no stamp to verify.

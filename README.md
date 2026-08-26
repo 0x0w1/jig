@@ -23,14 +23,14 @@ You need a git repository, plus `curl` or `wget` for Codex and Antigravity. A `g
 **Claude Code** (recommended) — run inside a session. The plugin host manages install, update, and removal, and the `PreToolUse` guard hook that inspects push commands before they run ships only here.
 
 ```text
-/plugin marketplace add 0x0w1/spai
+/plugin marketplace add 0x0w1/jig
 /plugin install jig@jig
 ```
 
 **Codex** and **Antigravity CLI** — run from the repository root.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
+curl -fsSL https://raw.githubusercontent.com/0x0w1/jig/main/install.sh \
   | sh -s -- --target codex --scope project        # or --target antigravity
 ```
 
@@ -100,6 +100,19 @@ To do it by hand instead, use what each CLI provides. On Claude Code the plugin 
 ```
 
 On Codex and Antigravity, run the install command again. The installer is idempotent and backs up changed files as `.bak`.
+
+### Coming from `spai`
+
+jig used to be called `spai`, and the repository slug moved from `0x0w1/spai` to `0x0w1/jig`. GitHub redirects the old slug, so an existing install keeps working, and every legacy name is still recognized: `SPAI_*` environment variables, `spai.*` config keys, `.spai/versioning.md`, `<!-- spai:start ... -->` managed blocks, and the `# spai:pre-push` guard.
+
+Run `jig-update` to walk the transition. On Claude Code the plugin host owns plugin identity, so that part is manual:
+
+```text
+/plugin marketplace add 0x0w1/jig
+/plugin install jig@jig
+/plugin uninstall spai@spai
+/reload-plugins
+```
 
 ## License
 

@@ -23,8 +23,8 @@ GIT_USER_NAME="${JIG_GIT_USER_NAME:-${SPAI_GIT_USER_NAME:-}}"
 GIT_USER_EMAIL="${JIG_GIT_USER_EMAIL:-${SPAI_GIT_USER_EMAIL:-}}"
 REPO_RAW_URL_INPUT="${REPO_RAW_URL:-}"
 REPO_RAW_URL=""
-REPO_RAW_BASE="${JIG_REPO_RAW_BASE:-${SPAI_REPO_RAW_BASE:-https://raw.githubusercontent.com/0x0w1/spai}}"
-JIG_RELEASES_API="${JIG_RELEASES_API:-${SPAI_RELEASES_API:-https://api.github.com/repos/0x0w1/spai/releases/latest}}"
+REPO_RAW_BASE="${JIG_REPO_RAW_BASE:-${SPAI_REPO_RAW_BASE:-https://raw.githubusercontent.com/0x0w1/jig}}"
+JIG_RELEASES_API="${JIG_RELEASES_API:-${SPAI_RELEASES_API:-https://api.github.com/repos/0x0w1/jig/releases/latest}}"
 REQUESTED_VERSION="${JIG_VERSION:-${SPAI_VERSION:-}}"
 JIG_VERSION_STAMP="main"
 SKILLS_INPUT="${JIG_SKILLS:-${SPAI_SKILLS:-}}"
@@ -44,7 +44,7 @@ jig - repository procedures for AI agent CLIs: same cut, every project
 This installer covers the CLIs that have no plugin system. Claude Code is not a target:
 it installs the jig plugin from the Claude Code marketplace instead.
 
-  /plugin marketplace add 0x0w1/spai
+  /plugin marketplace add 0x0w1/jig
   /plugin install jig@jig
 
 Usage:
@@ -71,10 +71,10 @@ Defaults:
   --scope project
 
 Examples:
-  wget -qO- https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
+  wget -qO- https://raw.githubusercontent.com/0x0w1/jig/main/install.sh \
     | sh -s -- --target codex --scope project
 
-  curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
+  curl -fsSL https://raw.githubusercontent.com/0x0w1/jig/main/install.sh \
     | sh -s -- --target antigravity --scope project
 
 Environment:
@@ -87,7 +87,7 @@ Environment:
 
 Version:
   By default the installer resolves the latest GitHub release tag and installs the payload
-  pinned to that tag (raw.githubusercontent.com/0x0w1/spai/vX.Y.Z). If the release lookup
+  pinned to that tag (raw.githubusercontent.com/0x0w1/jig/vX.Y.Z). If the release lookup
   fails, it falls back to the main branch.
   Use --version vX.Y.Z (or JIG_VERSION) to pin or roll back to a specific release.
   An explicit REPO_RAW_URL overrides version resolution entirely.
@@ -960,8 +960,8 @@ main() {
 
   case "$TARGET" in
     codex|antigravity) ;;
-    "") error "--target is required. Supported targets: codex, antigravity. Claude Code installs the jig plugin instead: /plugin marketplace add 0x0w1/spai then /plugin install jig@jig." ;;
-    claude-code|all) error "unsupported target: $TARGET. Install one of codex or antigravity per run. Claude Code installs the jig plugin instead: /plugin marketplace add 0x0w1/spai then /plugin install jig@jig." ;;
+    "") error "--target is required. Supported targets: codex, antigravity. Claude Code installs the jig plugin instead: /plugin marketplace add 0x0w1/jig then /plugin install jig@jig." ;;
+    claude-code|all) error "unsupported target: $TARGET. Install one of codex or antigravity per run. Claude Code installs the jig plugin instead: /plugin marketplace add 0x0w1/jig then /plugin install jig@jig." ;;
     *) error "unsupported target: $TARGET" ;;
   esac
 

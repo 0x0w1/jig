@@ -23,14 +23,14 @@
 **Claude Code**(권장) — 세션 안에서 실행합니다. 플러그인 호스트가 설치·업데이트·삭제를 관리하고, push 명령을 실행 전에 검사하는 `PreToolUse` 가드 hook은 여기에만 들어 있습니다.
 
 ```text
-/plugin marketplace add 0x0w1/spai
+/plugin marketplace add 0x0w1/jig
 /plugin install jig@jig
 ```
 
 **Codex**와 **Antigravity CLI** — 저장소 루트에서 실행합니다.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/0x0w1/spai/main/install.sh \
+curl -fsSL https://raw.githubusercontent.com/0x0w1/jig/main/install.sh \
   | sh -s -- --target codex --scope project        # 또는 --target antigravity
 ```
 
@@ -98,6 +98,19 @@ jig는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니다
 ```
 
 Codex와 Antigravity는 설치 명령을 그대로 다시 실행합니다. installer는 멱등이라 바뀐 파일만 갱신하고 `.bak`으로 백업합니다.
+
+### `spai`에서 넘어오는 경우
+
+jig의 옛 이름은 `spai`였고, 저장소 슬러그도 `0x0w1/spai`에서 `0x0w1/jig`로 바뀌었습니다. GitHub가 옛 슬러그를 리다이렉트하므로 기존 설치본은 그대로 동작하고, 레거시 이름도 계속 인식합니다: `SPAI_*` 환경 변수, `spai.*` config 키, `.spai/versioning.md`, `<!-- spai:start ... -->` managed block, `# spai:pre-push` 가드입니다.
+
+전환은 `jig-update`가 안내합니다. Claude Code는 플러그인 호스트가 플러그인 정체성을 소유하므로 이 부분만 직접 실행합니다.
+
+```text
+/plugin marketplace add 0x0w1/jig
+/plugin install jig@jig
+/plugin uninstall spai@spai
+/reload-plugins
+```
 
 ## License
 
