@@ -12,6 +12,8 @@
 
 ## 빠른 시작
 
+![SPAI 빠른 시작: CLI 하나에 설치하고, project-setup으로 프로필·버전 기준·브랜치 수렴·점검을 끝낸 뒤, spai-doctor로 확인하고, 이후 작업은 develop-task-flow와 github-release로 흘러갑니다](docs/assets/quick-start.svg)
+
 준비물: git 저장소, 그리고 Codex·Antigravity는 `curl` 또는 `wget`. GitHub 연동까지 하려면 `gh` 로그인이 필요하지만 스킬 설치 자체에는 필요 없습니다.
 
 ### 1. 설치 — 쓰는 CLI 하나만

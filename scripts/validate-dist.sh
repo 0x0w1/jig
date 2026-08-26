@@ -163,6 +163,14 @@ require_text README.md "docs/version-rubric.md"
 # README.md is the English canonical; README.ko.md is the Korean mirror. Each links the other,
 # so a reader landing on either one can switch.
 require_file README.ko.md
+require_file docs/assets/quick-start.svg
+require_text README.md "docs/assets/quick-start.svg"
+require_text README.ko.md "docs/assets/quick-start.svg"
+# The diagram is read on light and dark GitHub themes; both palettes must stay defined.
+require_text docs/assets/quick-start.svg "prefers-color-scheme: dark"
+require_text docs/assets/quick-start.svg "role=\"img\""
+require_text docs/assets/quick-start.svg "aria-label"
+
 require_text README.md "[한국어](README.ko.md)"
 require_text README.ko.md "[English](README.md)"
 # Canary words rather than a [가-힣] range: BSD grep matches such ranges bytewise, so an

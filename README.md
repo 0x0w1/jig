@@ -12,6 +12,8 @@ Supported: **Claude Code** (recommended), **Codex**, **Antigravity CLI**
 
 ## Quick Start
 
+![SPAI quick start: install into one CLI, run project-setup for profile, rubric, branch convergence and a check, verify with spai-doctor, then work through develop-task-flow and github-release](docs/assets/quick-start.svg)
+
 You need a git repository, plus `curl` or `wget` for Codex and Antigravity. A `gh` login is required to converge GitHub settings, but not to install the skills.
 
 ### 1. Install — pick the one CLI you use
