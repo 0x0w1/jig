@@ -1,7 +1,7 @@
 # jig
 
 <p align="center">
-  <img src="docs/assets/jig-icon-no-package.png" width="160" alt="jig project icon: three agent workflows aligned by a mechanical jig">
+  <img src="docs/assets/jig-icon-no-package.png" width="160" alt="jig project icon: a converging path, alignment pin, and clamp imply J, I, and G">
 </p>
 
 **same cut, every project** — a jig holds the work so every cut lands the same. This one holds your repository procedures so every project and every AI agent CLI runs them the same way.

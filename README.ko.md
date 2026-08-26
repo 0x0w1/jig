@@ -1,7 +1,7 @@
 # jig
 
 <p align="center">
-  <img src="docs/assets/jig-icon-no-package.png" width="160" alt="jig 프로젝트 아이콘: 세 에이전트 작업 흐름을 기계식 지그로 정렬합니다">
+  <img src="docs/assets/jig-icon-no-package.png" width="160" alt="jig 프로젝트 아이콘: 수렴 경로, 정렬 핀, 지그 프레임이 J, I, G를 은유합니다">
 </p>
 
 **같은 자리에서, 매번 같게** — 지그는 작업물을 잡아 매번 같은 자리에서 잘리게 합니다. 이 지그는 저장소 운영 절차를 잡아, 어느 프로젝트에서 어느 AI 에이전트 CLI를 쓰든 같은 절차가 돌게 합니다.
