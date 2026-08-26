@@ -84,10 +84,20 @@ SPAI는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니�
 
 ## 업데이트
 
-두 가지 방법이 있습니다.
+`spai-update` 스킬을 실행합니다. 설치 상태와 최신 릴리즈를 비교하고, 사이 릴리즈 노트를 요약한 뒤, 각 target을 갱신하고 `github-sync`로 저장소 설정까지 수렴합니다.
 
-- **직접** — Claude Code는 `/plugin marketplace update spai` 후 `/reload-plugins`. Codex와 Antigravity는 설치 명령을 그대로 다시 실행합니다. installer는 멱등이라 바뀐 파일만 갱신하고 `.bak`으로 백업합니다.
-- **스킬로** — 에이전트 세션에서 `spai-update`를 실행합니다. 설치 상태와 최신 릴리즈를 비교하고, 사이 릴리즈 노트를 요약한 뒤, 각 target을 갱신하고 `github-sync`로 저장소 설정까지 수렴합니다.
+```text
+/spai:spai-update
+```
+
+직접 하려면 각 CLI가 제공하는 방법을 씁니다. Claude Code는 플러그인 호스트가 업데이트를 담당합니다.
+
+```text
+/plugin marketplace update spai
+/reload-plugins
+```
+
+Codex와 Antigravity는 설치 명령을 그대로 다시 실행합니다. installer는 멱등이라 바뀐 파일만 갱신하고 `.bak`으로 백업합니다.
 
 ## License
 

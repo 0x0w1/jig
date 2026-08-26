@@ -86,10 +86,20 @@ Written in Korean, except the rubric catalog.
 
 ## Updating
 
-Two ways in.
+Run the `spai-update` skill. It compares the installation against the latest release, summarizes the notes in between, updates each target, and converges repository settings with `github-sync`.
 
-- **By hand** — Claude Code: `/plugin marketplace update spai`, then `/reload-plugins`. Codex and Antigravity: run the install command again; the installer is idempotent and backs up changed files as `.bak`.
-- **With the skill** — run `spai-update` in an agent session. It compares the installation against the latest release, summarizes the notes in between, updates each target, and converges repository settings with `github-sync`.
+```text
+/spai:spai-update
+```
+
+To do it by hand instead, use what each CLI provides. On Claude Code the plugin host owns the update:
+
+```text
+/plugin marketplace update spai
+/reload-plugins
+```
+
+On Codex and Antigravity, run the install command again. The installer is idempotent and backs up changed files as `.bak`.
 
 ## License
 
