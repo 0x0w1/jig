@@ -1,5 +1,9 @@
 # jig
 
+<p align="center">
+  <img src="docs/assets/jig-icon-no-package.png" width="160" alt="jig project icon: three agent workflows aligned by a mechanical jig">
+</p>
+
 **same cut, every project** — a jig holds the work so every cut lands the same. This one holds your repository procedures so every project and every AI agent CLI runs them the same way.
 
 [한국어](README.ko.md)
@@ -7,6 +11,8 @@
 [Quick Start](#quick-start) · [Skills](#skills) · [Docs](#documentation) · [Updating](#updating) · [License](#license)
 
 ## What This Is
+
+![jig project introduction: three agent workflows enter a mechanical jig and leave as one consistent packaged result](docs/assets/jig-project-hero-pixel-art-package.png)
 
 Using AI agents (Claude Code, Codex, Antigravity CLI) across side projects means re-explaining branch rules, commit rules, and release procedures to every project and every agent. jig removes that repetition: it installs the same set of procedure skills into any agent environment, and manages updates and health checks after the install.
 
