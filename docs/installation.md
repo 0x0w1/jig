@@ -166,6 +166,28 @@ Codex와 동일합니다. 스탬프는 `GEMINI.md`의 managed block에 들어갑
 
 Codex와 Antigravity 설치에만 해당합니다.
 
+### installer 옵션
+
+| 옵션 | 설명 |
+|---|---|
+| `--target codex\|antigravity` | 설치할 CLI 하나를 지정(필수). `all`은 없고 `claude-code`도 target이 아닙니다 |
+| `--scope project\|global` | 설치 범위, 기본값 `project` |
+| `--github-profile <profile>` | 설치 중 GitHub 연동까지 할 때 프로필 지정(선택). `--github-account`도 호환 |
+| `--github-host <host>` | GitHub Enterprise 호스트 지정 |
+| `--version vX.Y.Z` | 특정 SPAI 릴리즈로 설치·롤백 |
+| `--skills a,b,c` | manifest에서 선택한 스킬만 설치 |
+| `--configure-git-user` | 로컬 `user.name`·`user.email` 설정 |
+| `--dry-run` | 파일을 바꾸지 않고 예정 작업만 출력 |
+| `--force` | SPAI marker가 없는 기존 managed 파일을 전체 교체 |
+
+installer는 Codex와 Antigravity 전용입니다. Claude Code는 플러그인 호스트가 설치·업데이트·삭제를 전담하므로 `install.sh`를 쓰지 않습니다.
+
+기본 설치 중에는 로컬 git user 변경 prompt를 띄우지 않습니다. `gh` 로그인이 필요하거나 `--configure-git-user`를 쓰면 터미널 입력이 필요할 수 있습니다.
+
+### 예약 이름
+
+SPAI는 `spai` 플러그인 이름과 `spai-`로 시작하는 스킬 이름만 점유합니다. 직접 만든 스킬에 `spai-` prefix만 쓰지 않으면 충돌하지 않습니다. Claude Code는 호스트가 네임스페이스를 붙이므로 이름이 같아도 양쪽 모두 남습니다.
+
 ### 멱등성
 
 installer는 쓰기 전에 현재 상태를 먼저 확인하고, 이미 원하는 상태면 `PASS` 로그만 남기고 건너뜁니다. 변경이 필요한 파일은 `.bak` 백업을 만든 뒤 교체합니다.
