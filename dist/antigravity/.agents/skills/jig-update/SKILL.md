@@ -26,6 +26,7 @@ Installation remains target-specific, but one `jig-update` run updates every jig
 
 Inspect every supported scope, regardless of which agent is running this skill.
 
+<!-- jig:start installation-inventory -->
 | Target | Scope | Installation evidence |
 |---|---|---|
 | Claude Code | project | `jig@jig` enabled in `.claude/settings.json` |
@@ -38,6 +39,7 @@ Inspect every supported scope, regardless of which agent is running this skill.
 | Codex | global | jig managed block in `~/.codex/AGENTS.md` |
 | Antigravity | project | jig managed block in `./GEMINI.md` |
 | Antigravity | global | jig managed block in `~/.gemini/GEMINI.md` |
+<!-- jig:end installation-inventory -->
 
 Use `claude plugin list --json` as the primary Claude Code plugin inventory when available because it reports installed plugin scopes and versions. Use the settings files as the fallback and to distinguish `project`, `local`, and `user`; an unscoped text match from `claude plugin list` proves that the plugin exists but does not prove its scope. A file counts as a Codex or Antigravity installation only when it contains the jig managed block, not merely because the file exists.
 
@@ -135,7 +137,7 @@ Nothing here runs unattended except step 2's installer pass. Deleting the user's
 10. Apply the merged `migration-auto` items in release order, after every payload is updated so the steps run against the new version. Apply each distinct item once in the scope it affects, even when several target instances required the same release. Run a repository-relative migration only when at least one project-scoped instance crossed that release; a global-only update must not mutate whichever repository happens to be the current directory. Record each applicable item as applied, already satisfied, or failed, and continue past already-satisfied items. Stop and report on the first failure rather than improvising a fix.
 11. Present the merged `migration-manual` items and apply only the ones the user approves. Anything not approved stays pending and is named in the report.
 12. If at least one project-scoped instance was updated and a GitHub profile is configured, run the `github-sync` skill once for the current repository to converge branch protection and report legacy files or labels; delete them only with explicit confirmation. If the project has no configured profile, recommend `project-setup` and leave GitHub convergence pending. A global-only update never converges the current repository.
-13. When a project-scoped instance exists, run the `jig-doctor` skill to confirm that installation is healthy. Supplement its project checks with direct verification of standalone and global instances; for a global-only update, use direct per-scope verification and do not diagnose an unrelated current repository.
+13. Run the `jig-doctor` skill to confirm every detected target and scope against the same installation inventory contract. When only global or user-scoped instances exist, diagnose those instances but do not run repository-state checks against an unrelated current directory.
 14. Report.
 
 ## Final Report

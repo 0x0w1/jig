@@ -78,6 +78,8 @@ Before downloading those files, the updater validates every selected `dist/files
 
 Because those roots may also contain personal skills, their existence alone proves nothing. The updater requires the installed `jig-update/SKILL.md` to carry jig's name, title, and `0x0w1/jig` repository identity before it changes anything. It then refreshes only the jig skill directories already present, preserves unprefixed or `jig-` prefixed names, adds supporting files only inside those selected directories, and backs up every changed file as `.bak`. Unrecognized roots are left untouched.
 
+`jig-doctor` uses the same installation inventory contract as `jig-update`. It inspects both standalone roots without writing, distinguishes verified, legacy-unledgered, invalid-ledger, partial, provenance-conflict, and non-owned states, and reports them alongside every detected Claude Code plugin, Codex, and Antigravity scope.
+
 ### Removing it
 
 ```text

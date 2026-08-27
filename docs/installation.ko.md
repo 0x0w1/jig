@@ -78,6 +78,8 @@ project scope로 설치하면 저장소에 남는 파일은 설정 하나뿐입�
 
 이 경로에는 개인 스킬도 함께 있을 수 있으므로 디렉터리 존재만으로 jig 설치라고 판단하지 않습니다. updater는 파일을 바꾸기 전에 `jig-update/SKILL.md`에서 jig의 이름·제목·`0x0w1/jig` 저장소 identity를 모두 확인합니다. 확인 후에는 이미 존재하는 jig 스킬 디렉터리만 갱신하고 unprefixed 또는 `jig-` prefixed 이름을 보존하며, 선택된 디렉터리 내부에만 새 supporting file을 추가하고 바뀌는 파일은 모두 `.bak`으로 백업합니다. 판별되지 않은 경로는 건드리지 않습니다.
 
+`jig-doctor`는 `jig-update`와 같은 설치 inventory 계약을 사용합니다. 두 standalone 루트를 파일 변경 없이 검사해 verified, legacy-unledgered, invalid-ledger, partial, provenance-conflict, non-owned 상태를 구분하고, 감지한 모든 Claude Code plugin, Codex, Antigravity scope와 함께 보고합니다.
+
 ### 제거
 
 ```text

@@ -45,6 +45,10 @@ require_text install.sh "SPAI_GITHUB_PROFILE"
 require_text install.sh "spai.githubProfile"
 require_text install.sh "managed_legacy_start"
 require_text "dist/claude-code-plugin/jig/skills/jig-doctor/SKILL.md" "Legacy Names"
+require_text "dist/claude-code-plugin/jig/skills/jig-doctor/SKILL.md" "installation-inventory"
+require_file "dist/claude-code-plugin/jig/skills/jig-doctor/scripts/inspect-claude-standalone.sh"
+require_file "dist/codex/.agents/skills/jig-doctor/scripts/inspect-claude-standalone.sh"
+require_file "dist/antigravity/.agents/skills/jig-doctor/scripts/inspect-claude-standalone.sh"
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" "Migrating a Pre-Rename Installation"
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" "Installation Inventory"
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" 'claude plugin update jig@jig --scope <scope>'
@@ -61,6 +65,7 @@ require_text "dist/claude-code-plugin/jig/skills/jig-update/scripts/update-claud
 require_text "dist/claude-code-plugin/jig/skills/jig-update/scripts/update-claude-standalone.sh" 'unsafe symlink payload path'
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" '~/.claude/skills'
 sh scripts/test-update-claude-standalone.sh
+sh scripts/test-doctor-installation-inventory.sh
 require_text "dist/claude-code-plugin/jig/skills/version-rubric/SKILL.md" ".spai/versioning.md"
 require_text "dist/claude-code-plugin/jig/skills/github-release/SKILL.md" ".spai/versioning.md"
 require_text "dist/claude-code-plugin/jig/skills/github-sync/SKILL.md" "# spai:pre-push"

@@ -59,7 +59,7 @@ curl -fsSL https://raw.githubusercontent.com/0x0w1/jig/main/install.sh \
 
 ### 3. 확인
 
-`/jig:jig-doctor` (Codex·Antigravity는 `jig-doctor`)를 실행하면 설치 버전, 파일 드리프트, 브랜치 보호, GitHub 프로필, 기준 파일 상태를 read-only로 보고합니다. 고칠 것이 있으면 어느 스킬이 고치는지까지 알려줍니다.
+`/jig:jig-doctor` (Codex·Antigravity는 `jig-doctor`)를 실행하면 프로젝트와 사용자 범위에서 감지한 Claude Code, Codex, Antigravity 설치를 모두 read-only로 나열하고 각각의 버전, 선택 구성, drift, standalone provenance 상태를 보고합니다. 프로젝트 scope가 있으면 branch protection, GitHub 프로필, 기준 파일 상태도 함께 점검합니다. 고칠 것이 있으면 어느 스킬이 고치는지까지 알려줍니다.
 
 이후로는 스킬 이름을 부르거나 하려는 일을 말하면 에이전트가 알아서 고릅니다.
 

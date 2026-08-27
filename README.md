@@ -59,7 +59,7 @@ One run settles four things.
 
 ### 3. Verify
 
-Run `/jig:jig-doctor` (`jig-doctor` on Codex and Antigravity) for a read-only report on the installed version, file drift, branch protection, the GitHub profile, and the rubric file. Anything that needs fixing is reported along with the skill that fixes it.
+Run `/jig:jig-doctor` (`jig-doctor` on Codex and Antigravity) for a read-only inventory of every detected Claude Code, Codex, and Antigravity installation across project and user scopes, including each version, selection, drift, and standalone provenance state. Project-scoped reports also cover branch protection, the GitHub profile, and the rubric file. Anything that needs fixing is reported along with the skill that fixes it.
 
 From there, call a skill by name or just say what you want; the agent picks it.
 

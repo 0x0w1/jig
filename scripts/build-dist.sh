@@ -20,7 +20,7 @@ skill_summary() {
     develop-task-flow) printf '%s' "normal development tasks on feature/fix/chore branches squash-merged back into develop." ;;
     project-setup) printf '%s' "install jig for a repository and select its GitHub CLI profile without changing the global active account." ;;
     jig-update) printf '%s' "update the installed jig skills to the latest jig release and converge repository settings." ;;
-    jig-doctor) printf '%s' "diagnose the installed jig state (profile, version, protection, legacy); read-only." ;;
+    jig-doctor) printf '%s' "diagnose every installed jig target and scope plus repository profile, version, protection, and legacy state; read-only." ;;
     readme) printf '%s' "write or update the project README from the repository state; drafts one when missing, fixes drift when present." ;;
     version-rubric) printf '%s' "decide and maintain how this project grades patch, minor, and major in .jig/versioning.md; ships the project-type rubric catalog." ;;
     rubric-scan) printf '%s' "scan the repository to classify its project type and recommend a version rubric from the catalog; read-only." ;;

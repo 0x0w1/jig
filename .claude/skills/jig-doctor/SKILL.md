@@ -1,18 +1,40 @@
 ---
 name: jig-doctor
-description: "Use when diagnosing the jig installation in this repository: verify the Claude Code plugin, GitHub profile selection, installed version and skill drift, pending migrations, branch protection, local guard, and legacy leftovers. Read-only; fixes are delegated to project-setup, jig-update, and github-sync."
+description: "Use when diagnosing every detected jig installation for Claude Code, Codex, and Antigravity across current project and user scopes, plus repository profile, migration, protection, guard, rubric, and legacy state. Read-only; fixes are delegated to project-setup, jig-update, github-sync, and version-rubric."
 ---
 
 # jig Doctor
 
-Use this repository skill to diagnose the installed jig state. This skill never modifies files or settings.
+Use this repository skill to diagnose the installed jig state across every supported target and scope. This skill never modifies files or settings.
 
 ## Distribution Model
 
-Each CLI is installed on its own; there is no combined install.
+Each CLI is installed on its own, but diagnosis inventories all of them before judging any one instance.
 
-- **Claude Code** installs the `jig` plugin from the Claude Code marketplace. Its skills are namespaced by the host as `/jig:<skill>` and live under the plugin directory, never under `.claude/skills`. There is no installer, no `CLAUDE.md` managed block, and no version stamp: the host owns install, update, and removal.
-- **Codex and Antigravity** have no plugin system, so `install.sh` copies `jig-` prefixed skill directories under `.agents/skills` and writes a managed block with a `<!-- jig:version ... -->` stamp into `AGENTS.md` or `GEMINI.md`.
+- **Claude Code plugin** is host-managed and may be enabled at project, local, user, or managed scope. Its skills are namespaced as `/jig:<skill>` and its host version is not compared with file payload tags.
+- **Claude Code standalone** is a compatibility installation under `.claude/skills` or `~/.claude/skills`. A current installation has a `.jig-installation` ledger plus per-skill `.jig-provenance`; a verified legacy copy may have no ledger yet.
+- **Codex and Antigravity** have no plugin system. Their project and global rules files carry independent managed blocks and version stamps; skill roots differ by target and scope.
+
+## Installation Inventory
+
+Use this exact contract, shared with `jig-update`. Inventory all rows before deciding that jig is absent or healthy.
+
+<!-- jig:start installation-inventory -->
+| Target | Scope | Installation evidence |
+|---|---|---|
+| Claude Code | project | `jig@jig` enabled in `.claude/settings.json` |
+| Claude Code | local | `jig@jig` enabled in `.claude/settings.local.json` |
+| Claude Code | user | `jig@jig` enabled in `~/.claude/settings.json` |
+| Claude Code | managed | `jig@jig` reported at managed scope by `claude plugin list --json` |
+| Claude Code standalone | project | valid `.jig-installation` or verified legacy jig skill set under `./.claude/skills` |
+| Claude Code standalone | user | valid `.jig-installation` or verified legacy jig skill set under `~/.claude/skills` |
+| Codex | project | jig managed block in `./AGENTS.md` |
+| Codex | global | jig managed block in `~/.codex/AGENTS.md` |
+| Antigravity | project | jig managed block in `./GEMINI.md` |
+| Antigravity | global | jig managed block in `~/.gemini/GEMINI.md` |
+<!-- jig:end installation-inventory -->
+
+Use `scripts/inspect-claude-standalone.sh` from this skill once for each standalone root. It reports `absent`, `source-mirror`, `verified`, `legacy-unledgered`, `ledger-invalid`, `partial`, `provenance-conflict`, or `non-owned` without writing anything. Only verified and legacy-unledgered roots count as update-compatible installations; the other non-absent states are diagnostic context with an explicit finding.
 
 ## GitHub Profile
 
@@ -20,24 +42,28 @@ Before any `gh` command, resolve the host from `JIG_GITHUB_HOST`, local `jig.git
 
 ## Checks
 
-1. **Claude Code plugin**: only when the repository is used with Claude Code.
-   - `claude plugin list` (or the `enabledPlugins` entry in `.claude/settings.json`) must show `jig@jig`.
-   - `.claude/settings.json` should carry the marketplace under `extraKnownMarketplaces`. For project scope this is what shares the plugin with collaborators.
-   - Report a missing entry with the exact fix: `/plugin marketplace add 0x0w1/jig` then `/plugin install jig@jig`.
-   - The plugin version is host-managed; report it as reported by `claude plugin list` and do not compare it against the codex/antigravity stamp.
-   - If the `claude` CLI is unavailable and `.claude/settings.json` has no plugin entry, report the check as skipped rather than as a failure.
-2. **Version** (codex and antigravity): read the installed stamp (`grep -h "jig:version" AGENTS.md GEMINI.md 2>/dev/null | head -n 1`) and compare with the latest release tag (`gh api repos/0x0w1/jig/releases/latest --jq .tag_name`). Also read `skills=` from the stamp; a stamp without it means the full default skill set, and a missing stamp means an install without a version stamp. Skip this check when neither file carries the managed block.
-3. **Drift** (codex and antigravity only; the Claude Code plugin is updated by the host): for each installed skill file, compare with the payload of the stamped version.
-   - A skill is a directory, not always one file. Read the payload file list first (`curl -fsSL https://raw.githubusercontent.com/0x0w1/jig/<stamp>/dist/files.tsv`); each row is `<skill>\t<path relative to the skill directory>`. A version that publishes no `files.tsv` shipped single-file skills, so compare `SKILL.md` alone.
-   - codex: `curl -fsSL https://raw.githubusercontent.com/0x0w1/jig/<stamp>/dist/codex/.agents/skills/jig-<skill>/<path> | cmp -s - .agents/skills/jig-<skill>/<path>`
-   - antigravity: same with `dist/antigravity/.agents/skills/jig-<skill>/<path>`
-   - A `cmp` mismatch means the file was locally modified or partially updated. If the stamp is `main` or `custom`, drift cannot be judged against a fixed payload; report that instead.
-   - A file under an installed skill directory that the payload list does not contain is a leftover from an older version, not drift. Report it as a leftover and leave it: only `jig-update` removes it, and only with confirmation.
-4. **Pending migrations**: when the stamp is behind the latest release, read the notes of every release newer than the stamp (`gh release view <tag> --repo 0x0w1/jig`) and count the items inside `<!-- jig:start migration-auto -->` and `<!-- jig:start migration-manual -->` blocks.
-   - Count **line-anchored markers only** (`^<!-- jig:start migration-auto -->$`); notes often name these markers in prose, and a substring search would count those mentions as blocks.
+1. **Complete installation inventory**: inspect all ten rows in the shared contract, regardless of which agent invoked the skill.
+   - Use `claude plugin list --json` as the primary plugin inventory. Use project, local, and user settings as fallback and to prove those exact scopes; an unscoped text match proves only that the plugin exists. Report host-managed version data without comparing it with file payload tags. If the CLI and every settings source are unavailable, mark only that plugin inventory as skipped.
+   - Run the standalone inspector for both project and user roots. `non-owned` means an ordinary user skill root and is not a jig defect. `source-mirror` means the jig repository's development copy and is not an installed payload. Report `legacy-unledgered`, `ledger-invalid`, `partial`, and `provenance-conflict` distinctly; the latter three belong to `jig-update` but must remain untouched by doctor.
+   - Detect Codex project/global and Antigravity project/global independently from each rules file's own jig managed block. File existence alone is not installation evidence. Read the version and `skills=` from that same block; a stamp without `skills=` means the full default set.
+   - Skill roots are target- and scope-specific: project Codex and Antigravity use `./.agents/skills`, global Codex uses `~/.agents/skills`, and global Antigravity uses `~/.gemini/config/skills`. Shared project files do not merge the two rules-file instances.
+2. **Version and selection, per instance**: resolve the latest release tag once (`gh api repos/0x0w1/jig/releases/latest --jq .tag_name`) and report each detected instance independently.
+   - Claude Code plugin: host-managed version and plugin-managed selection.
+   - Claude Code standalone: ledger `version` and exact `<manifest skill>=<directory>` mappings. A verified legacy root has unknown version and selection until its first successful `jig-update`; do not claim it is current.
+   - Codex and Antigravity: that instance's rules-file stamp and `skills=` selection. Never reuse the first stamp found for another target or scope.
+3. **Drift and provenance, per instance**:
+   - Claude Code plugin is updated by the host; verify enabled state but do not compare plugin files.
+   - For each versioned file installation, read that version's `dist/files.tsv`. A missing catalog means the release shipped `SKILL.md` only. Compare every selected payload path and report missing and mismatched files separately. `main`, `custom`, and unknown versions cannot prove fixed-payload drift.
+   - Codex payload path: `dist/codex/.agents/skills/jig-<skill>/<path>`. Antigravity uses its matching distribution path. Resolve the installed root from the inventory row rather than assuming project scope.
+   - Standalone unprefixed mappings such as `github-sync=github-sync` compare with the Claude Code plugin payload. Prefixed mappings such as `github-sync=jig-github-sync` compare with the Codex payload. Before comparing content, require the ledger mapping, skill directory, `SKILL.md`, and exact `.jig-provenance` to agree; use the inspector status as the finding category.
+   - A payload mismatch is drift. A missing selected file is a partial installation. A file the payload does not list is a leftover. Report leftovers without deleting them; only `jig-update` may remove one, with confirmation.
+4. **Pending migrations, per versioned instance**: for each installed version behind latest, read every newer release note (`gh release view <tag> --repo 0x0w1/jig`), then merge and de-duplicate the needed items while retaining the affected target/scope list.
+   - Count **line-anchored markers only** (`^<!-- jig:start migration-auto -->$` and `^<!-- jig:start migration-manual -->$`); notes often name these markers in prose, and a substring search would count those mentions as blocks.
    - Report the counts and quote the manual items in full; those need a human decision and are what makes a release `major`.
    - Do not evaluate whether an item was already applied and never run one. `jig-update` owns execution.
-   - Skip this check when there is no stamp or the stamp is already the latest.
+   - Skip this check when an instance has no installed version or is already latest.
+
+Checks 5–10 diagnose repository state, not global installation state. Run them only when the current directory is a Git worktree and at least one project-scoped jig instance belongs to that repository. A user/global-only inventory must not turn whichever directory happens to be current into the diagnostic target; report repository checks as not applicable instead.
 5. **Branch protection** (optional feature — absence is not automatically a defect): `gh api repos/<owner>/<repo>/branches/<branch>/protection` for `main` and `develop`. Expected when it is in place: no required pull request reviews, no required status checks, `allow_force_pushes.enabled == false`, `allow_deletions.enabled == false`.
 
    Read the answer before judging it:
@@ -101,16 +127,17 @@ The project was called `spai` before it was renamed to `jig`. An installation fr
 - Read-only: do not modify files, settings, branches, or labels.
 - Do not run the installer or any `claude plugin` command that changes state; recommend `jig-update` instead.
 - Report the exact command for each recommended fix, but do not execute it.
-- Never report a skill the user wrote as a jig problem. jig only owns the `jig` plugin and `jig-` prefixed directories.
+- Never report a skill the user wrote as a jig problem. A standalone `non-owned` root is informational, not an installation or defect; jig owns only ledger/provenance-verified standalone mappings, the `jig` plugin, and `jig-` prefixed directories tied to a managed block.
 - Never report the contents of `.jig/` as drift or as a jig defect. That directory is owned by the project.
 - Preserve unrelated user changes.
 
 ## Procedure
 
-1. Confirm context: `git rev-parse --is-inside-work-tree`, `gh repo view`, `gh auth status`, `command -v claude`. If a tool is unavailable, run only the checks that do not need it and list the skipped checks in the report.
-2. Run checks 1–10 in order and collect the results.
-3. Compose the report. For every finding, name the fix owner:
-   - version behind, drifted files, missing plugin, or pending `migration-auto` items → `jig-update`
+1. Run the complete installation inventory first. Invoke the standalone inspector for both roots, inspect all plugin sources, and read all four Codex/Antigravity rules files. Record absent and non-owned rows separately from detected instances.
+2. Resolve available tools and repository context: `command -v claude`, `gh auth status`, and, only for project-scoped instances, `git rev-parse --is-inside-work-tree` plus `gh repo view`. If a tool is unavailable, run checks that do not need it and list the skipped checks.
+3. Run checks 2–4 independently for every detected instance. Run checks 5–10 once for the current repository only when the repository-state applicability rule is satisfied.
+4. Compose the report. For every finding, name the fix owner:
+   - version behind, drifted or partial files, invalid standalone ledger/provenance, a disabled or partial plugin at an already detected scope, or pending `migration-auto` items → `jig-update`
    - pending `migration-manual` items → `jig-update`, but only after the user decides each item
    - protection mismatch, or protection available but never set up → `github-sync` (deletions only with explicit confirmation)
    - protection unavailable on this plan, or skipped by choice → no action; do not recommend a fix for something the repository cannot have or the user declined
@@ -126,17 +153,18 @@ Write the report in the language the repository already uses for its own documen
 ```md
 ## jig Diagnostic Report
 
-### Claude Code plugin
-- Registered/enabled: OK | missing items and the recovery command (version is host-managed)
+### Installation inventory
+| Target | Scope | Model | Status | Version | Selection |
+|---|---|---|---|---|---|
+| Claude Code | project | plugin | enabled | host-managed | plugin-managed |
+| Claude Code | user | standalone | verified | <ledger version> | <skill=directory mappings> |
+| Codex | global | managed files | current | <stamp> | <skills> |
 
-### Version (codex/antigravity)
-- Installed: <stamp> / latest: <latest> → up to date or behind | not installed
-
-### Drift (codex/antigravity)
-- None | list of mismatched files
+### Drift and provenance
+- <target>/<scope>: clean | missing files | drifted files | legacy-unledgered | ledger-invalid | partial | provenance-conflict
 
 ### Pending migrations
-- auto: N | manual: N (items quoted in full) | none
+- <affected target/scopes>: auto N | manual N (items quoted in full) | none
 
 ### Branch protection (optional)
 - main: OK | mismatches, item by item | not available (plan or permission) | skipped by choice | protected by a ruleset
