@@ -70,6 +70,10 @@ To pin a specific release, re-add the marketplace at a tag ref.
 
 The marketplace plugin remains the supported installation path. `jig-update` also recognizes earlier or manually copied standalone jig skill sets that already exist under `./.claude/skills` or `~/.claude/skills`; it does not create a new standalone installation.
 
+The first successful compatibility update writes a root `.jig-installation` ledger with the release version, target, scope, and exact skill-to-directory selection, plus a `.jig-provenance` marker inside every owned skill directory. Before that first ledger exists, a legacy directory is accepted only when both its frontmatter name and the canonical payload title match; a name match by itself is left untouched. Later updates require the ledger and markers to agree.
+
+Each standalone root updates as one transaction. `jig-update` downloads all selected payload files before changing the installation, keeps `.bak` copies of changed files, and restores the prior files, backups, markers, and ledger if applying any file fails.
+
 Because those roots may also contain personal skills, their existence alone proves nothing. The updater requires the installed `jig-update/SKILL.md` to carry jig's name, title, and `0x0w1/jig` repository identity before it changes anything. It then refreshes only the jig skill directories already present, preserves unprefixed or `jig-` prefixed names, adds supporting files only inside those selected directories, and backs up every changed file as `.bak`. Unrecognized roots are left untouched.
 
 ### Removing it

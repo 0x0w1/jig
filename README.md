@@ -111,7 +111,7 @@ To do it by hand instead, use what each CLI provides. On Claude Code the plugin 
 
 On Codex and Antigravity, run the install command again. The installer is idempotent and backs up changed files as `.bak`.
 
-Existing Claude Code standalone jig skills are updated only through `jig-update`: it verifies jig provenance before touching `.claude/skills`, preserves the directories already installed, and backs up changed files as `.bak`.
+Existing Claude Code standalone jig skills are updated only through `jig-update`: it verifies per-skill jig provenance before touching `.claude/skills`, preserves the directories already installed, and records their version and selection in `.jig-installation`. It downloads the complete payload before applying it, backs up changed files as `.bak`, and rolls the installation back if any apply step fails.
 
 ## License
 

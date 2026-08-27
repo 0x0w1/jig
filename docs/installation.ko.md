@@ -70,6 +70,10 @@ project scope로 설치하면 저장소에 남는 파일은 설정 하나뿐입�
 
 마켓플레이스 플러그인이 계속 공식 설치 경로입니다. 다만 `jig-update`는 `./.claude/skills` 또는 `~/.claude/skills`에 이미 존재하는 이전 설치나 수동 복사 방식의 standalone jig 스킬 세트도 인식하며, 새로운 standalone 설치를 만들지는 않습니다.
 
+첫 compatibility update가 성공하면 루트의 `.jig-installation` 원장에 릴리즈 버전, target, scope, 정확한 스킬-디렉터리 선택을 기록하고 소유한 각 스킬 디렉터리에 `.jig-provenance` marker를 만듭니다. 최초 원장이 없는 기존 설치는 frontmatter 이름과 canonical payload 제목이 모두 맞는 디렉터리만 인정하며, 이름만 같은 디렉터리는 변경하지 않습니다. 이후 업데이트에서는 원장과 marker가 서로 일치해야 합니다.
+
+각 standalone 루트는 하나의 transaction으로 업데이트됩니다. `jig-update`는 선택한 payload 파일을 모두 내려받은 뒤 설치본을 변경하고, 바뀌는 파일을 `.bak`으로 보존하며, 파일 하나라도 적용하지 못하면 기존 파일·백업·marker·원장을 이전 상태로 복구합니다.
+
 이 경로에는 개인 스킬도 함께 있을 수 있으므로 디렉터리 존재만으로 jig 설치라고 판단하지 않습니다. updater는 파일을 바꾸기 전에 `jig-update/SKILL.md`에서 jig의 이름·제목·`0x0w1/jig` 저장소 identity를 모두 확인합니다. 확인 후에는 이미 존재하는 jig 스킬 디렉터리만 갱신하고 unprefixed 또는 `jig-` prefixed 이름을 보존하며, 선택된 디렉터리 내부에만 새 supporting file을 추가하고 바뀌는 파일은 모두 `.bak`으로 백업합니다. 판별되지 않은 경로는 건드리지 않습니다.
 
 ### 제거

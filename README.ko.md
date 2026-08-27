@@ -109,7 +109,7 @@ jig는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니다
 
 Codex와 Antigravity는 설치 명령을 그대로 다시 실행합니다. installer는 멱등이라 바뀐 파일만 갱신하고 `.bak`으로 백업합니다.
 
-기존 Claude Code standalone jig 스킬은 `jig-update`로만 갱신합니다. `.claude/skills`를 수정하기 전에 jig provenance를 확인하고, 이미 설치된 디렉터리 구성은 유지하며 바뀌는 파일을 `.bak`으로 백업합니다.
+기존 Claude Code standalone jig 스킬은 `jig-update`로만 갱신합니다. `.claude/skills`를 수정하기 전에 스킬별 jig provenance를 확인하고, 이미 설치된 디렉터리 구성과 버전을 `.jig-installation`에 기록합니다. 전체 payload를 먼저 내려받고 바뀌는 파일을 `.bak`으로 백업하며, 적용 중 하나라도 실패하면 설치본을 이전 상태로 되돌립니다.
 
 ## License
 
