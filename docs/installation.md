@@ -74,6 +74,8 @@ The first successful compatibility update writes a root `.jig-installation` ledg
 
 Each standalone root updates as one transaction. `jig-update` downloads all selected payload files before changing the installation, keeps `.bak` copies of changed files, and restores the prior files, backups, markers, and ledger if applying any file fails.
 
+Before downloading those files, the updater validates every selected `dist/files.tsv` entry as a strict relative file path. Absolute paths, empty or traversal components, reserved marker and backup names, unsupported characters, and any existing symlink component are rejected. A rejected catalog leaves that standalone root unchanged, including its backups, provenance markers, and ledger.
+
 Because those roots may also contain personal skills, their existence alone proves nothing. The updater requires the installed `jig-update/SKILL.md` to carry jig's name, title, and `0x0w1/jig` repository identity before it changes anything. It then refreshes only the jig skill directories already present, preserves unprefixed or `jig-` prefixed names, adds supporting files only inside those selected directories, and backs up every changed file as `.bak`. Unrecognized roots are left untouched.
 
 ### Removing it

@@ -169,6 +169,65 @@ canonical_title() {
   sed -n '/^# / { p; q; }' "$1"
 }
 
+validate_payload_relative_path() {
+  payload_skill="$1"
+  payload_path="$2"
+
+  [ -n "$payload_path" ] \
+    || error "unsafe payload path for $payload_skill: <empty>"
+  case "$payload_path" in
+    /*) error "unsafe payload path for $payload_skill: $payload_path (absolute path)" ;;
+    */) error "unsafe payload path for $payload_skill: $payload_path (directory path)" ;;
+    *//*) error "unsafe payload path for $payload_skill: $payload_path (empty component)" ;;
+    *[!A-Za-z0-9._/-]*) error "unsafe payload path for $payload_skill: $payload_path (unsupported character)" ;;
+  esac
+
+  payload_old_ifs=$IFS
+  IFS='/'; set -- $payload_path; IFS=$payload_old_ifs
+  for payload_component in "$@"; do
+    case "$payload_component" in
+      ''|.|..) error "unsafe payload path for $payload_skill: $payload_path (non-file component)" ;;
+      .jig-provenance|.jig-installation|*.bak)
+        error "unsafe payload path for $payload_skill: $payload_path (reserved component)"
+        ;;
+    esac
+  done
+}
+
+assert_safe_destination() {
+  destination_boundary="$1"
+  destination_relative="$2"
+  destination_label="$3"
+  destination_kind=${4:-payload}
+
+  if [ "$destination_kind" = payload ]; then
+    validate_payload_relative_path "$destination_label" "$destination_relative"
+  else
+    case "$destination_relative" in
+      .jig-provenance|.jig-installation) ;;
+      *) error "unsafe internal destination for $destination_label: $destination_relative" ;;
+    esac
+  fi
+  [ -d "$destination_boundary" ] \
+    || error "unsafe destination boundary for $destination_label: $destination_boundary"
+  [ ! -L "$destination_boundary" ] \
+    || error "unsafe symlink destination boundary for $destination_label: $destination_boundary"
+
+  destination_current="$destination_boundary"
+  destination_old_ifs=$IFS
+  IFS='/'; set -- $destination_relative; IFS=$destination_old_ifs
+  for destination_component in "$@"; do
+    destination_current="$destination_current/$destination_component"
+    [ ! -L "$destination_current" ] \
+      || error "unsafe symlink payload path for $destination_label: $destination_relative"
+  done
+
+  case "$destination_current" in
+    "$destination_boundary"/*) ;;
+    *) error "payload path escapes destination boundary for $destination_label: $destination_relative" ;;
+  esac
+}
+
 write_provenance() {
   provenance_destination="$1"
   provenance_skill="$2"
@@ -240,6 +299,7 @@ ledger_owns_mapping() {
 
 LEDGER_PRESENT=0
 if [ -e "$LEDGER" ]; then
+  [ ! -L "$LEDGER" ] || error "standalone installation ledger must not be a symlink: $LEDGER"
   [ -f "$LEDGER" ] || error "standalone installation ledger is not a regular file: $LEDGER"
   validate_ledger || error "standalone installation ledger is malformed or belongs to another scope: $LEDGER"
   LEDGER_PRESENT=1
@@ -283,6 +343,41 @@ if ! curl -fsSL "$RELEASE_ROOT/dist/files.tsv" -o "$FILES"; then
   : > "$FILES"
 fi
 
+if ! awk -F '\t' '
+  !/^#/ && NF >= 1 {
+    if ($1 !~ /^[a-z0-9][a-z0-9-]*$/ || seen[$1]++) exit 1
+  }
+' "$MANIFEST"; then
+  error "release manifest contains an unsafe or duplicate skill identifier"
+fi
+
+write_expected_files() {
+  expected_skill="$1"
+  expected_destination="$2"
+  expected_rows=$(awk -F '\t' -v selected="$expected_skill" '
+    !/^#/ && $1 == selected { count++ }
+    END { print count + 0 }
+  ' "$FILES")
+
+  if [ "$expected_rows" -eq 0 ]; then
+    printf 'SKILL.md\n' > "$expected_destination"
+  else
+    if awk -F '\t' -v selected="$expected_skill" '
+      !/^#/ && $1 == selected && NF != 2 { bad = 1 }
+      END { exit bad ? 0 : 1 }
+    ' "$FILES"; then
+      error "release file catalog contains a malformed path row for $expected_skill"
+    fi
+    awk -F '\t' -v selected="$expected_skill" '
+      !/^#/ && $1 == selected { print $2 }
+    ' "$FILES" > "$expected_destination"
+  fi
+
+  while IFS= read -r expected_relative; do
+    validate_payload_relative_path "$expected_skill" "$expected_relative"
+  done < "$expected_destination"
+}
+
 source_url() {
   source_skill="$1"
   source_directory="$2"
@@ -324,6 +419,7 @@ for skill in $(awk -F '\t' '!/^#/ && NF >= 1 { print $1 }' "$MANIFEST"); do
     skill_entry="$skill_root/SKILL.md"
     provenance="$skill_root/.jig-provenance"
     if [ -e "$provenance" ]; then
+      [ ! -L "$provenance" ] || error "skill provenance must not be a symlink: $provenance"
       [ -f "$provenance" ] || error "skill provenance is not a regular file: $provenance"
       if ! provenance_is_valid "$provenance" "$skill" "$directory_name"; then
         if [ "$LEDGER_PRESENT" -eq 1 ]; then
@@ -355,16 +451,27 @@ done
 awk -F '\t' '$1 == "jig-update" && $2 == "jig-update" { found = 1 } END { exit found ? 0 : 1 }' "$SELECTIONS" \
   || error "the jig-update sentinel directory was not safely verified"
 
+VALIDATION_COUNT=0
+while IFS="	" read -r skill directory_name; do
+  [ -n "$skill" ] || continue
+  VALIDATION_COUNT=$((VALIDATION_COUNT + 1))
+  skill_root="$ROOT/$directory_name"
+  expected="$TEMP_ROOT/validated-expected-$VALIDATION_COUNT"
+  write_expected_files "$skill" "$expected"
+  while IFS= read -r relative_path; do
+    assert_safe_destination "$skill_root" "$relative_path" "$skill"
+  done < "$expected"
+done < "$SELECTIONS"
+
 PLAN_COUNT=0
 while IFS="	" read -r skill directory_name; do
   [ -n "$skill" ] || continue
   skill_root="$ROOT/$directory_name"
   expected="$TEMP_ROOT/expected-$VERIFIED-$PLAN_COUNT"
-  awk -F '\t' -v selected="$skill" '$1 == selected { print $2 }' "$FILES" > "$expected"
-  [ -s "$expected" ] || printf 'SKILL.md\n' > "$expected"
+  write_expected_files "$skill" "$expected"
 
   while IFS= read -r relative_path; do
-    [ -n "$relative_path" ] || continue
+    assert_safe_destination "$skill_root" "$relative_path" "$skill"
     PLAN_COUNT=$((PLAN_COUNT + 1))
     staged="$TEMP_ROOT/staged-$PLAN_COUNT"
     payload_url=$(source_url "$skill" "$directory_name" "$relative_path")
@@ -375,7 +482,9 @@ while IFS="	" read -r skill directory_name; do
     if [ -f "$destination" ] && cmp -s "$staged" "$destination"; then
       log "PASS unchanged file: $destination"
     else
-      printf '%s\t%s\n' "$destination" "$staged" >> "$APPLY_PLAN"
+      printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+        "$destination" "$staged" "$skill_root" "$relative_path" "$skill" payload \
+        >> "$APPLY_PLAN"
     fi
   done < "$expected"
 
@@ -386,7 +495,9 @@ while IFS="	" read -r skill directory_name; do
     && cmp -s "$staged_provenance" "$skill_root/.jig-provenance"; then
     log "PASS unchanged provenance: $skill_root/.jig-provenance"
   else
-    printf '%s\t%s\n' "$skill_root/.jig-provenance" "$staged_provenance" >> "$APPLY_PLAN"
+    printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+      "$skill_root/.jig-provenance" "$staged_provenance" "$skill_root" '.jig-provenance' "$skill provenance" internal \
+      >> "$APPLY_PLAN"
   fi
 
   find "$skill_root" -type f ! -name '*.bak' ! -name '.jig-provenance' | while IFS= read -r installed_file; do
@@ -415,7 +526,9 @@ printf '%s\n' \
 if [ -f "$LEDGER" ] && cmp -s "$STAGED_LEDGER" "$LEDGER"; then
   log "PASS unchanged installation ledger: $LEDGER"
 else
-  printf '%s\t%s\n' "$LEDGER" "$STAGED_LEDGER" >> "$APPLY_PLAN"
+  printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+    "$LEDGER" "$STAGED_LEDGER" "$ROOT" '.jig-installation' 'standalone ledger' internal \
+    >> "$APPLY_PLAN"
 fi
 
 if [ ! -s "$APPLY_PLAN" ]; then
@@ -424,7 +537,7 @@ if [ ! -s "$APPLY_PLAN" ]; then
 fi
 
 if [ "$DRY_RUN" -eq 1 ]; then
-  while IFS="	" read -r destination staged; do
+  while IFS="	" read -r destination staged destination_boundary destination_relative destination_label destination_kind; do
     [ -n "$destination" ] || continue
     log "PLAN update file: $destination"
   done < "$APPLY_PLAN"
@@ -433,8 +546,11 @@ fi
 
 mkdir -p "$TEMP_ROOT/rollback"
 state_id=0
-while IFS="	" read -r destination staged; do
+while IFS="	" read -r destination staged destination_boundary destination_relative destination_label destination_kind; do
   [ -n "$destination" ] || continue
+  assert_safe_destination "$destination_boundary" "$destination_relative" "$destination_label" "$destination_kind"
+  [ "$destination" = "$destination_boundary/$destination_relative" ] \
+    || error "destination plan mismatch for $destination_label: $destination"
   state_id=$((state_id + 1))
   destination_existed=0
   backup_existed=0
@@ -463,8 +579,11 @@ done < "$APPLY_PLAN"
 sort -u "$TRANSACTION_DIRS" -o "$TRANSACTION_DIRS"
 
 TRANSACTION_ACTIVE=1
-while IFS="	" read -r destination staged; do
+while IFS="	" read -r destination staged destination_boundary destination_relative destination_label destination_kind; do
   [ -n "$destination" ] || continue
+  assert_safe_destination "$destination_boundary" "$destination_relative" "$destination_label" "$destination_kind"
+  [ "$destination" = "$destination_boundary/$destination_relative" ] \
+    || error "destination plan mismatch for $destination_label: $destination"
   mkdir -p "$(dirname "$destination")" \
     || error "could not create destination directory for $destination"
   if [ -f "$destination" ]; then

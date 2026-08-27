@@ -57,6 +57,8 @@ require_file "dist/antigravity/.agents/skills/jig-update/scripts/update-claude-s
 require_text "dist/claude-code-plugin/jig/skills/jig-update/scripts/update-claude-standalone.sh" '.jig-provenance'
 require_text "dist/claude-code-plugin/jig/skills/jig-update/scripts/update-claude-standalone.sh" '.jig-installation'
 require_text "dist/claude-code-plugin/jig/skills/jig-update/scripts/update-claude-standalone.sh" 'ROLLBACK restoring standalone installation'
+require_text "dist/claude-code-plugin/jig/skills/jig-update/scripts/update-claude-standalone.sh" 'unsafe payload path'
+require_text "dist/claude-code-plugin/jig/skills/jig-update/scripts/update-claude-standalone.sh" 'unsafe symlink payload path'
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" '~/.claude/skills'
 sh scripts/test-update-claude-standalone.sh
 require_text "dist/claude-code-plugin/jig/skills/version-rubric/SKILL.md" ".spai/versioning.md"

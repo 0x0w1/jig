@@ -187,6 +187,71 @@ if JIG_UPDATE_RAW_BASE_URL="file://$TEST_ROOT/payload" \
 fi
 grep -F 'user-owned content' "$UNOWNED_SKILLS/github-sync/SKILL.md" >/dev/null
 
+assert_unsafe_path_rejected() {
+  unsafe_id="$1"
+  unsafe_path="$2"
+  unsafe_version="v9.10.$unsafe_id"
+  unsafe_case="$TEST_ROOT/unsafe-$unsafe_id"
+  unsafe_skills="$unsafe_case/project/.claude/skills"
+  unsafe_payload="$TEST_ROOT/payload/$unsafe_version"
+  unsafe_output="$unsafe_case/error.log"
+
+  cp -R "$PAYLOAD" "$unsafe_payload"
+  printf '%s\t%s\n' 'jig-update' "$unsafe_path" >> "$unsafe_payload/dist/files.tsv"
+  mkdir -p "$unsafe_skills/jig-update" "$unsafe_case/project/.claude"
+  write_legacy_jig_update "$unsafe_skills/jig-update/SKILL.md"
+  cp "$unsafe_skills/jig-update/SKILL.md" "$unsafe_case/before"
+  printf '%s\n' 'outside sentinel' > "$unsafe_case/outside-sentinel"
+  printf '%s\n' 'outside sentinel' > "$unsafe_case/project/.claude/outside-sentinel"
+  printf '%s\n' 'outside sentinel' > "$unsafe_skills/outside-sentinel"
+
+  if JIG_UPDATE_RAW_BASE_URL="file://$TEST_ROOT/payload" \
+    sh "$SCRIPT" --root "$unsafe_skills" --scope project --version "$unsafe_version" \
+    > "$unsafe_output" 2>&1; then
+    printf 'standalone updater accepted unsafe payload path: %s\n' "$unsafe_path" >&2
+    exit 1
+  fi
+  cmp -s "$unsafe_case/before" "$unsafe_skills/jig-update/SKILL.md"
+  grep -Fx 'outside sentinel' "$unsafe_case/outside-sentinel" >/dev/null
+  grep -Fx 'outside sentinel' "$unsafe_case/project/.claude/outside-sentinel" >/dev/null
+  grep -Fx 'outside sentinel' "$unsafe_skills/outside-sentinel" >/dev/null
+  [ ! -e "$unsafe_skills/jig-update/SKILL.md.bak" ]
+  [ ! -e "$unsafe_skills/jig-update/.jig-provenance" ]
+  [ ! -e "$unsafe_skills/.jig-installation" ]
+  grep -E 'unsafe payload path|malformed path row' "$unsafe_output" >/dev/null
+}
+
+assert_unsafe_path_rejected 1 '../outside-sentinel'
+assert_unsafe_path_rejected 2 'scripts/../../outside-sentinel'
+assert_unsafe_path_rejected 3 '/absolute/path'
+assert_unsafe_path_rejected 4 './SKILL.md'
+assert_unsafe_path_rejected 5 'scripts//helper.sh'
+assert_unsafe_path_rejected 6 'scripts/'
+assert_unsafe_path_rejected 7 'bad path'
+assert_unsafe_path_rejected 8 ''
+
+SYMLINK_VERSION=v9.10.9
+SYMLINK_PAYLOAD="$TEST_ROOT/payload/$SYMLINK_VERSION"
+SYMLINK_CASE="$TEST_ROOT/unsafe-symlink"
+SYMLINK_SKILLS="$SYMLINK_CASE/project/.claude/skills"
+SYMLINK_OUTSIDE="$SYMLINK_CASE/outside"
+cp -R "$PAYLOAD" "$SYMLINK_PAYLOAD"
+mkdir -p "$SYMLINK_SKILLS/jig-update" "$SYMLINK_OUTSIDE"
+write_legacy_jig_update "$SYMLINK_SKILLS/jig-update/SKILL.md"
+printf '%s\n' 'outside sentinel' > "$SYMLINK_OUTSIDE/sentinel"
+ln -s "$SYMLINK_OUTSIDE" "$SYMLINK_SKILLS/jig-update/scripts"
+if JIG_UPDATE_RAW_BASE_URL="file://$TEST_ROOT/payload" \
+  sh "$SCRIPT" --root "$SYMLINK_SKILLS" --scope project --version "$SYMLINK_VERSION" \
+  > "$SYMLINK_CASE/error.log" 2>&1; then
+  printf '%s\n' 'standalone updater accepted a symlink payload path' >&2
+  exit 1
+fi
+grep -F 'unsafe symlink payload path' "$SYMLINK_CASE/error.log" >/dev/null
+grep -Fx 'outside sentinel' "$SYMLINK_OUTSIDE/sentinel" >/dev/null
+[ ! -e "$SYMLINK_OUTSIDE/new-helper.sh" ]
+[ ! -e "$SYMLINK_SKILLS/jig-update/.jig-provenance" ]
+[ ! -e "$SYMLINK_SKILLS/.jig-installation" ]
+
 # Every payload is downloaded before the transaction starts.
 DOWNLOAD_FAILURE_SKILLS="$TEST_ROOT/download-failure/.claude/skills"
 mkdir -p "$DOWNLOAD_FAILURE_SKILLS/jig-update"
