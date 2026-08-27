@@ -12,8 +12,6 @@
 
 ## What This Is
 
-![jig project introduction: three agent workflows pass through shared guides and leave as one consistent result](docs/assets/jig-project-hero-convergence.png)
-
 Using AI agents (Claude Code, Codex, Antigravity CLI) across side projects means re-explaining branch rules, commit rules, and release procedures to every project and every agent. jig removes that repetition: it installs the same set of procedure skills into any agent environment, and manages updates and health checks after the install.
 
 Supported: **Claude Code** (recommended), **Codex**, **Antigravity CLI**

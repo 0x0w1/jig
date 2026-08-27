@@ -12,8 +12,6 @@
 
 ## 프로젝트 소개
 
-![jig 프로젝트 소개: 세 에이전트 작업 흐름이 공통 가이드를 통과해 하나의 일관된 결과가 됩니다](docs/assets/jig-project-hero-convergence.png)
-
 사이드 프로젝트마다 AI 에이전트(Claude Code, Codex, Antigravity CLI)를 쓰다 보면, 브랜치 규칙·커밋 규칙·릴리즈 절차를 프로젝트마다·에이전트마다 다시 알려줘야 합니다. jig는 이 반복을 없앱니다: 같은 절차 스킬 세트를 어느 에이전트 환경에나 설치하고 설치 이후의 업데이트와 상태 진단까지 관리합니다.
 
 지원 대상: **Claude Code**(권장), **Codex**, **Antigravity CLI**
