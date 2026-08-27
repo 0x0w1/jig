@@ -4,6 +4,12 @@
   <img src="resources/branding/colorways/jig-logo-cyan-cerulean-amber.png" width="160" alt="jig project logo: two cyan cerulean guides align varied inputs toward one amber result">
 </p>
 
+<p align="center">
+  <a href="https://github.com/0x0w1/jig/releases/latest"><img src="https://img.shields.io/github/v/release/0x0w1/jig?style=flat-square&amp;color=009BBF" alt="Latest release"></a>
+  <a href="https://github.com/0x0w1/jig/blob/main/LICENSE"><img src="https://img.shields.io/github/license/0x0w1/jig?style=flat-square&amp;color=F2B134" alt="MIT License"></a>
+  <a href="#quick-start"><img src="https://img.shields.io/badge/agents-Claude_Code%20%7C%20Codex%20%7C%20Antigravity-009BBF?style=flat-square" alt="Supported agents: Claude Code, Codex, and Antigravity"></a>
+</p>
+
 **same cut, every project** — a jig holds the work so every cut lands the same. This one holds your repository procedures so every project and every AI agent CLI runs them the same way.
 
 [한국어](README.ko.md)

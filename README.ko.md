@@ -4,6 +4,12 @@
   <img src="resources/branding/colorways/jig-logo-cyan-cerulean-amber.png" width="160" alt="jig 프로젝트 로고: 두 시안 세룰리언 가이드가 서로 다른 입력을 하나의 앰버 결과로 정렬합니다">
 </p>
 
+<p align="center">
+  <a href="https://github.com/0x0w1/jig/releases/latest"><img src="https://img.shields.io/github/v/release/0x0w1/jig?style=flat-square&amp;color=009BBF" alt="최신 릴리즈"></a>
+  <a href="https://github.com/0x0w1/jig/blob/main/LICENSE"><img src="https://img.shields.io/github/license/0x0w1/jig?style=flat-square&amp;color=F2B134" alt="MIT 라이선스"></a>
+  <a href="#빠른-시작"><img src="https://img.shields.io/badge/agents-Claude_Code%20%7C%20Codex%20%7C%20Antigravity-009BBF?style=flat-square" alt="지원 에이전트: Claude Code, Codex, Antigravity"></a>
+</p>
+
 **같은 자리에서, 매번 같게** — 지그는 작업물을 잡아 매번 같은 자리에서 잘리게 합니다. 이 지그는 저장소 운영 절차를 잡아, 어느 프로젝트에서 어느 AI 에이전트 CLI를 쓰든 같은 절차가 돌게 합니다.
 
 [English](README.md)
