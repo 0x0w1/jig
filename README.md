@@ -111,19 +111,6 @@ To do it by hand instead, use what each CLI provides. On Claude Code the plugin 
 
 On Codex and Antigravity, run the install command again. The installer is idempotent and backs up changed files as `.bak`.
 
-### Coming from `spai`
-
-jig used to be called `spai`, and the repository slug moved from `0x0w1/spai` to `0x0w1/jig`. GitHub redirects the old slug, so an existing install keeps working, and every legacy name is still recognized: `SPAI_*` environment variables, `spai.*` config keys, `.spai/versioning.md`, `<!-- spai:start ... -->` managed blocks, and the `# spai:pre-push` guard.
-
-Run `jig-update` to walk the transition. On Claude Code the plugin host owns plugin identity, so that part is manual:
-
-```text
-/plugin marketplace add 0x0w1/jig
-/plugin install jig@jig
-/plugin uninstall spai@spai
-/reload-plugins
-```
-
 ## License
 
 This project is licensed under the terms of the MIT license.
