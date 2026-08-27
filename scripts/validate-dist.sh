@@ -51,6 +51,11 @@ require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" 'claude pl
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" '~/.codex/AGENTS.md'
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" '~/.gemini/GEMINI.md'
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" "one current target never hides another"
+require_file "dist/claude-code-plugin/jig/skills/jig-update/scripts/update-claude-standalone.sh"
+require_file "dist/codex/.agents/skills/jig-update/scripts/update-claude-standalone.sh"
+require_file "dist/antigravity/.agents/skills/jig-update/scripts/update-claude-standalone.sh"
+require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" '~/.claude/skills'
+sh scripts/test-update-claude-standalone.sh
 require_text "dist/claude-code-plugin/jig/skills/version-rubric/SKILL.md" ".spai/versioning.md"
 require_text "dist/claude-code-plugin/jig/skills/github-release/SKILL.md" ".spai/versioning.md"
 require_text "dist/claude-code-plugin/jig/skills/github-sync/SKILL.md" "# spai:pre-push"

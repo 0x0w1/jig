@@ -96,7 +96,7 @@ Written in Korean, except the rubric catalog.
 
 ## Updating
 
-Run the `jig-update` skill. It inventories jig across Claude Code, Codex, and Antigravity in the current project and user scopes, then updates every detected installation together regardless of which agent invoked it. It preserves each target's selected skill set, summarizes the releases in between, and converges repository settings with `github-sync`.
+Run the `jig-update` skill. It inventories jig across Claude Code, Codex, and Antigravity in the current project and user scopes, then updates every detected installation together regardless of which agent invoked it. Claude Code inventory includes both plugin scopes and existing standalone copies under `.claude/skills` or `~/.claude/skills`. It preserves each target's selected skill set, summarizes the releases in between, and converges repository settings with `github-sync`.
 
 ```text
 /jig:jig-update
@@ -110,6 +110,8 @@ To do it by hand instead, use what each CLI provides. On Claude Code the plugin 
 ```
 
 On Codex and Antigravity, run the install command again. The installer is idempotent and backs up changed files as `.bak`.
+
+Existing Claude Code standalone jig skills are updated only through `jig-update`: it verifies jig provenance before touching `.claude/skills`, preserves the directories already installed, and backs up changed files as `.bak`.
 
 ## License
 

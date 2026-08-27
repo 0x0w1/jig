@@ -4,6 +4,7 @@ github-release	SKILL.md
 develop-task-flow	SKILL.md
 project-setup	SKILL.md
 jig-update	SKILL.md
+jig-update	scripts/update-claude-standalone.sh
 jig-doctor	SKILL.md
 readme	SKILL.md
 version-rubric	SKILL.md

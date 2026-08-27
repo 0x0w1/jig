@@ -94,7 +94,7 @@ jig는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니다
 
 ## 업데이트
 
-`jig-update` 스킬을 실행합니다. 현재 프로젝트와 사용자 범위에서 Claude Code, Codex, Antigravity용 jig 설치를 모두 찾고, 어느 에이전트에서 실행했는지와 관계없이 발견된 설치본을 함께 갱신합니다. 각 target의 선택 스킬 구성을 보존하고 사이 릴리즈 노트를 요약한 뒤 `github-sync`로 저장소 설정까지 수렴합니다.
+`jig-update` 스킬을 실행합니다. 현재 프로젝트와 사용자 범위에서 Claude Code, Codex, Antigravity용 jig 설치를 모두 찾고, 어느 에이전트에서 실행했는지와 관계없이 발견된 설치본을 함께 갱신합니다. Claude Code는 플러그인 scope뿐 아니라 `.claude/skills`와 `~/.claude/skills`에 이미 존재하는 standalone 설치도 포함합니다. 각 target의 선택 스킬 구성을 보존하고 사이 릴리즈 노트를 요약한 뒤 `github-sync`로 저장소 설정까지 수렴합니다.
 
 ```text
 /jig:jig-update
@@ -108,6 +108,8 @@ jig는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니다
 ```
 
 Codex와 Antigravity는 설치 명령을 그대로 다시 실행합니다. installer는 멱등이라 바뀐 파일만 갱신하고 `.bak`으로 백업합니다.
+
+기존 Claude Code standalone jig 스킬은 `jig-update`로만 갱신합니다. `.claude/skills`를 수정하기 전에 jig provenance를 확인하고, 이미 설치된 디렉터리 구성은 유지하며 바뀌는 파일을 `.bak`으로 백업합니다.
 
 ## License
 

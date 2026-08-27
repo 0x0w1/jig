@@ -66,6 +66,12 @@ To pin a specific release, re-add the marketplace at a tag ref.
 /plugin marketplace add https://github.com/your-account/jig.git#v0.2.0
 ```
 
+### Existing standalone skills
+
+The marketplace plugin remains the supported installation path. `jig-update` also recognizes earlier or manually copied standalone jig skill sets that already exist under `./.claude/skills` or `~/.claude/skills`; it does not create a new standalone installation.
+
+Because those roots may also contain personal skills, their existence alone proves nothing. The updater requires the installed `jig-update/SKILL.md` to carry jig's name, title, and `0x0w1/jig` repository identity before it changes anything. It then refreshes only the jig skill directories already present, preserves unprefixed or `jig-` prefixed names, adds supporting files only inside those selected directories, and backs up every changed file as `.bak`. Unrecognized roots are left untouched.
+
 ### Removing it
 
 ```text

@@ -66,6 +66,12 @@ project scope로 설치하면 저장소에 남는 파일은 설정 하나뿐입�
 /plugin marketplace add https://github.com/your-account/jig.git#v0.2.0
 ```
 
+### 기존 standalone 스킬
+
+마켓플레이스 플러그인이 계속 공식 설치 경로입니다. 다만 `jig-update`는 `./.claude/skills` 또는 `~/.claude/skills`에 이미 존재하는 이전 설치나 수동 복사 방식의 standalone jig 스킬 세트도 인식하며, 새로운 standalone 설치를 만들지는 않습니다.
+
+이 경로에는 개인 스킬도 함께 있을 수 있으므로 디렉터리 존재만으로 jig 설치라고 판단하지 않습니다. updater는 파일을 바꾸기 전에 `jig-update/SKILL.md`에서 jig의 이름·제목·`0x0w1/jig` 저장소 identity를 모두 확인합니다. 확인 후에는 이미 존재하는 jig 스킬 디렉터리만 갱신하고 unprefixed 또는 `jig-` prefixed 이름을 보존하며, 선택된 디렉터리 내부에만 새 supporting file을 추가하고 바뀌는 파일은 모두 `.bak`으로 백업합니다. 판별되지 않은 경로는 건드리지 않습니다.
+
 ### 제거
 
 ```text
