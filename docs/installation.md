@@ -12,6 +12,8 @@ jig **installs differently on each supported CLI.** There is no way to install e
 
 For just the commands, see [Quick Start in the README](../README.md#quick-start). This document explains **what each path installs, where, and how it is managed afterwards.**
 
+Installation is performed one target at a time, but updates are coordinated. One `jig-update` run inventories Claude Code, Codex, and Antigravity across the current project's `project`/`local` scopes and the user's global scope, then updates every detected instance. Invoking it from one agent does not restrict the update to that agent, and it never installs a target or scope that was not already present.
+
 ---
 
 ## Claude Code

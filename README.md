@@ -96,7 +96,7 @@ Written in Korean, except the rubric catalog.
 
 ## Updating
 
-Run the `jig-update` skill. It compares the installation against the latest release, summarizes the notes in between, updates each target, and converges repository settings with `github-sync`.
+Run the `jig-update` skill. It inventories jig across Claude Code, Codex, and Antigravity in the current project and user scopes, then updates every detected installation together regardless of which agent invoked it. It preserves each target's selected skill set, summarizes the releases in between, and converges repository settings with `github-sync`.
 
 ```text
 /jig:jig-update

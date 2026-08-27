@@ -46,6 +46,11 @@ require_text install.sh "spai.githubProfile"
 require_text install.sh "managed_legacy_start"
 require_text "dist/claude-code-plugin/jig/skills/jig-doctor/SKILL.md" "Legacy Names"
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" "Migrating a Pre-Rename Installation"
+require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" "Installation Inventory"
+require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" 'claude plugin update jig@jig --scope <scope>'
+require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" '~/.codex/AGENTS.md'
+require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" '~/.gemini/GEMINI.md'
+require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" "one current target never hides another"
 require_text "dist/claude-code-plugin/jig/skills/version-rubric/SKILL.md" ".spai/versioning.md"
 require_text "dist/claude-code-plugin/jig/skills/github-release/SKILL.md" ".spai/versioning.md"
 require_text "dist/claude-code-plugin/jig/skills/github-sync/SKILL.md" "# spai:pre-push"

@@ -94,7 +94,7 @@ jig는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니다
 
 ## 업데이트
 
-`jig-update` 스킬을 실행합니다. 설치 상태와 최신 릴리즈를 비교하고, 사이 릴리즈 노트를 요약한 뒤, 각 target을 갱신하고 `github-sync`로 저장소 설정까지 수렴합니다.
+`jig-update` 스킬을 실행합니다. 현재 프로젝트와 사용자 범위에서 Claude Code, Codex, Antigravity용 jig 설치를 모두 찾고, 어느 에이전트에서 실행했는지와 관계없이 발견된 설치본을 함께 갱신합니다. 각 target의 선택 스킬 구성을 보존하고 사이 릴리즈 노트를 요약한 뒤 `github-sync`로 저장소 설정까지 수렴합니다.
 
 ```text
 /jig:jig-update
