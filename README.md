@@ -126,4 +126,4 @@ Run `jig-update` to walk the transition. On Claude Code the plugin host owns plu
 
 ## License
 
-MIT License
+This project is licensed under the terms of the MIT license.

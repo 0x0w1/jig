@@ -124,4 +124,4 @@ jig의 옛 이름은 `spai`였고, 저장소 슬러그도 `0x0w1/spai`에서 `0x
 
 ## License
 
-MIT License
+이 프로젝트는 MIT 라이선스 조건에 따라 사용이 허가됩니다.
