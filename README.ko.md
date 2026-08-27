@@ -1,7 +1,7 @@
 # jig
 
 <p align="center">
-  <img src="docs/assets/jig-icon-no-package.png" width="160" alt="jig 프로젝트 아이콘: 수렴 경로, 정렬 핀, 지그 프레임이 J, I, G를 은유합니다">
+  <img src="docs/assets/jig-logo.png" width="160" alt="jig 프로젝트 로고: 두 가이드가 서로 다른 입력을 하나의 반복 가능한 결과로 정렬합니다">
 </p>
 
 **같은 자리에서, 매번 같게** — 지그는 작업물을 잡아 매번 같은 자리에서 잘리게 합니다. 이 지그는 저장소 운영 절차를 잡아, 어느 프로젝트에서 어느 AI 에이전트 CLI를 쓰든 같은 절차가 돌게 합니다.
@@ -12,7 +12,7 @@
 
 ## 프로젝트 소개
 
-![jig 프로젝트 소개: 세 에이전트 작업 흐름이 기계식 지그를 통과해 하나의 일관된 패키지 결과물이 됩니다](docs/assets/jig-project-hero-pixel-art-package.png)
+![jig 프로젝트 소개: 세 에이전트 작업 흐름이 공통 가이드를 통과해 하나의 일관된 결과가 됩니다](docs/assets/jig-project-hero-convergence.png)
 
 사이드 프로젝트마다 AI 에이전트(Claude Code, Codex, Antigravity CLI)를 쓰다 보면, 브랜치 규칙·커밋 규칙·릴리즈 절차를 프로젝트마다·에이전트마다 다시 알려줘야 합니다. jig는 이 반복을 없앱니다: 같은 절차 스킬 세트를 어느 에이전트 환경에나 설치하고 설치 이후의 업데이트와 상태 진단까지 관리합니다.
 
