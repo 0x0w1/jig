@@ -86,10 +86,12 @@ Checks 5–10 diagnose repository state, not global installation state. Run them
    - `.github/drafter-config.yaml`, `.github/workflows/drafter.yaml`, `.github/PULL_REQUEST_TEMPLATE.md`
    - labels `patch`, `minor`, `major`, `enhancement`, `fix`, `chore` (`gh label list`)
    - leftover backups: `find . -name "*.bak" -not -path "./.git/*"`
-8. **Local pre-push guard**: inspect `.git/hooks/pre-push`.
+8. **Local pre-push guard**: inspect `.git/hooks/pre-push` and the `github-sync/assets/pre-push` source shipped in the same installation.
+   - When `core.hooksPath` is configured, report that jig refuses to install into the user-managed hook directory. Do not inspect or change that directory as jig-owned.
    - Missing file, or line 2 not matching `# jig:pre-push v<N>`: the guard is not installed (an unmarked file is the user's own hook — never report it as drift).
-   - Marked but `<N>` lower than the latest guard version (`v1`): outdated.
-   - Marked but missing `merge-base --is-ancestor` or `refs/heads/main`, or not executable: locally modified or broken.
+   - When the shipped source is available, a marked file that differs from it is outdated or locally modified; `github-sync` restores the exact managed source. When unavailable in a legacy payload, fall back to the marker version and required guard expressions.
+   - A marked file that matches the source but is not executable is broken.
+   - `.git/hooks/pre-push.jig-user-backup` is an intentional backup only while the jig hook is installed; `github-sync` restores it during uninstall.
    - Fix owner is `github-sync`; report, never modify.
 9. **GitHub profile**: report whether the profile came from `JIG_GITHUB_PROFILE`, local `jig.githubProfile`, or the globally active fallback. When a profile is configured, verify its stored credential and `gh api user` identity without printing the token. A missing credential, identity mismatch, or missing local profile for a multi-account host is a `jig-setup` finding.
 
@@ -158,7 +160,8 @@ Write the report in the language the repository already uses for its own documen
 - None | list of what was found
 
 ### Local guard
-- pre-push: OK vN | not installed | outdated (vN → vM) | modified or not executable | user's own hook
+- pre-push: OK vN | not installed | source drift | not executable | user's own hook | blocked by core.hooksPath
+- user-hook backup: none | held for uninstall restoration | orphaned
 
 ### GitHub profile
 - <source>: <profile>@<host> → OK | credential missing | identity mismatch | globally active fallback

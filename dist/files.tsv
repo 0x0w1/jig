@@ -1,5 +1,7 @@
 # skill	path
 github-sync	SKILL.md
+github-sync	assets/pre-push
+github-sync	scripts/manage-pre-push.sh
 github-release	SKILL.md
 develop-task-flow	SKILL.md
 jig-setup	SKILL.md

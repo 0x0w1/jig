@@ -127,10 +127,12 @@ sh install.sh --target codex --scope project --github-profile your-account
 
 ## The Local pre-push Guard
 
-Separately from server-side protection, `github-sync` installs a local guard at `.git/hooks/pre-push`. It exists only in that clone, so a fresh clone needs `github-sync` run again.
+Separately from server-side protection, `github-sync` installs a local guard at `.git/hooks/pre-push`. The tracked source is shipped as `github-sync/assets/pre-push`, and `github-sync/scripts/manage-pre-push.sh` installs or refreshes it deterministically. It exists only in that clone, so a fresh clone needs `github-sync` run again.
 
 - blocks force pushes (non-fast-forward) to `main` and `develop`
 - blocks remote deletion of `main` and `develop`
 - blocks direct pushes to `main` other than the `develop:main` fast-forward release
 
 A git hook can be bypassed with `--no-verify`; that is its limit. jig skills forbid the bypass, and on Claude Code the `jig` plugin's PreToolUse hook blocks an offending push command — `--no-verify` included — before it runs. Server-side branch protection is the last line when the repository can have it; when it cannot, this guard is the only one. `jig-doctor` diagnoses it, and `github-sync` installs or refreshes it.
+
+Before uninstalling `github-sync` or jig from a project, run the skill's guard cleanup. The manager removes only a jig-marked hook. When the user explicitly allowed an existing hook to be replaced, uninstall restores its `.jig-user-backup`. Plugin or global-scope removal cannot enumerate clone-local `.git` directories, so cleanup must run once in each affected checkout.

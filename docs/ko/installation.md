@@ -82,6 +82,8 @@ project scope로 설치하면 저장소에 남는 파일은 설정 하나뿐입�
 
 ### 제거
 
+플러그인을 제거하기 전에 `/jig:github-sync`에 현재 저장소의 local pre-push guard 제거를 요청합니다. 플러그인 호스트는 플러그인 파일을 제거하지만 clone-local `.git/hooks` 파일까지 자동 정리할 수는 없습니다.
+
 ```text
 /plugin uninstall jig@jig    # 완전 제거
 /plugin disable jig@jig      # 비활성화만
@@ -137,7 +139,7 @@ global scope:
 
 ### 제거
 
-installer는 파일을 지우지 않습니다. 직접 지웁니다.
+스킬 디렉터리를 지우기 전에 `jig-github-sync`를 실행해 현재 저장소의 local pre-push guard 제거를 요청합니다. cleanup은 jig marker가 있는 hook만 제거하고 jig가 백업한 사용자 hook이 있으면 복원합니다. 그 다음 스킬 파일을 직접 지웁니다.
 
 ```bash
 rm -rf .agents/skills/jig-github-sync .agents/skills/jig-github-release \

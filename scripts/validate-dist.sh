@@ -18,6 +18,10 @@ require_text() {
   grep -F "$text" "$file" >/dev/null 2>&1 || fail "missing text in $file: $text"
 }
 
+require_same() {
+  cmp -s "$1" "$2" || fail "files differ: $1 $2"
+}
+
 skill_title() {
   case "$1" in
     github-sync) printf '%s\n' "# GitHub Sync" ;;
@@ -60,6 +64,7 @@ require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" '~/.claude
 sh scripts/test-update-claude-standalone.sh
 sh scripts/test-doctor-installation-inventory.sh
 sh scripts/test-install-skill-aliases.sh
+sh scripts/test-pre-push-manager.sh
 sh scripts/test-docs-structure.sh
 # The product name is jig everywhere the user types it.
 require_text .claude-plugin/marketplace.json '"name": "jig"'
@@ -376,7 +381,14 @@ require_file "dist/claude-code-plugin/jig/hooks/guard-push.sh"
 require_text "dist/claude-code-plugin/jig/hooks/hooks.json" '"PreToolUse"'
 require_text "dist/claude-code-plugin/jig/hooks/hooks.json" 'CLAUDE_PLUGIN_ROOT'
 require_text "dist/claude-code-plugin/jig/hooks/guard-push.sh" "jig:guard-push v1"
-require_text "dist/claude-code-plugin/jig/skills/github-sync/SKILL.md" "jig:pre-push v1"
+require_file "dist/claude-code-plugin/jig/skills/github-sync/assets/pre-push"
+require_file "dist/claude-code-plugin/jig/skills/github-sync/scripts/manage-pre-push.sh"
+require_text "dist/claude-code-plugin/jig/skills/github-sync/assets/pre-push" "jig:pre-push v1"
+require_text "dist/claude-code-plugin/jig/skills/github-sync/SKILL.md" "manage-pre-push.sh uninstall"
+require_same "dist/claude-code-plugin/jig/skills/github-sync/SKILL.md" ".claude/skills/github-sync/SKILL.md"
+require_same "dist/claude-code-plugin/jig/skills/github-sync/assets/pre-push" ".claude/skills/github-sync/assets/pre-push"
+require_same "dist/claude-code-plugin/jig/skills/github-sync/scripts/manage-pre-push.sh" ".claude/skills/github-sync/scripts/manage-pre-push.sh"
+require_same "dist/claude-code-plugin/jig/skills/jig-doctor/SKILL.md" ".claude/skills/jig-doctor/SKILL.md"
 
 # Branch protection is optional and plan-gated. Both the applying skill and the diagnosing
 # skill must read a 403 as "not available on this plan", never as an unprotected repository,
@@ -390,8 +402,15 @@ require_text "dist/claude-code-plugin/jig/skills/jig-doctor/SKILL.md" "rulesets"
 if ! grep -F "Optional: protect" install.sh >/dev/null 2>&1; then
   fail "install.sh must present branch protection as optional"
 fi
-require_text "dist/codex/.agents/skills/jig-github-sync/SKILL.md" "jig:pre-push v1"
-require_text "dist/antigravity/.agents/skills/jig-github-sync/SKILL.md" "jig:pre-push v1"
+for target in codex antigravity; do
+  require_file "dist/$target/.agents/skills/jig-github-sync/assets/pre-push"
+  require_file "dist/$target/.agents/skills/jig-github-sync/scripts/manage-pre-push.sh"
+  require_text "dist/$target/.agents/skills/jig-github-sync/assets/pre-push" "jig:pre-push v1"
+done
+require_same "dist/codex/.agents/skills/jig-github-sync/SKILL.md" ".agents/skills/jig-github-sync/SKILL.md"
+require_same "dist/codex/.agents/skills/jig-github-sync/assets/pre-push" ".agents/skills/jig-github-sync/assets/pre-push"
+require_same "dist/codex/.agents/skills/jig-github-sync/scripts/manage-pre-push.sh" ".agents/skills/jig-github-sync/scripts/manage-pre-push.sh"
+require_same "dist/codex/.agents/skills/jig-doctor/SKILL.md" ".agents/skills/jig-doctor/SKILL.md"
 require_text "dist/claude-code-plugin/jig/skills/jig-setup/SKILL.md" "jig.githubProfile"
 require_text "dist/claude-code-plugin/jig/skills/jig-setup/SKILL.md" "Use after installing jig"
 require_text "dist/codex/.agents/skills/jig-setup/SKILL.md" "JIG_GITHUB_PROFILE"

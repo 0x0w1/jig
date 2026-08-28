@@ -27,7 +27,7 @@ flowchart TD
     Develop -- Yes --> Probe
     Create --> Probe[Probe admin, visibility, and protection API]
     Probe --> Available{Protection available and permitted?}
-    Available -- No --> Guard[Install or update local pre-push guard]
+    Available -- No --> Guard[Run managed pre-push installer]
     Available -- Yes --> Choice{Recorded choice?}
     Choice -- enabled --> Apply[Apply policy convergently]
     Choice -- skipped --> Guard
@@ -43,16 +43,22 @@ Protection blocks force pushes and deletion on both branches while allowing dire
 
 ## Reads and writes
 
-The skill reads Git branch/remotes, GitHub repository permissions and protection, `jig.githubProfile`, `jig.githubHost`, and `jig.branchProtection`. It may create and push `develop`, update protection after confirmation, record the local choice, and install `.git/hooks/pre-push`.
+The skill reads Git branch/remotes, GitHub repository permissions and protection, `jig.githubProfile`, `jig.githubHost`, and `jig.branchProtection`. It may create and push `develop`, update protection after confirmation, record the local choice, and manage `.git/hooks/pre-push` through its shipped `assets/pre-push` source and `scripts/manage-pre-push.sh` helper.
 
 The local guard blocks deletion and non-fast-forward pushes to `main`/`develop`, and allows `main` updates only from `develop:main`. It is local defense; server-side protection remains authoritative.
+
+The helper installs atomically, repairs a jig-owned drifted copy, and refuses a configured `core.hooksPath`. It never replaces an unmarked user hook without explicit confirmation. If replacement is approved, it preserves that hook as `.git/hooks/pre-push.jig-user-backup`.
 
 ## Decision points and safety
 
 - Ask once before enabling available protection unless the checkout already records `enabled` or `skipped`.
-- Never overwrite an unmarked user-authored `pre-push` hook without explicit confirmation and a `.bak` copy.
+- Never overwrite an unmarked user-authored `pre-push` hook without explicit confirmation and a `.jig-user-backup` copy.
 - Never force push, delete branches, create tags/releases, configure `core.hooksPath`, rename the default branch, or silently remove legacy files.
 - When protection is unavailable or skipped, report that the local guard is the only barrier on this machine.
+
+## Uninstall cleanup
+
+Run the helper's `uninstall` mode before removing the skill or plugin from the current project. It removes only a hook with the jig ownership marker and restores the confirmed user-hook backup when present. Removing a user/global installation cannot discover every clone, so each project checkout must be cleaned explicitly.
 
 ## Outputs
 

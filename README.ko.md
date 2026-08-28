@@ -57,6 +57,8 @@ curl -fsSL https://raw.githubusercontent.com/0x0w1/jig/main/install.sh \
 3. `github-sync`로 `main`·`develop` 브랜치 수렴, branch protection은 물어보고 적용 (public 저장소는 무료, private은 유료 플랜에서만 가능한 선택 기능)
 4. `jig-doctor`로 설치 상태 점검
 
+`github-sync`는 agent가 hook 코드를 다시 작성하게 하지 않고 배포된 manager로 추적되는 pre-push guard 원본을 설치합니다. 프로젝트에서 jig를 제거하기 전에는 `github-sync` cleanup을 실행해 clone-local jig hook을 제거하고 백업된 사용자 hook이 있으면 복원합니다.
+
 ### 3. 확인
 
 `/jig:jig-doctor` (Codex·Antigravity는 `jig-doctor`)를 실행하면 프로젝트와 사용자 범위에서 감지한 Claude Code, Codex, Antigravity 설치를 모두 read-only로 나열하고 각각의 버전, 선택 구성, drift, standalone provenance 상태를 보고합니다. 프로젝트 scope가 있으면 branch protection, GitHub 프로필, 기준 파일 상태도 함께 점검합니다. 고칠 것이 있으면 어느 스킬이 고치는지까지 알려줍니다.

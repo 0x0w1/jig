@@ -57,6 +57,8 @@ One run settles four things.
 3. Converges the `main` and `develop` branches through `github-sync`, and asks before setting up branch protection — optional, since GitHub allows it on public repositories and on private ones only with a paid plan
 4. Checks the installation with `jig-doctor`
 
+`github-sync` installs the tracked pre-push guard source through its shipped manager instead of asking the agent to rewrite hook code. Before uninstalling jig from a project, run `github-sync` cleanup so the clone-local jig hook is removed and any backed-up user hook is restored.
+
 ### 3. Verify
 
 Run `/jig:jig-doctor` (`jig-doctor` on Codex and Antigravity) for a read-only inventory of every detected Claude Code, Codex, and Antigravity installation across project and user scopes, including each version, selection, drift, and standalone provenance state. Project-scoped reports also cover branch protection, the GitHub profile, and the rubric file. Anything that needs fixing is reported along with the skill that fixes it.

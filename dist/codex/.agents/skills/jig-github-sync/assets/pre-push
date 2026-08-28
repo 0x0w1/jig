@@ -1,0 +1,33 @@
+#!/bin/sh
+# jig:pre-push v1
+# jig local guard. Blocks force pushes to and deletion of main/develop, and
+# direct pushes to main that do not come from develop. Server-side branch
+# protection remains the final defense. Do not bypass with --no-verify.
+
+zero=0000000000000000000000000000000000000000
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main|refs/heads/develop) ;;
+    *) continue ;;
+  esac
+
+  if [ "$local_sha" = "$zero" ]; then
+    echo "jig pre-push: deleting $remote_ref is blocked. Protected branches are never deleted." >&2
+    exit 1
+  fi
+
+  if [ "$remote_ref" = "refs/heads/main" ] && [ "$local_ref" != "refs/heads/develop" ]; then
+    echo "jig pre-push: direct push to main is blocked. Release with: git push origin develop:main" >&2
+    exit 1
+  fi
+
+  if [ "$remote_sha" != "$zero" ] && git cat-file -e "$remote_sha" 2>/dev/null; then
+    if ! git merge-base --is-ancestor "$remote_sha" "$local_sha"; then
+      echo "jig pre-push: non-fast-forward push to $remote_ref is blocked. Never force push a protected branch." >&2
+      exit 1
+    fi
+  fi
+done
+
+exit 0

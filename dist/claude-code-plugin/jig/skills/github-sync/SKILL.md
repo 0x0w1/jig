@@ -1,6 +1,6 @@
 ---
 name: github-sync
-description: "Use when synchronizing this repository's GitHub setup: main/develop branch existence and branch protection for the CLI release flow. Do not use for creating a release."
+description: "Use when synchronizing this repository's GitHub setup: main/develop branches, optional branch protection, and the managed local pre-push guard, including guard cleanup before uninstalling jig. Do not use for creating a release."
 ---
 
 # GitHub Sync
@@ -11,7 +11,7 @@ Use this repository skill only for setup and synchronization of GitHub repositor
 
 - Branches: `main`, `develop`.
 - Branch protection for `main` and `develop`: **optional**, and only when the repository can have it. Direct pushes allowed, force pushes and deletion blocked. See Branch Protection Is Optional.
-- Local guard: a git `pre-push` hook that blocks force pushes to and deletion of `main`/`develop` and restricts direct `main` pushes to the release fast-forward (`develop:main`). Local defense only; server-side protection stays the final barrier.
+- Local guard: a git `pre-push` hook installed from `assets/pre-push` by `scripts/manage-pre-push.sh`. It blocks force pushes to and deletion of `main`/`develop` and restricts direct `main` pushes to the release fast-forward (`develop:main`). Local defense only; server-side protection stays the final barrier.
 - No release-drafter files, no pull request template, no label sync; the release flow is CLI-driven (`github-release`) and does not use pull requests.
 - Sync is convergent and idempotent: one run aligns the repository with the current model even when several jig versions were skipped. `jig-update` runs it after updating installed files.
 
@@ -73,7 +73,7 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
 - Do not create `.codex`, `.claude/skills`, or unrequested AI skill directories inside this repository.
 - Keep repository skills under `.agents/skills`.
 - Do not create releases or tags during sync.
-- Never overwrite a user-authored `.git/hooks/pre-push`; replace it only with explicit confirmation and a `.bak` backup.
+- Never overwrite a user-authored `.git/hooks/pre-push`; pass `--replace-user-hook` only after explicit confirmation. The manager preserves it as `.git/hooks/pre-push.jig-user-backup` and restores it when the jig guard is uninstalled.
 - Do not configure `core.hooksPath`; it would disable the user's other hooks.
 - Do not rename the default branch or change the remote default branch without explicit confirmation.
 - Preserve unrelated user changes.
@@ -92,50 +92,23 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
    - deletion disabled
 
    A `403` from the protection API at this point means the plan does not include it. Skip, log one line, and continue with the remaining steps; never retry it as an error. jig does not configure rulesets — a repository already governed by a ruleset is left alone.
-7. Install or update the local pre-push guard at `.git/hooks/pre-push`:
-   - Skip with a pass log when the directory is not a git repository.
-   - If the file is missing, write the script below verbatim and `chmod +x` it.
-   - If the file exists and line 2 matches `# jig:pre-push v<N>`: rewrite it only when `<N>` is lower than the version below (idempotent).
-   - If the file exists without that marker, it is the user's hook: stop this step, report it, and replace it only with explicit confirmation, keeping a `.bak` backup.
+7. Install or update the local guard by running `scripts/manage-pre-push.sh install` relative to this skill directory.
+   - The manager copies the shipped `assets/pre-push` source atomically to the repository's default `.git/hooks/pre-push` path and makes it executable.
+   - Re-running it is idempotent. It repairs permissions and replaces a marked jig hook when its payload drifted or its version is old.
+   - An unmarked file is the user's hook. Stop and ask; after explicit confirmation only, rerun with `install --replace-user-hook`. The manager keeps the user hook separately for uninstall restoration.
+   - If `core.hooksPath` is set, the manager refuses to write into that user-managed hook directory. Report the configured path and leave it unchanged.
    - Never bypass the installed hook with `--no-verify`.
 
-   ```sh
-   #!/bin/sh
-   # jig:pre-push v1
-   # jig local guard. Blocks force pushes to and deletion of main/develop, and
-   # direct pushes to main that do not come from develop. Server-side branch
-   # protection remains the final defense. Do not bypass with --no-verify.
-
-   zero=0000000000000000000000000000000000000000
-
-   while read -r local_ref local_sha remote_ref remote_sha; do
-     case "$remote_ref" in
-       refs/heads/main|refs/heads/develop) ;;
-       *) continue ;;
-     esac
-
-     if [ "$local_sha" = "$zero" ]; then
-       echo "jig pre-push: deleting $remote_ref is blocked. Protected branches are never deleted." >&2
-       exit 1
-     fi
-
-     if [ "$remote_ref" = "refs/heads/main" ] && [ "$local_ref" != "refs/heads/develop" ]; then
-       echo "jig pre-push: direct push to main is blocked. Release with: git push origin develop:main" >&2
-       exit 1
-     fi
-
-     if [ "$remote_sha" != "$zero" ] && git cat-file -e "$remote_sha" 2>/dev/null; then
-       if ! git merge-base --is-ancestor "$remote_sha" "$local_sha"; then
-         echo "jig pre-push: non-fast-forward push to $remote_ref is blocked. Never force push a protected branch." >&2
-         exit 1
-       fi
-     fi
-   done
-
-   exit 0
-   ```
-
 8. If legacy release-drafter files exist (`.github/drafter-config.yaml`, `.github/workflows/drafter.yaml`, `.github/PULL_REQUEST_TEMPLATE.md`), report them as removal candidates; remove them only with explicit confirmation.
+
+## Uninstall Cleanup
+
+When the user asks to uninstall `github-sync` or all of jig from the current project, run `scripts/manage-pre-push.sh uninstall` relative to this skill directory **before** removing the skill or plugin:
+
+- A hook whose line 2 carries the valid `# jig:pre-push v<N>` ownership marker is removed.
+- If jig replaced a confirmed user hook, the manager restores `.git/hooks/pre-push.jig-user-backup` instead of leaving the path empty.
+- An unmarked hook is never removed.
+- A global/user-scope skill uninstall cannot safely discover every clone where the guard was installed. Clean each project checkout explicitly and report this limit.
 
 ## Final Report
 

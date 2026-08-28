@@ -82,6 +82,8 @@ Because those roots may also contain personal skills, their existence alone prov
 
 ### Removing it
 
+Before removing the plugin, ask `/jig:github-sync` to uninstall the current repository's local pre-push guard. The plugin host removes plugin files but cannot clean clone-local `.git/hooks` files automatically.
+
 ```text
 /plugin uninstall jig@jig    # remove entirely
 /plugin disable jig@jig      # only disable
@@ -137,7 +139,7 @@ The `jig-update` skill reads that stamp to reinstall the same selection at the l
 
 ### Removing it
 
-The installer deletes nothing. Remove it yourself.
+Before deleting the skill directories, run `jig-github-sync` and ask it to uninstall the current repository's local pre-push guard. The cleanup removes only a jig-marked hook and restores a user hook that jig backed up. Then remove the skill files yourself.
 
 ```bash
 rm -rf .agents/skills/jig-github-sync .agents/skills/jig-github-release \
