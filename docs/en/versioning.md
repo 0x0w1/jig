@@ -46,6 +46,32 @@ The list is fixed so that what counts as a break is not re-argued every release.
 
 The `dist/` layout, `scripts/*`, the wording inside skills, fields of the version stamp other than `version`, log text, and the structure of `README` and `docs`.
 
+## Interface Paths
+
+The list above is prose, so it only works when someone reads it. `.jig/versioning.md` carries an `## Interface Paths` table that maps the same promises onto path globs, which `develop-task-flow` and `github-release` match against `git diff --name-only`. These rows show its shape; the normative file holds the full table.
+
+| path glob | interface | floor |
+|---|---|---|
+| `install.sh` | the installer and profile contract | `minor` |
+| `manifest.tsv` | skill invocation names | `minor` |
+| `hooks/**` | the repository model and the push guard | `minor` |
+| `skills/**` | skill wording | `patch` |
+| `dist/**`, `scripts/**`, `docs/**` | internal | `patch` |
+
+A changed path takes the floor of the **first row it matches**, and the floor for a range is the highest one any path took. **It is advisory.** Paths say what changed, never how, so a release may land below the floor as long as it records why — a comment fixed inside `install.sh` is still a `patch`. Its job is to stop the obvious miss, not to replace the grade.
+
+## Grades Recorded at Merge
+
+`develop-task-flow` grades each task as it squash-merges it and writes the verdict as a trailer on the commit body:
+
+```text
+Release-Grade: minor
+```
+
+At merge the diff and the tests are still in hand; at release they have to be reconstructed from commit text. `github-release` takes the highest grade recorded across the range as the release floor and names the commit that set it.
+
+Unlike the path floor, **a recorded grade is never lowered.** It was a judgement made with evidence the release no longer has. A commit carrying no trailer is graded from its subject and body exactly as before, so history written before this existed grades the same.
+
 ## Machine-Readable Migration
 
 The `### Migration` section is not prose. It is written as two kinds of marker block, because it is input `jig-update` executes rather than a paragraph a person reads.

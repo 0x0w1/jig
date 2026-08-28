@@ -64,12 +64,14 @@ Use these repo-scoped Codex skills:
 - Run relevant tests before merging.
 - Finish by `git merge --squash` into `develop` and a single conventional commit, then push `develop`.
 - Squash commit subjects use a conventional prefix (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`, `ci:`); bodies carry Korean, user-perspective, release-note-ready bullets with technical terms in backticks.
+- The squash commit body ends with a `Release-Grade: patch|minor|major` trailer, graded against `.jig/versioning.md` for that task alone using its changed paths. Omit the trailer only when no rubric resolves.
 - These squash commits are the release-note source. Sections derive from the prefix: `feat:` → `🚀 Enhancements`, `fix:` → `🐛 Fixes`, `chore:` → `🧰 Chores`, any other prefix → its own section (`docs:` → `📚 Documentation`).
 
 ## Release Rules
 
 - Release only when the user explicitly asks for a release.
 - Grade the bump against this repository's version rubric at `.jig/versioning.md`, which grades by what installed projects pay: `patch` when the public interface is unchanged, `minor` for new capability or a break that fails loudly and names its own fix, `major` when a human decision is needed or behavior changes silently. A silent behavior change is always `major`, and any `migration-manual` block forces `major`. `docs/en/versioning.md` is the English commentary, `docs/ko/versioning.md` is its Korean mirror, and the matching `version-rubric.md` files explain the contract for installed projects.
+- Two floors feed the grade. The highest `Release-Grade` trailer in the range is **never lowered**, because it was judged with the diff in hand. The `## 인터페이스 경로` path floor, matched against `git diff --name-only` with the first matching row winning, is **advisory**: a release may land below it when the report records why.
 - While the major version is `0`, a `major` grade raises the minor position (`v0.Y.Z` → `v0.(Y+1).0`).
 - Compute the next version from the latest `vX.Y.Z` tag using the graded bump type; an explicit `vX.Y.Z` from the user overrides it. If the grade exceeds the requested bump, report the reason and ask before continuing.
 - Verify a clean worktree, `develop` synced with `origin/develop`, and a non-existing tag before promoting.

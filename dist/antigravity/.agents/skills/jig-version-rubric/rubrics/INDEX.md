@@ -39,6 +39,7 @@ The `## Decision Order` in all 17 drafts is effectively the same three questions
 | Section | What differs by type |
 |---|---|
 | `## Public Interface` | What reaches the consumer. This is the substance of the catalog |
+| `## Interface Paths` | Which paths carry that interface, as globs the grading skills match |
 | `## Hard Rules` | How this type **breaks quietly, without raising an error** |
 | `## Pre-Release Checks` | How to catch that break before releasing |
 
