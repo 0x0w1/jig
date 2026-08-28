@@ -1,5 +1,7 @@
 # jig Update
 
+<!-- jig:skill-source-digest 5107b2656d36f84ad70f69c00b391cc553d31db2 -->
+
 [한국어](../../ko/skills/jig-update.md) · [Skill index](index.md)
 
 ## Overview

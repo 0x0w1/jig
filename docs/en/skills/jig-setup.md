@@ -1,5 +1,7 @@
 # jig Setup
 
+<!-- jig:skill-source-digest 54b847980cd0da0a0d44f93f537d3b4978fda8b9 -->
+
 [한국어](../../ko/skills/jig-setup.md) · [Skill index](index.md) · [Documentation home](../index.md)
 
 ## Overview

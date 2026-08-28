@@ -1,5 +1,7 @@
 # README Skill
 
+<!-- jig:skill-source-digest 2bc05fbc4de7ef2ba3f585f2c8dc77a985eee1ff -->
+
 [한국어](../../ko/skills/readme.md) · [Skill index](index.md)
 
 ## Overview

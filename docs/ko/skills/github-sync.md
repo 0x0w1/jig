@@ -1,5 +1,7 @@
 # GitHub Sync
 
+<!-- jig:skill-source-digest 0ebf5db6ae9e9a82a610217d17834c24aa01282e -->
+
 [English](../../en/skills/github-sync.md) · [스킬 index](index.md) · [GitHub 저장소 설정](../github-repository-settings.md)
 
 ## 개요

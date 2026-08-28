@@ -43,6 +43,10 @@ fi
 
 require_file dist/manifest.tsv
 require_text dist/manifest.tsv "develop-task-flow"
+require_file scripts/update-skill-doc-digests.sh
+if ! sh -n scripts/update-skill-doc-digests.sh; then
+  fail "scripts/update-skill-doc-digests.sh has invalid shell syntax"
+fi
 require_text "dist/claude-code-plugin/jig/skills/jig-doctor/SKILL.md" "installation-inventory"
 require_file "dist/claude-code-plugin/jig/skills/jig-doctor/scripts/inspect-claude-standalone.sh"
 require_file "dist/codex/.agents/skills/jig-doctor/scripts/inspect-claude-standalone.sh"

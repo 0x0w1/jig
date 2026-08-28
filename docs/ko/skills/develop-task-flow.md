@@ -1,5 +1,7 @@
 # Develop Task Flow
 
+<!-- jig:skill-source-digest 34fd6c0e459379a3448306cdf4e070ca677cb482 -->
+
 [English](../../en/skills/develop-task-flow.md) · [스킬 index](index.md)
 
 ## 개요

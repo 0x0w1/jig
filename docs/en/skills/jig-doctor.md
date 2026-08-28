@@ -1,5 +1,7 @@
 # jig Doctor
 
+<!-- jig:skill-source-digest ae287a8ab98b33e3cf3c45ee4022a8ae812b2f48 -->
+
 [한국어](../../ko/skills/jig-doctor.md) · [Skill index](index.md)
 
 ## Overview

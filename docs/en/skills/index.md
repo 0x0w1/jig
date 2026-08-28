@@ -4,6 +4,8 @@
 
 jig ships repository procedures, not just prompts. The guides below explain the human-facing contract behind each `SKILL.md`: when it applies, what it can change, where it must stop, and how it delegates to the other skills.
 
+Each language guide records a digest of its complete source skill payload (`SKILL.md`, scripts, assets, references, and catalogs). Distribution validation fails when either language still points at an older payload, forcing both guides to be reviewed whenever a skill changes. After the review, `scripts/update-skill-doc-digests.sh <name>` refreshes the pair.
+
 ## Lifecycle
 
 ```mermaid

@@ -1,5 +1,7 @@
 # jig Doctor
 
+<!-- jig:skill-source-digest ae287a8ab98b33e3cf3c45ee4022a8ae812b2f48 -->
+
 [English](../../en/skills/jig-doctor.md) · [스킬 index](index.md)
 
 ## 개요

@@ -1,5 +1,7 @@
 # GitHub Release
 
+<!-- jig:skill-source-digest 8215e11015fafe54648dfa31dae73d7b3c039af2 -->
+
 [English](../../en/skills/github-release.md) · [스킬 index](index.md) · [버전 판정 기준](../version-rubric.md)
 
 ## 개요

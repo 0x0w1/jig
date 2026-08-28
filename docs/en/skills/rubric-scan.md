@@ -1,5 +1,7 @@
 # Rubric Scan
 
+<!-- jig:skill-source-digest 8c22ac27239c699a50f04d12c2cfebe2cc6ad613 -->
+
 [한국어](../../ko/skills/rubric-scan.md) · [Skill index](index.md) · [Version rubric](../version-rubric.md)
 
 ## Overview

@@ -25,6 +25,7 @@ Use these repo-scoped Claude Code skills:
 - `skills/` is the source of truth for every skill and is built into `dist/` for distribution.
 - Skill bodies and the rubric catalog are written in English; the rubric file contract uses English section titles with the Korean spellings still accepted as legacy. What a skill *produces* (reports, commit bodies, release notes, README) follows the target repository's own language, defaulting to English.
 - This repository keeps synced copies of its repo-scoped skills under `.agents/skills` (Codex, `jig-` prefixed to match the shipped payload) and `.claude/skills` (Claude Code, unprefixed development copies). When a skill under `skills/` changes, update both copies in the same task.
+- This source repository has a local maintenance rule, not a capability shipped to installed projects: every manifest skill has matching guides at `docs/en/skills/<name>.md` and `docs/ko/skills/<name>.md`. When any file under `skills/<name>/` changes, review both guides and update every affected workflow, input/output, safety rule, resource, and Mermaid diagram. Then run `sh scripts/update-skill-doc-digests.sh <name>`; validation rejects stale guide digests. Skill additions and removals also update both language indexes.
 
 ## Build
 

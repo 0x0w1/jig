@@ -1,5 +1,7 @@
 # Version Rubric
 
+<!-- jig:skill-source-digest e848de66272ebe3a62c52a4ee4b255a8b83821cd -->
+
 [한국어](../../ko/skills/version-rubric.md) · [Skill index](index.md) · [Rubric contract](../version-rubric.md)
 
 ## Overview

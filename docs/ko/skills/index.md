@@ -4,6 +4,8 @@
 
 jig는 단순한 prompt 모음이 아니라 저장소 절차를 배포합니다. 아래 가이드는 각 `SKILL.md`의 사용자 계약, 즉 사용 시점, 변경 범위, 중단 조건, 다른 스킬로의 위임을 설명합니다.
 
+각 언어 guide는 전체 source skill payload(`SKILL.md`, script, asset, reference, catalog)의 digest를 기록합니다. 어느 한 언어라도 이전 payload를 가리키면 distribution validation이 실패하므로 skill 변경 때마다 두 guide를 모두 검토해야 합니다. 검토 후 `scripts/update-skill-doc-digests.sh <name>`으로 두 digest를 갱신합니다.
+
 ## 전체 생명주기
 
 ```mermaid

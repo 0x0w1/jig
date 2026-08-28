@@ -31,6 +31,14 @@ mermaid_type() {
   awk '/^```mermaid$/ { if (getline > 0) { print $1; exit } }' "$1"
 }
 
+skill_digest() {
+  digest_skill="$1"
+  find "skills/$digest_skill" -type f | LC_ALL=C sort | while IFS= read -r digest_file; do
+    printf '%s\n' "${digest_file#skills/$digest_skill/}"
+    git hash-object "$digest_file"
+  done | git hash-object --stdin
+}
+
 for skill in $(awk -F '\t' '!/^#/ && NF >= 1 { print $1 }' manifest.tsv); do
   english="docs/en/skills/$skill.md"
   korean="docs/ko/skills/$skill.md"
@@ -45,6 +53,10 @@ for skill in $(awk -F '\t' '!/^#/ && NF >= 1 { print $1 }' manifest.tsv); do
   has_supported_mermaid "$english" || fail "English guide lacks supported Mermaid: $skill"
   has_supported_mermaid "$korean" || fail "Korean guide lacks supported Mermaid: $skill"
   [ "$(mermaid_type "$english")" = "$(mermaid_type "$korean")" ] || fail "Mermaid type differs between languages: $skill"
+  digest=$(skill_digest "$skill")
+  marker="<!-- jig:skill-source-digest $digest -->"
+  [ "$(grep -Fxc "$marker" "$english")" -eq 1 ] || fail "English guide source digest is stale: $skill"
+  [ "$(grep -Fxc "$marker" "$korean")" -eq 1 ] || fail "Korean guide source digest is stale: $skill"
 done
 
 has_supported_mermaid docs/en/skills/index.md || fail "English skill index lacks supported Mermaid"
