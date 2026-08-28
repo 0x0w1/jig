@@ -1,7 +1,7 @@
 # jig
 
 <p align="center">
-  <img src="resources/branding/colorways/jig-logo-cyan-cerulean-amber.png" width="160" alt="jig project logo: two cyan cerulean guides align varied inputs toward one amber result">
+  <img src="resources/readme/jig-logo.png" width="160" alt="jig project logo: two cyan cerulean guides align varied inputs toward one amber result">
 </p>
 
 <p align="center">
@@ -24,7 +24,7 @@ Supported: **Claude Code** (recommended), **Codex**, **Antigravity CLI**
 
 ## Quick Start
 
-![jig quick start: install into one CLI, run jig-setup for profile, rubric, branch convergence and a check, verify with jig-doctor, then work through develop-task-flow and github-release](docs/assets/quick-start.svg)
+![jig quick start: install into one CLI, run jig-setup for profile, rubric, branch convergence and a check, verify with jig-doctor, then work through develop-task-flow and github-release](resources/readme/quick-start.svg)
 
 You need a git repository, plus `curl` or `wget` for Codex and Antigravity. A `gh` login is required to converge GitHub settings, but not to install the skills.
 

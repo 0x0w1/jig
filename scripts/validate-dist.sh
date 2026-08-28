@@ -202,7 +202,20 @@ require_text README.md "docs/version-rubric.md"
 # README.md is the English canonical; README.ko.md is the Korean mirror. Each links the other,
 # so a reader landing on either one can switch.
 require_file README.ko.md
-require_file docs/assets/quick-start.svg
+require_file resources/readme/jig-logo.png
+require_file resources/readme/quick-start.svg
+require_text README.md "resources/readme/jig-logo.png"
+require_text README.md "resources/readme/quick-start.svg"
+require_text README.ko.md "resources/readme/jig-logo.png"
+require_text README.ko.md "resources/readme/quick-start.svg"
+if grep -E 'docs/assets/|resources/branding/' README.md README.ko.md >/dev/null 2>&1; then
+  fail "README files must reference published assets only from resources/readme"
+fi
+for readme_asset in resources/readme/*; do
+  [ -f "$readme_asset" ] || continue
+  require_text README.md "$readme_asset"
+  require_text README.ko.md "$readme_asset"
+done
 # A skill-name table is fine; a lopsided one is not. GitHub sizes table columns by
 # content, so a description several times longer than the identifier squeezes the name
 # column until `develop-task-flow` wraps mid-word. awk counts bytes here, so the limit
@@ -218,12 +231,10 @@ for readme_file in README.md README.ko.md; do
   ' "$readme_file" || fail "skill table description is too long (see line above); trim it or switch the section to a list"
 done
 
-require_text README.md "docs/assets/quick-start.svg"
-require_text README.ko.md "docs/assets/quick-start.svg"
 # The diagram is read on light and dark GitHub themes; both palettes must stay defined.
-require_text docs/assets/quick-start.svg "prefers-color-scheme: dark"
-require_text docs/assets/quick-start.svg "role=\"img\""
-require_text docs/assets/quick-start.svg "aria-label"
+require_text resources/readme/quick-start.svg "prefers-color-scheme: dark"
+require_text resources/readme/quick-start.svg "role=\"img\""
+require_text resources/readme/quick-start.svg "aria-label"
 
 require_text README.md "[한국어](README.ko.md)"
 require_text README.ko.md "[English](README.md)"

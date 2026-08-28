@@ -1,7 +1,7 @@
 # jig
 
 <p align="center">
-  <img src="resources/branding/colorways/jig-logo-cyan-cerulean-amber.png" width="160" alt="jig 프로젝트 로고: 두 시안 세룰리언 가이드가 서로 다른 입력을 하나의 앰버 결과로 정렬합니다">
+  <img src="resources/readme/jig-logo.png" width="160" alt="jig 프로젝트 로고: 두 시안 세룰리언 가이드가 서로 다른 입력을 하나의 앰버 결과로 정렬합니다">
 </p>
 
 <p align="center">
@@ -24,7 +24,7 @@
 
 ## 빠른 시작
 
-![jig 빠른 시작: CLI 하나에 설치하고, jig-setup으로 프로필·버전 기준·브랜치 수렴·점검을 끝낸 뒤, jig-doctor로 확인하고, 이후 작업은 develop-task-flow와 github-release로 흘러갑니다](docs/assets/quick-start.svg)
+![jig 빠른 시작: CLI 하나에 설치하고, jig-setup으로 프로필·버전 기준·브랜치 수렴·점검을 끝낸 뒤, jig-doctor로 확인하고, 이후 작업은 develop-task-flow와 github-release로 흘러갑니다](resources/readme/quick-start.svg)
 
 준비물: git 저장소, 그리고 Codex·Antigravity는 `curl` 또는 `wget`. GitHub 연동까지 하려면 `gh` 로그인이 필요하지만 스킬 설치 자체에는 필요 없습니다.
 
