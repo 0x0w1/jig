@@ -34,12 +34,12 @@ jig는 다른 저장소에 설치되는 도구다. 릴리즈 노트의 주 소�
 
 여기가 깨지면 최소 `minor`다.
 
-1. installer와 설치 후 GitHub 프로필 계약: `--target`, `--scope`, 선택 옵션 `--github-profile`/`--github-account`, `JIG_GITHUB_PROFILE`, `jig.githubProfile` (레거시 `SPAI_*`, `spai.*` 인식)
-2. 스킬 호출 이름: `/jig:<skill>`, `jig-<skill>` (레거시 `/spai:<skill>`, `spai-<skill>`는 전환 기간 동안 함께 인식)
-3. 플러그인·마켓플레이스 이름: `jig@jig`, `0x0w1/jig` (레거시 슬러그 `0x0w1/spai`는 GitHub 리다이렉트로 계속 동작)
-4. managed block marker 문자열: `<!-- jig:start ... -->`, `<!-- jig:end ... -->` (레거시 `<!-- spai:... -->` 인식)
+1. installer와 설치 후 GitHub 프로필 계약: `--target`, `--scope`, 선택 옵션 `--github-profile`/`--github-account`, `JIG_GITHUB_PROFILE`, `jig.githubProfile`
+2. 스킬 호출 이름: `/jig:<skill>`, `jig-<skill>`
+3. 플러그인·마켓플레이스 이름: `jig@jig`, `0x0w1/jig`
+4. managed block marker 문자열: `<!-- jig:start ... -->`, `<!-- jig:end ... -->`
 5. 저장소 모델: 브랜치 이름, 병합 흐름, 보호 정책
-6. 버전 판정 기준 계약: `.jig/versioning.md` 경로, `JIG_VERSION_RUBRIC`, `jig.versionRubric` (레거시 `.spai/versioning.md`, `SPAI_*`, `spai.*` 인식), 섹션 제목 `## 판정 순서`·`## 등급 정의`
+6. 버전 판정 기준 계약: `.jig/versioning.md` 경로, `JIG_VERSION_RUBRIC`, `jig.versionRubric`, 섹션 제목 `## 판정 순서`·`## 등급 정의`
 
 내부 — 깨져도 `patch`: `dist/` 레이아웃, `scripts/*`, 스킬 본문 내용, 버전 스탬프의 `version` 외 필드, 로그 문구, `README`·`docs` 구조
 

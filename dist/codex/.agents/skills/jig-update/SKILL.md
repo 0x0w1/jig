@@ -78,19 +78,6 @@ Release notes carry migration work as marker blocks, not prose. Collect them fro
 - Text outside these blocks is context for the user, not instructions to run.
 - A release with a `migration-manual` block is graded `major`; treat it as a signal to slow down and confirm before touching repository state.
 
-## Migrating a Pre-Rename Installation
-
-An installation made before the rename from `spai` to `jig` is updated in place, not reinstalled from scratch.
-
-1. Detect it: `.agents/skills/spai-*` directories, a `<!-- spai:version ... -->` stamp, or `spai@spai` in the Claude Code plugin list.
-2. **Codex and Antigravity** — run the installer normally. It writes the `jig-*` skill directories and replaces the legacy `<!-- spai:start ... -->` managed block in place, so no second block appears. Then report the leftover `.agents/skills/spai-*` directories and delete them **only with explicit confirmation**; they are files on the user's disk.
-3. **Claude Code** — the host owns plugin identity, so this part is manual. Tell the user to run `/plugin marketplace add 0x0w1/jig`, `/plugin install jig@jig`, `/plugin uninstall spai@spai`, then `/reload-plugins`. Do not attempt it for them.
-4. **Local config** — when only `spai.githubProfile`, `spai.versionRubric`, or `spai.branchProtection` exist, copy each to its `jig.` name with `git config --local` and report both. Remove the old keys only with confirmation.
-5. **`.spai/versioning.md`** — project-owned. Report it, offer to move it to `.jig/versioning.md`, and move it only when the user says so. Every skill reads the legacy path meanwhile.
-6. **Push guard** — `github-sync` replaces a `# spai:pre-push v<N>` hook with the `jig` version when the user reruns it. Report it; do not edit hooks from this skill.
-
-Nothing here runs unattended except step 2's installer pass. Deleting the user's old directories and keys always needs a yes.
-
 ## Safety Rules
 
 - Do not force push.

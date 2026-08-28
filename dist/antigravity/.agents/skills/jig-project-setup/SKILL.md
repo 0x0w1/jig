@@ -9,8 +9,6 @@ Bind an installed jig target to a repository GitHub profile, then finish reposit
 
 ## Profile Contract
 
-A repository set up before the rename to `jig` stores its profile in `spai.githubProfile` and may pass `SPAI_GITHUB_PROFILE`. Read both, write the `jig` names, and leave removal of the old keys to `jig-update`.
-
 Resolve the GitHub profile in this order:
 
 1. An explicit profile supplied by the user or `--github-profile`.

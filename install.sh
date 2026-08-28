@@ -5,29 +5,25 @@ TARGET=""
 SCOPE="project"
 DRY_RUN=0
 FORCE=0
-GITHUB_ACCOUNT="${JIG_GITHUB_PROFILE:-${JIG_GITHUB_ACCOUNT:-${SPAI_GITHUB_PROFILE:-${SPAI_GITHUB_ACCOUNT:-}}}}"
-GITHUB_HOST="${JIG_GITHUB_HOST:-${SPAI_GITHUB_HOST:-}}"
+GITHUB_ACCOUNT="${JIG_GITHUB_PROFILE:-${JIG_GITHUB_ACCOUNT:-}}"
+GITHUB_HOST="${JIG_GITHUB_HOST:-}"
 GITHUB_AUTH_TOKEN=""
 GITHUB_PROFILE_SOURCE=""
 if [ -n "${JIG_GITHUB_PROFILE:-}" ]; then
   GITHUB_PROFILE_SOURCE="JIG_GITHUB_PROFILE"
 elif [ -n "${JIG_GITHUB_ACCOUNT:-}" ]; then
   GITHUB_PROFILE_SOURCE="JIG_GITHUB_ACCOUNT"
-elif [ -n "${SPAI_GITHUB_PROFILE:-}" ]; then
-  GITHUB_PROFILE_SOURCE="SPAI_GITHUB_PROFILE (legacy)"
-elif [ -n "${SPAI_GITHUB_ACCOUNT:-}" ]; then
-  GITHUB_PROFILE_SOURCE="SPAI_GITHUB_ACCOUNT (legacy)"
 fi
-CONFIGURE_GIT_USER="${JIG_CONFIGURE_GIT_USER:-${SPAI_CONFIGURE_GIT_USER:-0}}"
-GIT_USER_NAME="${JIG_GIT_USER_NAME:-${SPAI_GIT_USER_NAME:-}}"
-GIT_USER_EMAIL="${JIG_GIT_USER_EMAIL:-${SPAI_GIT_USER_EMAIL:-}}"
+CONFIGURE_GIT_USER="${JIG_CONFIGURE_GIT_USER:-0}"
+GIT_USER_NAME="${JIG_GIT_USER_NAME:-}"
+GIT_USER_EMAIL="${JIG_GIT_USER_EMAIL:-}"
 REPO_RAW_URL_INPUT="${REPO_RAW_URL:-}"
 REPO_RAW_URL=""
-REPO_RAW_BASE="${JIG_REPO_RAW_BASE:-${SPAI_REPO_RAW_BASE:-https://raw.githubusercontent.com/0x0w1/jig}}"
-JIG_RELEASES_API="${JIG_RELEASES_API:-${SPAI_RELEASES_API:-https://api.github.com/repos/0x0w1/jig/releases/latest}}"
-REQUESTED_VERSION="${JIG_VERSION:-${SPAI_VERSION:-}}"
+REPO_RAW_BASE="${JIG_REPO_RAW_BASE:-https://raw.githubusercontent.com/0x0w1/jig}"
+JIG_RELEASES_API="${JIG_RELEASES_API:-https://api.github.com/repos/0x0w1/jig/releases/latest}"
+REQUESTED_VERSION="${JIG_VERSION:-}"
 JIG_VERSION_STAMP="main"
-SKILLS_INPUT="${JIG_SKILLS:-${SPAI_SKILLS:-}}"
+SKILLS_INPUT="${JIG_SKILLS:-}"
 SELECTED_SKILLS=""
 MANIFEST_TMP=""
 FILES_TMP=""
@@ -351,15 +347,10 @@ resolve_github_profile_config() {
   if [ "$SCOPE" = "project" ] && command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     if [ -z "$GITHUB_ACCOUNT" ]; then
       GITHUB_ACCOUNT=$(git config --local --get jig.githubProfile 2>/dev/null || true)
-      if [ -z "$GITHUB_ACCOUNT" ]; then
-        GITHUB_ACCOUNT=$(git config --local --get spai.githubProfile 2>/dev/null || true)
-        [ -n "$GITHUB_ACCOUNT" ] && log "Using legacy local config spai.githubProfile; jig-doctor reports the rename."
-      fi
       [ -z "$GITHUB_ACCOUNT" ] || GITHUB_PROFILE_SOURCE="local git config"
     fi
     if [ -z "$GITHUB_HOST" ]; then
       GITHUB_HOST=$(git config --local --get jig.githubHost 2>/dev/null || true)
-      [ -n "$GITHUB_HOST" ] || GITHUB_HOST=$(git config --local --get spai.githubHost 2>/dev/null || true)
     fi
   fi
 
@@ -463,16 +454,6 @@ install_managed_block() {
     record_installed "$managed_destination"
     rm -f "$managed_source_tmp" "$managed_block_tmp" "$managed_new_tmp"
     return 0
-  fi
-
-  managed_legacy_start=$(printf '%s' "$managed_start_marker" | sed 's/jig:/spai:/')
-  managed_legacy_end=$(printf '%s' "$managed_end_marker" | sed 's/jig:/spai:/')
-  if ! grep -F "$managed_start_marker" "$managed_destination" >/dev/null 2>&1 \
-    && grep -F "$managed_legacy_start" "$managed_destination" >/dev/null 2>&1 \
-    && grep -F "$managed_legacy_end" "$managed_destination" >/dev/null 2>&1; then
-    log "Replacing the legacy spai managed block in $managed_destination."
-    managed_start_marker="$managed_legacy_start"
-    managed_end_marker="$managed_legacy_end"
   fi
 
   if grep -F "$managed_start_marker" "$managed_destination" >/dev/null 2>&1 && grep -F "$managed_end_marker" "$managed_destination" >/dev/null 2>&1; then

@@ -39,17 +39,10 @@ fi
 
 require_file dist/manifest.tsv
 require_text dist/manifest.tsv "develop-task-flow"
-# The rename from spai to jig keeps a legacy compatibility layer. Losing it silently is
-# exactly the kind of quiet break the version rubric grades as major, so it is asserted.
-require_text install.sh "SPAI_GITHUB_PROFILE"
-require_text install.sh "spai.githubProfile"
-require_text install.sh "managed_legacy_start"
-require_text "dist/claude-code-plugin/jig/skills/jig-doctor/SKILL.md" "Legacy Names"
 require_text "dist/claude-code-plugin/jig/skills/jig-doctor/SKILL.md" "installation-inventory"
 require_file "dist/claude-code-plugin/jig/skills/jig-doctor/scripts/inspect-claude-standalone.sh"
 require_file "dist/codex/.agents/skills/jig-doctor/scripts/inspect-claude-standalone.sh"
 require_file "dist/antigravity/.agents/skills/jig-doctor/scripts/inspect-claude-standalone.sh"
-require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" "Migrating a Pre-Rename Installation"
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" "Installation Inventory"
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" 'claude plugin update jig@jig --scope <scope>'
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" '~/.codex/AGENTS.md'
@@ -66,18 +59,12 @@ require_text "dist/claude-code-plugin/jig/skills/jig-update/scripts/update-claud
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" '~/.claude/skills'
 sh scripts/test-update-claude-standalone.sh
 sh scripts/test-doctor-installation-inventory.sh
-require_text "dist/claude-code-plugin/jig/skills/version-rubric/SKILL.md" ".spai/versioning.md"
-require_text "dist/claude-code-plugin/jig/skills/github-release/SKILL.md" ".spai/versioning.md"
-require_text "dist/claude-code-plugin/jig/skills/github-sync/SKILL.md" "# spai:pre-push"
-require_text "dist/claude-code-plugin/jig/skills/rubric-scan/SKILL.md" "spai-version-rubric"
-require_text "dist/claude-code-plugin/jig/skills/project-setup/SKILL.md" "spai.githubProfile"
-
 # The product name is jig everywhere the user types it.
 require_text .claude-plugin/marketplace.json '"name": "jig"'
 require_text .claude-plugin/marketplace.json '"./dist/claude-code-plugin/jig"'
-# Directory names, not prose: skills legitimately name the legacy paths they still read.
-if find dist -type d -name 'spai-*' | grep -q .; then
-  fail "dist still ships spai- prefixed skill directories"
+obsolete_name=$(printf '\163\160\141\151')
+if git grep -I -i "$obsolete_name" >/dev/null 2>&1; then
+  fail "tracked files still contain the obsolete pre-rename product name"
 fi
 
 require_text install.sh "jig.githubProfile"

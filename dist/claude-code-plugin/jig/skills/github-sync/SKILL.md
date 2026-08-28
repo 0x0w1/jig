@@ -43,7 +43,6 @@ Confirm the private case against the API rather than guessing a plan from `gh ap
 - Yes → apply the policy in Procedure step 6, then record `git config --local jig.branchProtection enabled`.
 - No → record `git config --local jig.branchProtection skipped` and continue. The local `pre-push` guard still covers force pushes, deletion, and direct pushes to `main` on this machine.
 - Already protected with the policy in Procedure step 6 → record `enabled` and do not ask. The repository is already where the answer would put it, so the question has nothing to decide.
-- Recorded only under the legacy key `spai.branchProtection` → read it, copy it to `jig.branchProtection`, and do not ask again.
 - Already recorded → do not ask again. `enabled` re-applies the policy convergently; `skipped` skips with a one-line log. Re-ask only when the user asks to change it.
 
 `jig.branchProtection` lives in `.git/config`, so it does not reach clones or CI. It records a choice about this checkout, not a repository contract; a collaborator is asked separately on their own machine.
@@ -97,7 +96,6 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
    - Skip with a pass log when the directory is not a git repository.
    - If the file is missing, write the script below verbatim and `chmod +x` it.
    - If the file exists and line 2 matches `# jig:pre-push v<N>`: rewrite it only when `<N>` is lower than the version below (idempotent).
-   - If line 2 matches `# spai:pre-push v<N>`, it is this guard from before the rename. Replace it with the version below and say so in the report.
    - If the file exists without that marker, it is the user's hook: stop this step, report it, and replace it only with explicit confirmation, keeping a `.bak` backup.
    - Never bypass the installed hook with `--no-verify`.
 

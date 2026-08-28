@@ -17,8 +17,7 @@ The catalog is the set of rubric drafts shipped alongside `version-rubric`. Reso
 2. `${CLAUDE_PLUGIN_ROOT}/skills/version-rubric/rubrics` (Claude Code plugin install).
 3. `.agents/skills/jig-version-rubric/rubrics` (Codex and Antigravity project install).
 4. `skills/version-rubric/rubrics` (running inside the jig repository itself).
-5. `.agents/skills/spai-version-rubric/rubrics` (legacy install from before the rename to jig).
-6. `~/.agents/skills/jig-version-rubric/rubrics` or `~/.gemini/config/skills/jig-version-rubric/rubrics` (user-scope install).
+5. `~/.agents/skills/jig-version-rubric/rubrics` or `~/.gemini/config/skills/jig-version-rubric/rubrics` (user-scope install).
 
 Read the `rubrics/INDEX.md` in that directory first. It carries the type list, the detection signals, and the scoring rules; the per-type bodies are only read for the types that actually become candidates.
 

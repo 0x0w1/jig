@@ -102,26 +102,6 @@ Checks 5–10 diagnose repository state, not global installation state. Run them
    - A missing file is information, not a defect. Fix owner is `version-rubric`.
    - Never compare the rubric with any payload: it is user-owned content, never drift.
 
-## Legacy Names (pre-rename installs)
-
-The project was called `spai` before it was renamed to `jig`. An installation from that era carries the old names, and every check below must recognize them and report them as **legacy, not as drift or a defect.**
-
-| Surface | Legacy | Current |
-|---|---|---|
-| Skill directories | `.agents/skills/spai-*` | `.agents/skills/jig-*` |
-| Plugin | `spai@spai` | `jig@jig` |
-| Slash names | `/spai:<skill>` | `/jig:<skill>` |
-| Managed block | `<!-- spai:start ... -->` | `<!-- jig:start ... -->` |
-| Version stamp | `<!-- spai:version ... -->` | `<!-- jig:version ... -->` |
-| Environment | `SPAI_*` | `JIG_*` |
-| Local config | `spai.githubProfile`, `spai.versionRubric`, `spai.branchProtection` | `jig.*` |
-| Rubric file | `.spai/versioning.md` | `.jig/versioning.md` |
-| Push guard | `# spai:pre-push v<N>` | `# jig:pre-push v<N>` |
-
-- Report which names the installation uses. Mixed state is normal mid-migration and is not a defect by itself.
-- The fix owner for a legacy installation is `jig-update`. Never migrate anything from this skill; it is read-only.
-- `.spai/versioning.md` is project-owned content. Report it as legacy and never as drift, exactly like `.jig/versioning.md`.
-
 ## Safety Rules
 
 - Read-only: do not modify files, settings, branches, or labels.

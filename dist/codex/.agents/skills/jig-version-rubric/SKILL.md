@@ -16,9 +16,7 @@ Resolve the rubric path in this order:
 1. `JIG_VERSION_RUBRIC` environment variable (session-only override).
 2. `git config --local --get jig.versionRubric` (repository override; not propagated by clone).
 3. `.jig/versioning.md` (the convention).
-4. `.spai/versioning.md` (legacy, from before the rename to jig).
 
-- Legacy keys are read too: `SPAI_VERSION_RUBRIC` and `spai.versionRubric` resolve when the `JIG_` and `jig.` forms are unset. Write new files at `.jig/versioning.md`, and offer — never force — to move a legacy one.
 - `.jig/` is owned by the project, not by jig. The installer and `jig-update` never write or delete it, and `jig-doctor` never treats it as drift.
 - The file must be committed. `git config --local` lives in `.git/config` and is not propagated by clone or CI checkout, so a config-only setup grades differently for different people.
 - Never store state such as "the default was adopted" in a config key. That belongs in the file's `> Basis:` line, which is the single record of the decision.

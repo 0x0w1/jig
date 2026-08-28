@@ -29,7 +29,6 @@ Resolve the rubric path in this order:
 1. `JIG_VERSION_RUBRIC` environment variable (session-only override).
 2. `git config --local --get jig.versionRubric` (repository override).
 3. `.jig/versioning.md` (the convention).
-4. `.spai/versioning.md` (legacy, from before the rename to jig). `SPAI_VERSION_RUBRIC` and `spai.versionRubric` are read the same way.
 
 Apply it like this:
 
