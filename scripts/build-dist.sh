@@ -18,7 +18,7 @@ skill_summary() {
     github-sync) printf '%s' "repository setup and synchronization; not for creating releases." ;;
     github-release) printf '%s' "release execution promoting develop to main with a fast-forward push and a tagged GitHub release." ;;
     develop-task-flow) printf '%s' "normal development tasks on feature/fix/chore branches squash-merged back into develop." ;;
-    project-setup) printf '%s' "install jig for a repository and select its GitHub CLI profile without changing the global active account." ;;
+    jig-setup) printf '%s' "install jig for a repository and select its GitHub CLI profile without changing the global active account." ;;
     jig-update) printf '%s' "update the installed jig skills to the latest jig release and converge repository settings." ;;
     jig-doctor) printf '%s' "diagnose every installed jig target and scope plus repository profile, version, protection, and legacy state; read-only." ;;
     readme) printf '%s' "write or update the project README from the repository state; drafts one when missing, fixes drift when present." ;;

@@ -107,7 +107,7 @@ Run `/jig:version-rubric` on Claude Code, `jig-version-rubric` on Codex and Anti
 
 Run it whenever. A rubric changing as a project grows is normal, and editing the file by hand is fine — what you edited is the new rubric.
 
-Right after installation, `project-setup` calls this skill for you. If the file is missing at release time, `github-release` calls it and then continues the release. Skipping the question records the default as adopted and it is not asked again.
+Right after installation, `jig-setup` calls this skill for you. If the file is missing at release time, `github-release` calls it and then continues the release. Skipping the question records the default as adopted and it is not asked again.
 
 ## The Default Rubric (Human-Intervention Axis)
 

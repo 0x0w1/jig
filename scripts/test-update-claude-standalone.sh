@@ -12,13 +12,14 @@ mkdir -p \
   "$PAYLOAD/dist/claude-code-plugin/jig/skills/jig-update/scripts" \
   "$PAYLOAD/dist/claude-code-plugin/jig/skills/jig-update/blocked" \
   "$PAYLOAD/dist/claude-code-plugin/jig/skills/github-sync" \
-  "$PAYLOAD/dist/claude-code-plugin/jig/skills/project-setup" \
-  "$PAYLOAD/dist/codex/.agents/skills/jig-github-sync"
+  "$PAYLOAD/dist/claude-code-plugin/jig/skills/jig-setup" \
+  "$PAYLOAD/dist/codex/.agents/skills/jig-github-sync" \
+  "$PAYLOAD/dist/codex/.agents/skills/jig-setup"
 
 printf '%b\n' \
   'jig-update\tsolo-cli\tyes' \
   'github-sync\tsolo-cli\tyes' \
-  'project-setup\tsolo-cli\tyes' \
+  'jig-setup\tsolo-cli\tyes' \
   > "$PAYLOAD/dist/manifest.tsv"
 
 printf '%b\n' \
@@ -27,7 +28,7 @@ printf '%b\n' \
   'jig-update\tscripts/new-helper.sh' \
   'jig-update\tblocked/file.sh' \
   'github-sync\tSKILL.md' \
-  'project-setup\tSKILL.md' \
+  'jig-setup\tSKILL.md' \
   > "$PAYLOAD/dist/files.tsv"
 
 printf '%s\n' \
@@ -53,11 +54,19 @@ printf '%s\n' \
 
 printf '%s\n' \
   '---' \
-  'name: project-setup' \
+  'name: jig-setup' \
   '---' \
-  '# Project Setup' \
+  '# jig Setup' \
   'new project setup payload' \
-  > "$PAYLOAD/dist/claude-code-plugin/jig/skills/project-setup/SKILL.md"
+  > "$PAYLOAD/dist/claude-code-plugin/jig/skills/jig-setup/SKILL.md"
+
+printf '%s\n' \
+  '---' \
+  'name: jig-setup' \
+  '---' \
+  '# jig Setup' \
+  'new prefixed setup payload' \
+  > "$PAYLOAD/dist/codex/.agents/skills/jig-setup/SKILL.md"
 
 printf '%s\n' \
   '---' \
@@ -83,14 +92,14 @@ PROJECT_SKILLS="$TEST_ROOT/project/.claude/skills"
 mkdir -p \
   "$PROJECT_SKILLS/jig-update" \
   "$PROJECT_SKILLS/github-sync" \
-  "$PROJECT_SKILLS/project-setup" \
+  "$PROJECT_SKILLS/jig-setup" \
   "$PROJECT_SKILLS/personal-skill"
 
 write_legacy_jig_update "$PROJECT_SKILLS/jig-update/SKILL.md"
 printf '%s\n' '---' 'name: github-sync' '---' '# GitHub Sync' 'old unprefixed payload' \
   > "$PROJECT_SKILLS/github-sync/SKILL.md"
-printf '%s\n' '---' 'name: project-setup' '---' '# Personal Project Setup' 'user-owned content' \
-  > "$PROJECT_SKILLS/project-setup/SKILL.md"
+printf '%s\n' '---' 'name: jig-setup' '---' '# Personal Project Setup' 'user-owned content' \
+  > "$PROJECT_SKILLS/jig-setup/SKILL.md"
 printf '%s\n' 'personal content' > "$PROJECT_SKILLS/personal-skill/SKILL.md"
 
 PROJECT_OUTPUT="$TEST_ROOT/project-update.log"
@@ -103,8 +112,8 @@ cmp -s \
   "$PROJECT_SKILLS/github-sync/SKILL.md"
 grep -F 'old unprefixed payload' "$PROJECT_SKILLS/github-sync/SKILL.md.bak" >/dev/null
 grep -F 'printf helper' "$PROJECT_SKILLS/jig-update/scripts/new-helper.sh" >/dev/null
-grep -F 'user-owned content' "$PROJECT_SKILLS/project-setup/SKILL.md" >/dev/null
-[ ! -e "$PROJECT_SKILLS/project-setup/.jig-provenance" ]
+grep -F 'user-owned content' "$PROJECT_SKILLS/jig-setup/SKILL.md" >/dev/null
+[ ! -e "$PROJECT_SKILLS/jig-setup/.jig-provenance" ]
 grep -F 'personal content' "$PROJECT_SKILLS/personal-skill/SKILL.md" >/dev/null
 
 grep -Fx 'repository=0x0w1/jig' "$PROJECT_SKILLS/jig-update/.jig-provenance" >/dev/null
@@ -146,6 +155,62 @@ cmp -s \
 grep -F 'old prefixed payload' "$USER_SKILLS/jig-github-sync/SKILL.md.bak" >/dev/null
 grep -Fx 'scope=user' "$USER_SKILLS/.jig-installation" >/dev/null
 grep -Fx 'skills=jig-update=jig-update,github-sync=jig-github-sync' "$USER_SKILLS/.jig-installation" >/dev/null
+
+# A ledgered standalone installation converges the former setup skill name to jig-setup
+# while preserving its existing directory spelling.
+LEGACY_SETUP_SKILLS="$TEST_ROOT/legacy-setup/.claude/skills"
+mkdir -p "$LEGACY_SETUP_SKILLS/jig-update" "$LEGACY_SETUP_SKILLS/project-setup"
+write_legacy_jig_update "$LEGACY_SETUP_SKILLS/jig-update/SKILL.md"
+printf '%s\n' '---' 'name: project-setup' '---' '# Project Setup' 'old setup payload' \
+  > "$LEGACY_SETUP_SKILLS/project-setup/SKILL.md"
+printf '%s\n' 'format=1' 'repository=0x0w1/jig' 'skill=jig-update' 'directory=jig-update' \
+  > "$LEGACY_SETUP_SKILLS/jig-update/.jig-provenance"
+printf '%s\n' 'format=1' 'repository=0x0w1/jig' 'skill=project-setup' 'directory=project-setup' \
+  > "$LEGACY_SETUP_SKILLS/project-setup/.jig-provenance"
+printf '%s\n' \
+  'format=1' \
+  'repository=0x0w1/jig' \
+  'version=v9.9.8' \
+  'target=claude-code' \
+  'scope=project' \
+  'skills=jig-update=jig-update,project-setup=project-setup' \
+  > "$LEGACY_SETUP_SKILLS/.jig-installation"
+
+JIG_UPDATE_RAW_BASE_URL="file://$TEST_ROOT/payload" \
+  sh "$SCRIPT" --root "$LEGACY_SETUP_SKILLS" --scope project --version "$VERSION" >/dev/null
+cmp -s \
+  "$PAYLOAD/dist/claude-code-plugin/jig/skills/jig-setup/SKILL.md" \
+  "$LEGACY_SETUP_SKILLS/project-setup/SKILL.md"
+grep -Fx 'skill=jig-setup' "$LEGACY_SETUP_SKILLS/project-setup/.jig-provenance" >/dev/null
+grep -Fx 'directory=project-setup' "$LEGACY_SETUP_SKILLS/project-setup/.jig-provenance" >/dev/null
+grep -Fx 'skills=jig-update=jig-update,jig-setup=project-setup' "$LEGACY_SETUP_SKILLS/.jig-installation" >/dev/null
+
+LEGACY_PREFIXED_SETUP_SKILLS="$TEST_ROOT/legacy-prefixed-setup/.claude/skills"
+mkdir -p "$LEGACY_PREFIXED_SETUP_SKILLS/jig-update" "$LEGACY_PREFIXED_SETUP_SKILLS/jig-project-setup"
+write_legacy_jig_update "$LEGACY_PREFIXED_SETUP_SKILLS/jig-update/SKILL.md"
+printf '%s\n' '---' 'name: jig-project-setup' '---' '# Project Setup' 'old prefixed setup payload' \
+  > "$LEGACY_PREFIXED_SETUP_SKILLS/jig-project-setup/SKILL.md"
+printf '%s\n' 'format=1' 'repository=0x0w1/jig' 'skill=jig-update' 'directory=jig-update' \
+  > "$LEGACY_PREFIXED_SETUP_SKILLS/jig-update/.jig-provenance"
+printf '%s\n' 'format=1' 'repository=0x0w1/jig' 'skill=project-setup' 'directory=jig-project-setup' \
+  > "$LEGACY_PREFIXED_SETUP_SKILLS/jig-project-setup/.jig-provenance"
+printf '%s\n' \
+  'format=1' \
+  'repository=0x0w1/jig' \
+  'version=v9.9.8' \
+  'target=claude-code' \
+  'scope=user' \
+  'skills=jig-update=jig-update,project-setup=jig-project-setup' \
+  > "$LEGACY_PREFIXED_SETUP_SKILLS/.jig-installation"
+
+JIG_UPDATE_RAW_BASE_URL="file://$TEST_ROOT/payload" \
+  sh "$SCRIPT" --root "$LEGACY_PREFIXED_SETUP_SKILLS" --scope user --version "$VERSION" >/dev/null
+cmp -s \
+  "$PAYLOAD/dist/codex/.agents/skills/jig-setup/SKILL.md" \
+  "$LEGACY_PREFIXED_SETUP_SKILLS/jig-project-setup/SKILL.md"
+grep -Fx 'skill=jig-setup' "$LEGACY_PREFIXED_SETUP_SKILLS/jig-project-setup/.jig-provenance" >/dev/null
+grep -Fx 'directory=jig-project-setup' "$LEGACY_PREFIXED_SETUP_SKILLS/jig-project-setup/.jig-provenance" >/dev/null
+grep -Fx 'skills=jig-update=jig-update,jig-setup=jig-project-setup' "$LEGACY_PREFIXED_SETUP_SKILLS/.jig-installation" >/dev/null
 
 MALFORMED_SKILLS="$TEST_ROOT/malformed/.claude/skills"
 mkdir -p "$TEST_ROOT/malformed/.claude"

@@ -41,7 +41,7 @@ project scope로 설치하면 저장소에 남는 파일은 설정 하나뿐입�
 /jig:github-sync
 /jig:develop-task-flow
 /jig:github-release
-/jig:project-setup
+/jig:jig-setup
 /jig:jig-update
 /jig:jig-doctor
 /jig:readme
@@ -103,7 +103,7 @@ project scope:
   jig-github-sync/SKILL.md
   jig-github-release/SKILL.md
   jig-develop-task-flow/SKILL.md
-  jig-project-setup/SKILL.md
+  jig-setup/SKILL.md
   jig-update/SKILL.md
   jig-doctor/SKILL.md
   jig-readme/SKILL.md
@@ -130,7 +130,7 @@ global scope:
 설치 버전과 스킬 구성은 managed block 안에 스탬프됩니다.
 
 ```text
-<!-- jig:version v0.2.0 skills=github-sync,github-release,develop-task-flow,project-setup,jig-update,jig-doctor -->
+<!-- jig:version v0.2.0 skills=github-sync,github-release,develop-task-flow,jig-setup,jig-update,jig-doctor -->
 ```
 
 `jig-update` 스킬이 이 스탬프를 읽어 같은 구성으로 최신 릴리즈에 재설치하고 `jig-doctor`가 진단 기준으로 씁니다. 업데이트는 같은 명령을 다시 실행하면 됩니다 — installer는 멱등이라 변경된 파일만 갱신합니다.
@@ -142,7 +142,7 @@ installer는 파일을 지우지 않습니다. 직접 지웁니다.
 ```bash
 rm -rf .agents/skills/jig-github-sync .agents/skills/jig-github-release \
   .agents/skills/jig-develop-task-flow .agents/skills/jig-update .agents/skills/jig-doctor \
-  .agents/skills/jig-project-setup .agents/skills/jig-readme \
+  .agents/skills/jig-setup .agents/skills/jig-readme \
   .agents/skills/jig-version-rubric .agents/skills/jig-rubric-scan
 ```
 
@@ -240,7 +240,7 @@ project scope에서 GitHub 프로필이 이미 설정되어 있고 `gh`를 쓸 �
 1. `JIG_GITHUB_PROFILE`, 로컬 `jig.githubProfile`, 또는 `--github-profile`로 프로필을 정하고 필요하면 `gh auth login`을 실행합니다. 선택한 프로필의 credential을 명령별로 사용하며 전역 active account는 바꾸지 않습니다.
 2. 원격에 `develop` 브랜치가 없으면 `main`의 현재 commit에서 만듭니다.
 
-프로필이 없으면 스킬 파일 설치는 그대로 완료하고 이 단계만 `project-setup` 이후로 미룹니다. `.git` repository가 없거나 GitHub 저장소에 연결돼 있지 않아도 이 단계를 건너뛰고 통과 로그를 남깁니다.
+프로필이 없으면 스킬 파일 설치는 그대로 완료하고 이 단계만 `jig-setup` 이후로 미룹니다. `.git` repository가 없거나 GitHub 저장소에 연결돼 있지 않아도 이 단계를 건너뛰고 통과 로그를 남깁니다.
 
 **branch protection은 installer가 설정하지 않습니다.** 종료 시 `GUIDE`로 안내만 하고 실제 적용은 `github-sync` 스킬이 담당합니다. 자세한 조건은 [GitHub Repository Settings](github-repository-settings.ko.md)를 참고하세요.
 
@@ -280,9 +280,9 @@ sh install.sh --target codex --scope project \
 
 ## 설치 후 첫 단계
 
-어느 CLI로 설치했든 GitHub 프로필은 설치가 끝난 뒤 설정할 수 있습니다. `project-setup` 스킬을 실행해 설치 상태와 프로필을 검증하고 저장소를 jig 브랜치 모델에 수렴시킵니다.
+어느 CLI로 설치했든 GitHub 프로필은 설치가 끝난 뒤 설정할 수 있습니다. `jig-setup` 스킬을 실행해 설치 상태와 프로필을 검증하고 저장소를 jig 브랜치 모델에 수렴시킵니다.
 
-- Claude Code: `/jig:project-setup`
-- Codex / Antigravity: `jig-project-setup`
+- Claude Code: `/jig:jig-setup`
+- Codex / Antigravity: `jig-setup`
 
 이 스킬은 토큰을 저장하지 않고 `JIG_GITHUB_PROFILE` 또는 로컬 `git config`의 프로필 이름만 사용합니다. 이어서 `github-sync`가 `develop` 브랜치를 보장하고 branch protection을 물어본 뒤 정하며, `jig-doctor`가 상태를 점검합니다.

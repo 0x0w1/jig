@@ -2,9 +2,9 @@
 
 [English](github-repository-settings.md)
 
-이 문서는 `install.sh`(Codex, Antigravity CLI 대상)의 GitHub 동작을 설명합니다. Claude Code는 플러그인으로 설치되어 installer를 거치지 않으므로 저장소 프로필 설정과 수렴은 설치 후 `/jig:project-setup`으로 처리합니다.
+이 문서는 `install.sh`(Codex, Antigravity CLI 대상)의 GitHub 동작을 설명합니다. Claude Code는 플러그인으로 설치되어 installer를 거치지 않으므로 저장소 프로필 설정과 수렴은 설치 후 `/jig:jig-setup`으로 처리합니다.
 
-jig project scope 스킬 설치에는 GitHub 프로필이 필요하지 않습니다. 프로필 없이 설치하면 GitHub Repository 설정 동기화만 건너뜁니다. 설치된 `project-setup`이 이후 `JIG_GITHUB_PROFILE` 또는 로컬 `jig.githubProfile`을 설정합니다. 프로필 credential은 명령별 환경으로 전달하며 전역 active account를 바꾸지 않습니다.
+jig project scope 스킬 설치에는 GitHub 프로필이 필요하지 않습니다. 프로필 없이 설치하면 GitHub Repository 설정 동기화만 건너뜁니다. 설치된 `jig-setup`이 이후 `JIG_GITHUB_PROFILE` 또는 로컬 `jig.githubProfile`을 설정합니다. 프로필 credential은 명령별 환경으로 전달하며 전역 active account를 바꾸지 않습니다.
 
 ## Repository 운영 규칙
 
@@ -119,7 +119,7 @@ installer는 다음 상황에서 GitHub Repository 설정 작업을 건너뛰고
 sh install.sh --target codex --scope project --dry-run
 ```
 
-위 명령은 프로필 없이 스킬 설치 계획을 검증합니다. 설치 후 `jig-project-setup`을 실행하면 프로필을 선택하고 `develop` 브랜치와 branch protection을 수렴합니다. 설치 중 GitHub 연동까지 하려면 선택적으로 다음처럼 프로필을 전달할 수 있습니다.
+위 명령은 프로필 없이 스킬 설치 계획을 검증합니다. 설치 후 `jig-setup`을 실행하면 프로필을 선택하고 `develop` 브랜치와 branch protection을 수렴합니다. 설치 중 GitHub 연동까지 하려면 선택적으로 다음처럼 프로필을 전달할 수 있습니다.
 
 ```bash
 sh install.sh --target codex --scope project --github-profile your-account

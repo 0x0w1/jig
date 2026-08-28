@@ -24,7 +24,7 @@ Supported: **Claude Code** (recommended), **Codex**, **Antigravity CLI**
 
 ## Quick Start
 
-![jig quick start: install into one CLI, run project-setup for profile, rubric, branch convergence and a check, verify with jig-doctor, then work through develop-task-flow and github-release](docs/assets/quick-start.svg)
+![jig quick start: install into one CLI, run jig-setup for profile, rubric, branch convergence and a check, verify with jig-doctor, then work through develop-task-flow and github-release](docs/assets/quick-start.svg)
 
 You need a git repository, plus `curl` or `wget` for Codex and Antigravity. A `gh` login is required to converge GitHub settings, but not to install the skills.
 
@@ -48,7 +48,7 @@ Options, install layout, skill namespacing, and removal: [installation guide](do
 
 ### 2. Bind the repository
 
-Run `project-setup` in an agent session: `/jig:project-setup` on Claude Code, `jig-project-setup` on Codex and Antigravity.
+Run `jig-setup` in an agent session: `/jig:jig-setup` on Claude Code, `jig-setup` on Codex and Antigravity.
 
 One run settles four things.
 
@@ -72,7 +72,7 @@ Unlike a plain collection of skills, jig converges *repository state* — the br
 | `develop-task-flow` | Branch, work, squash merge into `develop` |
 | `github-release` | Fast-forward `develop` to `main`, tag, publish notes |
 | `github-sync` | Branches, optional protection, local `pre-push` guard |
-| `project-setup` | Bind the repository to a GitHub CLI profile |
+| `jig-setup` | Bind the repository to a GitHub CLI profile |
 | `jig-update` | Update an installation to the latest release |
 | `jig-doctor` | Read-only health check of the installation |
 | `readme` | Draft a README, or fix its drift against the code |

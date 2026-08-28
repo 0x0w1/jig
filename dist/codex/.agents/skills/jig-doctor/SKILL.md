@@ -1,6 +1,6 @@
 ---
 name: jig-doctor
-description: "Use when diagnosing every detected jig installation for Claude Code, Codex, and Antigravity across current project and user scopes, plus repository profile, migration, protection, guard, rubric, and legacy state. Read-only; fixes are delegated to project-setup, jig-update, github-sync, and version-rubric."
+description: "Use when diagnosing every detected jig installation for Claude Code, Codex, and Antigravity across current project and user scopes, plus repository profile, migration, protection, guard, rubric, and legacy state. Read-only; fixes are delegated to jig-setup, jig-update, github-sync, and version-rubric."
 ---
 
 # jig Doctor
@@ -91,7 +91,7 @@ Checks 5–10 diagnose repository state, not global installation state. Run them
    - Marked but `<N>` lower than the latest guard version (`v1`): outdated.
    - Marked but missing `merge-base --is-ancestor` or `refs/heads/main`, or not executable: locally modified or broken.
    - Fix owner is `github-sync`; report, never modify.
-9. **GitHub profile**: report whether the profile came from `JIG_GITHUB_PROFILE`, local `jig.githubProfile`, or the globally active fallback. When a profile is configured, verify its stored credential and `gh api user` identity without printing the token. A missing credential, identity mismatch, or missing local profile for a multi-account host is a `project-setup` finding.
+9. **GitHub profile**: report whether the profile came from `JIG_GITHUB_PROFILE`, local `jig.githubProfile`, or the globally active fallback. When a profile is configured, verify its stored credential and `gh api user` identity without printing the token. A missing credential, identity mismatch, or missing local profile for a multi-account host is a `jig-setup` finding.
 
 10. **Version rubric**: resolve the path from `JIG_VERSION_RUBRIC`, then local `jig.versionRubric`, then `.jig/versioning.md`.
    - Report the source. A path from the environment variable is session-only; say so.
@@ -122,7 +122,7 @@ Checks 5–10 diagnose repository state, not global installation state. Run them
    - protection mismatch, or protection available but never set up → `github-sync` (deletions only with explicit confirmation)
    - protection unavailable on this plan, or skipped by choice → no action; do not recommend a fix for something the repository cannot have or the user declined
    - local guard missing, outdated, or modified → `github-sync`
-   - GitHub profile missing, ambiguous, or invalid → `project-setup`
+   - GitHub profile missing, ambiguous, or invalid → `jig-setup`
    - version rubric missing, contract-broken, or uncommitted → `version-rubric`
    - branch state divergence → stop releases and reconcile manually; never force-push.
 

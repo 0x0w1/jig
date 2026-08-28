@@ -24,7 +24,7 @@
 
 ## 빠른 시작
 
-![jig 빠른 시작: CLI 하나에 설치하고, project-setup으로 프로필·버전 기준·브랜치 수렴·점검을 끝낸 뒤, jig-doctor로 확인하고, 이후 작업은 develop-task-flow와 github-release로 흘러갑니다](docs/assets/quick-start.svg)
+![jig 빠른 시작: CLI 하나에 설치하고, jig-setup으로 프로필·버전 기준·브랜치 수렴·점검을 끝낸 뒤, jig-doctor로 확인하고, 이후 작업은 develop-task-flow와 github-release로 흘러갑니다](docs/assets/quick-start.svg)
 
 준비물: git 저장소, 그리고 Codex·Antigravity는 `curl` 또는 `wget`. GitHub 연동까지 하려면 `gh` 로그인이 필요하지만 스킬 설치 자체에는 필요 없습니다.
 
@@ -48,7 +48,7 @@ curl -fsSL https://raw.githubusercontent.com/0x0w1/jig/main/install.sh \
 
 ### 2. 저장소에 연결
 
-에이전트 세션에서 `project-setup`을 실행합니다. Claude Code는 `/jig:project-setup`, Codex와 Antigravity는 `jig-project-setup`입니다.
+에이전트 세션에서 `jig-setup`을 실행합니다. Claude Code는 `/jig:jig-setup`, Codex와 Antigravity는 `jig-setup`입니다.
 
 한 번 실행으로 네 가지가 끝납니다.
 
@@ -72,7 +72,7 @@ jig는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니다
 | `develop-task-flow` | 작업 브랜치에서 작업 후 `develop`에 squash merge |
 | `github-release` | `develop`을 `main`으로 승격, 태그와 릴리즈 발행 |
 | `github-sync` | 브랜치 수렴, 선택적 보호 설정, 로컬 `pre-push` 가드 |
-| `project-setup` | 저장소에 GitHub CLI 프로필 연결 |
+| `jig-setup` | 저장소에 GitHub CLI 프로필 연결 |
 | `jig-update` | 설치본을 최신 릴리즈로 갱신 |
 | `jig-doctor` | 설치 상태 read-only 진단 |
 | `readme` | README 생성, 기존 README는 코드와 대조해 수정 |

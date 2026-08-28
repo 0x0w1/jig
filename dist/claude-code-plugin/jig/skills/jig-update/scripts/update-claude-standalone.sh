@@ -297,6 +297,37 @@ ledger_owns_mapping() {
   ledger_value skills | tr ',' '\n' | grep -Fx "$ledger_mapping" >/dev/null 2>&1
 }
 
+selection_mapping_is_owned() {
+  selected_skill="$1"
+  selected_directory="$2"
+  ledger_owns_mapping "$selected_skill" "$selected_directory" && return 0
+  if [ "$selected_skill" = jig-setup ]; then
+    case "$selected_directory" in
+      project-setup|jig-project-setup)
+        ledger_owns_mapping project-setup "$selected_directory"
+        return $?
+        ;;
+    esac
+  fi
+  return 1
+}
+
+selection_provenance_is_valid() {
+  selected_provenance="$1"
+  selected_skill="$2"
+  selected_directory="$3"
+  provenance_is_valid "$selected_provenance" "$selected_skill" "$selected_directory" && return 0
+  if [ "$selected_skill" = jig-setup ]; then
+    case "$selected_directory" in
+      project-setup|jig-project-setup)
+        provenance_is_valid "$selected_provenance" project-setup "$selected_directory"
+        return $?
+        ;;
+    esac
+  fi
+  return 1
+}
+
 LEDGER_PRESENT=0
 if [ -e "$LEDGER" ]; then
   [ ! -L "$LEDGER" ] || error "standalone installation ledger must not be a symlink: $LEDGER"
@@ -382,7 +413,11 @@ source_url() {
   source_skill="$1"
   source_directory="$2"
   source_relative="$3"
-  if [ "$source_directory" = "$source_skill" ]; then
+  if [ "$source_skill" = jig-setup ] && [ "$source_directory" = project-setup ]; then
+    printf '%s/dist/claude-code-plugin/jig/skills/jig-setup/%s\n' "$RELEASE_ROOT" "$source_relative"
+  elif [ "$source_skill" = jig-setup ] && [ "$source_directory" = jig-project-setup ]; then
+    printf '%s/dist/codex/.agents/skills/jig-setup/%s\n' "$RELEASE_ROOT" "$source_relative"
+  elif [ "$source_directory" = "$source_skill" ]; then
     printf '%s/dist/claude-code-plugin/jig/skills/%s/%s\n' "$RELEASE_ROOT" "$source_skill" "$source_relative"
   else
     printf '%s/dist/codex/.agents/skills/%s/%s\n' "$RELEASE_ROOT" "$source_directory" "$source_relative"
@@ -400,13 +435,14 @@ for skill in $(awk -F '\t' '!/^#/ && NF >= 1 { print $1 }' "$MANIFEST"); do
 
   candidates="$skill"
   [ "$prefixed" = "$skill" ] || candidates="$candidates $prefixed"
+  [ "$skill" != jig-setup ] || candidates="$candidates project-setup jig-project-setup"
 
   for directory_name in $candidates; do
     skill_root="$ROOT/$directory_name"
     [ -d "$skill_root" ] || continue
     FOUND=$((FOUND + 1))
 
-    if [ "$LEDGER_PRESENT" -eq 1 ] && ! ledger_owns_mapping "$skill" "$directory_name"; then
+    if [ "$LEDGER_PRESENT" -eq 1 ] && ! selection_mapping_is_owned "$skill" "$directory_name"; then
       log "SKIP skill directory not owned by installation ledger: $skill_root"
       continue
     fi
@@ -421,7 +457,7 @@ for skill in $(awk -F '\t' '!/^#/ && NF >= 1 { print $1 }' "$MANIFEST"); do
     if [ -e "$provenance" ]; then
       [ ! -L "$provenance" ] || error "skill provenance must not be a symlink: $provenance"
       [ -f "$provenance" ] || error "skill provenance is not a regular file: $provenance"
-      if ! provenance_is_valid "$provenance" "$skill" "$directory_name"; then
+      if ! selection_provenance_is_valid "$provenance" "$skill" "$directory_name"; then
         if [ "$LEDGER_PRESENT" -eq 1 ]; then
           error "installed skill provenance conflicts with the installation ledger: $skill_root"
         fi
@@ -432,10 +468,21 @@ for skill in $(awk -F '\t' '!/^#/ && NF >= 1 { print $1 }' "$MANIFEST"); do
       expected_title=$(canonical_title "$canonical_entry")
       installed_title=
       [ ! -f "$skill_entry" ] || installed_title=$(canonical_title "$skill_entry")
+      installed_name=
+      [ ! -f "$skill_entry" ] || installed_name=$(frontmatter_name "$skill_entry")
+      markerless_identity_matches=0
+      if [ "$installed_name" = "$directory_name" ] && [ "$installed_title" = "$expected_title" ]; then
+        markerless_identity_matches=1
+      elif [ "$skill" = jig-setup ] && [ "$installed_title" = '# Project Setup' ]; then
+        case "$directory_name:$installed_name" in
+          project-setup:project-setup|jig-project-setup:jig-project-setup)
+            markerless_identity_matches=1
+            ;;
+        esac
+      fi
       if [ ! -f "$skill_entry" ] \
-        || [ "$(frontmatter_name "$skill_entry")" != "$directory_name" ] \
         || [ -z "$expected_title" ] \
-        || [ "$installed_title" != "$expected_title" ]; then
+        || [ "$markerless_identity_matches" -ne 1 ]; then
         log "SKIP ambiguous markerless skill directory: $skill_root"
         continue
       fi

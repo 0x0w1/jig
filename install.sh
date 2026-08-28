@@ -92,7 +92,7 @@ Version:
   AGENTS.md / GEMINI.md; the jig-update and jig-doctor skills read this stamp.
 
 GitHub profile:
-  GitHub profile is optional during installation. Configure it afterward with the installed project-setup skill.
+  GitHub profile is optional during installation. Configure it afterward with the installed jig-setup skill.
   When provided, project scope resolves --github-profile, JIG_GITHUB_PROFILE, then local git config jig.githubProfile.
   --github-account and JIG_GITHUB_ACCOUNT remain supported aliases.
   Use --github-host <host> or JIG_GITHUB_HOST for GitHub Enterprise hosts.
@@ -304,14 +304,24 @@ manifest_has_skill() {
   ' "$MANIFEST_TMP"
 }
 
+canonical_skill_name() {
+  case "$1" in
+    project-setup) printf '%s\n' 'jig-setup' ;;
+    *) printf '%s\n' "$1" ;;
+  esac
+}
+
 resolve_selected_skills() {
   if [ -z "$SKILLS_INPUT" ]; then
     SELECTED_SKILLS=$(manifest_default_skills)
   else
     SELECTED_SKILLS=""
     for requested_skill in $(printf '%s' "$SKILLS_INPUT" | tr ',' ' '); do
-      manifest_has_skill "$requested_skill" || error "unknown skill: $requested_skill"
-      SELECTED_SKILLS="$SELECTED_SKILLS $requested_skill"
+      canonical_skill=$(canonical_skill_name "$requested_skill")
+      manifest_has_skill "$canonical_skill" || error "unknown skill: $requested_skill"
+      if ! skill_selected "$canonical_skill"; then
+        SELECTED_SKILLS="$SELECTED_SKILLS $canonical_skill"
+      fi
     done
   fi
   [ -n "${SELECTED_SKILLS# }" ] || error "no skills selected."
@@ -789,7 +799,7 @@ sync_github_repository_settings() {
   fi
 
   if [ -z "$GITHUB_ACCOUNT" ]; then
-    pass_task "GitHub profile is not configured; repository settings sync is deferred to project-setup"
+    pass_task "GitHub profile is not configured; repository settings sync is deferred to jig-setup"
     return 0
   fi
 
@@ -820,8 +830,8 @@ print_guide() {
   printf '\nGUIDE\n'
   printf '%s\n' '  Remaining manual steps:'
   if [ -z "$GITHUB_ACCOUNT" ]; then
-    printf '%s\n' '    - Run the installed `jig-project-setup` skill to select this repository GitHub profile.'
-    printf '%s\n' '    - Claude Code users run `/jig:project-setup`; Codex and Antigravity users run `jig-project-setup`.'
+    printf '%s\n' '    - Run the installed `jig-setup` skill to select this repository GitHub profile.'
+    printf '%s\n' '    - Claude Code users run `/jig:jig-setup`; Codex and Antigravity users run `jig-setup`.'
     return 0
   fi
   printf '%s\n' '    - Optional: protect `main` and `develop` against force pushes and deletion; do not require pull requests.'
@@ -956,7 +966,7 @@ main() {
   if [ "$SCOPE" = "project" ] && [ -n "$GITHUB_ACCOUNT" ]; then
     log "GitHub profile source: ${GITHUB_PROFILE_SOURCE:-explicit input}"
   elif [ "$SCOPE" = "project" ]; then
-    log "GitHub profile will be configured after installation with project-setup"
+    log "GitHub profile will be configured after installation with jig-setup"
   fi
 
   need_downloader

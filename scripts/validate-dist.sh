@@ -23,7 +23,7 @@ skill_title() {
     github-sync) printf '%s\n' "# GitHub Sync" ;;
     github-release) printf '%s\n' "# GitHub Release" ;;
     develop-task-flow) printf '%s\n' "# Develop Task Flow" ;;
-    project-setup) printf '%s\n' "# Project Setup" ;;
+    jig-setup) printf '%s\n' "# jig Setup" ;;
     jig-update) printf '%s\n' "# jig Update" ;;
     jig-doctor) printf '%s\n' "# jig Doctor" ;;
     readme) printf '%s\n' "# README" ;;
@@ -59,6 +59,7 @@ require_text "dist/claude-code-plugin/jig/skills/jig-update/scripts/update-claud
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" '~/.claude/skills'
 sh scripts/test-update-claude-standalone.sh
 sh scripts/test-doctor-installation-inventory.sh
+sh scripts/test-install-skill-aliases.sh
 # The product name is jig everywhere the user types it.
 require_text .claude-plugin/marketplace.json '"name": "jig"'
 require_text .claude-plugin/marketplace.json '"./dist/claude-code-plugin/jig"'
@@ -70,7 +71,7 @@ fi
 require_text install.sh "jig.githubProfile"
 require_text install.sh "gh auth token"
 require_text install.sh "GitHub profile is optional during installation"
-require_text install.sh "repository settings sync is deferred to project-setup"
+require_text install.sh "repository settings sync is deferred to jig-setup"
 
 if ! sh -n install.sh; then
   fail "install.sh has invalid shell syntax"
@@ -132,8 +133,8 @@ require_text "dist/codex/.agents/skills/jig-github-release/SKILL.md" 'git push o
 require_text "dist/antigravity/.agents/skills/jig-github-release/SKILL.md" 'gh release create'
 
 # The version rubric is a contract between four skills: version-rubric owns the file,
-# github-release reads it, project-setup delegates to it, jig-doctor reports it.
-for rubric_skill in github-release project-setup jig-doctor version-rubric; do
+# github-release reads it, jig-setup delegates to it, jig-doctor reports it.
+for rubric_skill in github-release jig-setup jig-doctor version-rubric; do
   require_text "dist/claude-code-plugin/jig/skills/$rubric_skill/SKILL.md" ".jig/versioning.md"
   require_text "dist/codex/.agents/skills/$(prefixed_skill_name "$rubric_skill")/SKILL.md" ".jig/versioning.md"
 done
@@ -167,8 +168,8 @@ require_text "dist/claude-code-plugin/jig/skills/github-release/SKILL.md" "chang
 require_text "dist/codex/.agents/skills/jig-version-rubric/SKILL.md" "JIG_VERSION_RUBRIC"
 require_text "dist/antigravity/.agents/skills/jig-version-rubric/SKILL.md" "jig.versionRubric"
 
-if grep -F 'must a human step in to keep using it' dist/claude-code-plugin/jig/skills/project-setup/SKILL.md >/dev/null 2>&1; then
-  fail "project-setup must delegate to version-rubric, not duplicate the default rubric"
+if grep -F 'must a human step in to keep using it' dist/claude-code-plugin/jig/skills/jig-setup/SKILL.md >/dev/null 2>&1; then
+  fail "jig-setup must delegate to version-rubric, not duplicate the default rubric"
 fi
 
 # The rubric moved jig's own facts out of the distributed release skill. Keep them out.
@@ -364,10 +365,10 @@ if ! grep -F "Optional: protect" install.sh >/dev/null 2>&1; then
 fi
 require_text "dist/codex/.agents/skills/jig-github-sync/SKILL.md" "jig:pre-push v1"
 require_text "dist/antigravity/.agents/skills/jig-github-sync/SKILL.md" "jig:pre-push v1"
-require_text "dist/claude-code-plugin/jig/skills/project-setup/SKILL.md" "jig.githubProfile"
-require_text "dist/claude-code-plugin/jig/skills/project-setup/SKILL.md" "Use after installing jig"
-require_text "dist/codex/.agents/skills/jig-project-setup/SKILL.md" "JIG_GITHUB_PROFILE"
-require_text "dist/antigravity/.agents/skills/jig-project-setup/SKILL.md" "Do not use \`gh auth switch\`"
+require_text "dist/claude-code-plugin/jig/skills/jig-setup/SKILL.md" "jig.githubProfile"
+require_text "dist/claude-code-plugin/jig/skills/jig-setup/SKILL.md" "Use after installing jig"
+require_text "dist/codex/.agents/skills/jig-setup/SKILL.md" "JIG_GITHUB_PROFILE"
+require_text "dist/antigravity/.agents/skills/jig-setup/SKILL.md" "Do not use \`gh auth switch\`"
 
 # The migration block grammar is a contract between three skills: github-release writes it,
 # jig-update executes it, jig-doctor reports it. Drift in any one of them breaks the chain.

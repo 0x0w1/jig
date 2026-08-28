@@ -2,9 +2,9 @@
 
 [한국어](github-repository-settings.ko.md)
 
-This document describes what `install.sh` (for Codex and Antigravity CLI) does on GitHub. Claude Code installs as a plugin and never goes through the installer, so profile selection and convergence happen afterwards through `/jig:project-setup`.
+This document describes what `install.sh` (for Codex and Antigravity CLI) does on GitHub. Claude Code installs as a plugin and never goes through the installer, so profile selection and convergence happen afterwards through `/jig:jig-setup`.
 
-Installing jig skills in project scope needs no GitHub profile. Installing without one only skips the GitHub repository settings sync; the installed `project-setup` sets `JIG_GITHUB_PROFILE` or the local `jig.githubProfile` later. A profile's credential is passed per command through the environment and never changes the globally active account.
+Installing jig skills in project scope needs no GitHub profile. Installing without one only skips the GitHub repository settings sync; the installed `jig-setup` sets `JIG_GITHUB_PROFILE` or the local `jig.githubProfile` later. A profile's credential is passed per command through the environment and never changes the globally active account.
 
 ## Repository Rules
 
@@ -119,7 +119,7 @@ To see the planned work without changing files or GitHub settings, use dry-run m
 sh install.sh --target codex --scope project --dry-run
 ```
 
-That validates the skill install plan without a profile. After installing, running `jig-project-setup` selects the profile, ensures `develop`, and settles branch protection. To wire up GitHub during the install, pass a profile:
+That validates the skill install plan without a profile. After installing, running `jig-setup` selects the profile, ensures `develop`, and settles branch protection. To wire up GitHub during the install, pass a profile:
 
 ```bash
 sh install.sh --target codex --scope project --github-profile your-account

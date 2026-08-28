@@ -1,9 +1,9 @@
 ---
-name: project-setup
+name: jig-setup
 description: Use after installing jig for Claude Code, Codex, or Antigravity to select and verify the repository GitHub CLI profile through JIG_GITHUB_PROFILE or local git config, finish GitHub repository convergence, or repair an incomplete jig installation without changing the globally active gh account.
 ---
 
-# Project Setup
+# jig Setup
 
 Bind an installed jig target to a repository GitHub profile, then finish repository convergence. Store only the profile login and host; keep credentials in the GitHub CLI credential store.
 
@@ -37,10 +37,10 @@ Resolve the host from `JIG_GITHUB_HOST`, then `git config --local --get jig.gith
    - otherwise write the repository-local `jig.githubProfile` and `jig.githubHost` values
 4. Verify the installed target and repair only when incomplete:
    - Claude Code: confirm `jig@jig` is enabled; when missing, run `claude plugin marketplace add 0x0w1/jig --scope <project|user>` and `claude plugin install jig@jig --scope <project|user>`
-   - Codex or Antigravity: confirm the jig version stamp and `jig-project-setup`; when incomplete, rerun `install.sh` for the detected target and preserve the stamped skill selection
+   - Codex or Antigravity: confirm the jig version stamp and `jig-setup`; when incomplete, rerun `install.sh` for the detected target and preserve the stamped skill selection
 5. Verify:
    - Claude Code: `claude plugin list` shows `jig@jig` enabled
-   - Codex: `AGENTS.md` has the jig version stamp and `.agents/skills/jig-project-setup/SKILL.md` exists
+   - Codex: `AGENTS.md` has the jig version stamp and `.agents/skills/jig-setup/SKILL.md` exists
    - Antigravity: `GEMINI.md` has the stamp and the same skill file exists
    - the configured profile resolves to the expected login without changing the globally active `gh` account
 6. Settle the version rubric:

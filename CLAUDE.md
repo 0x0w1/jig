@@ -6,7 +6,7 @@ Use these repo-scoped Claude Code skills:
 - Release: `github-release` from `.claude/skills/github-release/SKILL.md`.
 - Ordinary implementation tasks targeting `develop`: `develop-task-flow` from `.claude/skills/develop-task-flow/SKILL.md`.
 - README writing/updating: `readme` from `.claude/skills/readme/SKILL.md`.
-- jig project installation and GitHub profile setup: `project-setup` from `.claude/skills/project-setup/SKILL.md`.
+- jig project installation and GitHub profile setup: `jig-setup` from `.claude/skills/jig-setup/SKILL.md`.
 - jig installation updates: `jig-update` from `.claude/skills/jig-update/SKILL.md`.
 - jig installation diagnostics: `jig-doctor` from `.claude/skills/jig-doctor/SKILL.md`.
 - Version grading rubric: `version-rubric` from `.claude/skills/version-rubric/SKILL.md`.

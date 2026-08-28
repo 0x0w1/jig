@@ -18,7 +18,7 @@ What separates it from a plain skill marketplace:
 - installer: installs pinned to the latest release tag, `--version` rollback, `--skills` selective install (the `manifest.tsv` catalog; codex and antigravity only)
 - three workflow skills: `develop-task-flow`, `github-release`, `github-sync`
 - two lifecycle skills: `jig-update`, `jig-doctor`
-- one onboarding skill: `project-setup` (selects and verifies the per-repository GitHub profile after install)
+- one onboarding skill: `jig-setup` (selects and verifies the per-repository GitHub profile after install)
 - three documentation skills: `readme` (write or update a README), `version-rubric` (settle the version rubric and ship the per-type catalog), `rubric-scan` (scan the repository and recommend one)
 - two layers of local guard: the git `pre-push` hook `github-sync` installs (all CLIs) and the Claude Code plugin's PreToolUse hook (blocks the `--no-verify` bypass)
 - distribution: the plugin marketplace for Claude Code (`jig@jig`, namespaced by the host as `/jig:<skill>`), `jig-` prefixed skill files for Codex and Antigravity

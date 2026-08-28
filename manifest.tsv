@@ -1,7 +1,7 @@
 github-sync	solo-cli	yes
 github-release	solo-cli	yes
 develop-task-flow	solo-cli	yes
-project-setup	solo-cli	yes
+jig-setup	solo-cli	yes
 jig-update	solo-cli	yes
 jig-doctor	solo-cli	yes
 readme	solo-cli	yes

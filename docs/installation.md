@@ -41,7 +41,7 @@ The host namespaces the skills.
 /jig:github-sync
 /jig:develop-task-flow
 /jig:github-release
-/jig:project-setup
+/jig:jig-setup
 /jig:jig-update
 /jig:jig-doctor
 /jig:readme
@@ -103,7 +103,7 @@ project scope:
   jig-github-sync/SKILL.md
   jig-github-release/SKILL.md
   jig-develop-task-flow/SKILL.md
-  jig-project-setup/SKILL.md
+  jig-setup/SKILL.md
   jig-update/SKILL.md
   jig-doctor/SKILL.md
   jig-readme/SKILL.md
@@ -130,7 +130,7 @@ Codex recognizes the `SKILL.md` under `.agents/skills/*` as a native skill. Both
 The installed version and skill selection are stamped inside the managed block.
 
 ```text
-<!-- jig:version v0.2.0 skills=github-sync,github-release,develop-task-flow,project-setup,jig-update,jig-doctor -->
+<!-- jig:version v0.2.0 skills=github-sync,github-release,develop-task-flow,jig-setup,jig-update,jig-doctor -->
 ```
 
 The `jig-update` skill reads that stamp to reinstall the same selection at the latest release, and `jig-doctor` uses it as the basis for diagnosis. To update, run the same command again — the installer is idempotent and refreshes only what changed.
@@ -142,7 +142,7 @@ The installer deletes nothing. Remove it yourself.
 ```bash
 rm -rf .agents/skills/jig-github-sync .agents/skills/jig-github-release \
   .agents/skills/jig-develop-task-flow .agents/skills/jig-update .agents/skills/jig-doctor \
-  .agents/skills/jig-project-setup .agents/skills/jig-readme \
+  .agents/skills/jig-setup .agents/skills/jig-readme \
   .agents/skills/jig-version-rubric .agents/skills/jig-rubric-scan
 ```
 
@@ -240,7 +240,7 @@ In project scope, when a GitHub profile is already settled and `gh` is usable, t
 1. Settles the profile from `JIG_GITHUB_PROFILE`, the local `jig.githubProfile`, or `--github-profile`, running `gh auth login` if needed. It uses that profile's credential per command and never changes the globally active account.
 2. Creates `develop` from the current commit of `main` when the remote has no `develop`.
 
-Without a profile, the skill files still install and only this step is deferred until `project-setup`. It is also skipped, with a pass log, when there is no `.git` repository or the repository is not connected to GitHub.
+Without a profile, the skill files still install and only this step is deferred until `jig-setup`. It is also skipped, with a pass log, when there is no `.git` repository or the repository is not connected to GitHub.
 
 **The installer never applies branch protection.** It points at the remaining step in the `GUIDE` output, and the `github-sync` skill applies it — asking first, since it is optional. See [GitHub repository settings](github-repository-settings.md) for the conditions.
 
@@ -280,9 +280,9 @@ sh install.sh --target codex --scope project \
 
 ## First Step After Installing
 
-Whichever CLI you installed, the GitHub profile can be settled afterwards. Run the `project-setup` skill to verify the installation and the profile, and to converge the repository onto the jig branch model.
+Whichever CLI you installed, the GitHub profile can be settled afterwards. Run the `jig-setup` skill to verify the installation and the profile, and to converge the repository onto the jig branch model.
 
-- Claude Code: `/jig:project-setup`
-- Codex and Antigravity: `jig-project-setup`
+- Claude Code: `/jig:jig-setup`
+- Codex and Antigravity: `jig-setup`
 
 The skill stores no token; it uses only the profile name from `JIG_GITHUB_PROFILE` or the local `git config`. It then runs `github-sync` to ensure `develop` and settle branch protection, and `jig-doctor` to check the state.
