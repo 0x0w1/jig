@@ -20,9 +20,9 @@
 
 사이드 프로젝트마다 AI 에이전트(Claude Code, Codex, Antigravity CLI)를 쓰다 보면, 브랜치 규칙·커밋 규칙·릴리즈 절차를 프로젝트마다·에이전트마다 다시 알려줘야 합니다. jig는 하나의 절차 원본을 어느 에이전트 환경에나 설치하고, 설치된 모든 곳을 최신 상태로 유지하며 진단합니다. 규칙 파일이 부탁만 할 수 있는 것을 jig는 강제하고, 버전으로 배포하고, 등급으로 판정합니다.
 
-- 실행되면 안 되는 push — `PreToolUse` 가드가 툴 호출 단계에서, 추적되는 `pre-push` hook이 git 층위에서 이중으로 차단
-- 저장소 열 곳에 복붙된 규칙 — 설치본마다 버전 스탬프, `jig-doctor`로 낡은 곳 식별, `jig-update`로 일괄 수렴
-- 매번 다시 다투는 릴리즈 등급 — 커밋된 `.jig/versioning.md`에 한 번 정하고 `github-release`가 그대로 읽음
+- `PreToolUse` 가드와 추적되는 `pre-push` hook — force push나 `main` 직접 push가 명령 단계에서 실패하니, 규칙을 기억하고 있을 필요가 없습니다
+- 설치본마다 붙는 버전 스탬프와 이를 읽는 `jig-doctor`·`jig-update` — 한 번 돌리면 어느 저장소가 뒤처졌는지 알려주고 함께 올려줍니다
+- `github-release`가 읽는 커밋된 `.jig/versioning.md` — `patch`/`minor`/`major`를 릴리즈마다 다시 정하지 않아도 됩니다
 
 지원 대상: **Claude Code**(권장), **Codex**, **Antigravity CLI**
 
