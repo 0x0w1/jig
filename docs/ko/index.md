@@ -14,4 +14,4 @@ jig의 설치, 저장소 workflow, 버전 정책, 스킬 문서를 탐색하는 
 
 ## 스킬
 
-설치되는 모든 jig 스킬의 상세 가이드는 [`skills/`](skills/index.md)에 둡니다. 각 가이드는 사용 시점, 읽기·변경 범위, 안전 경계, workflow를 설명합니다.
+설치되는 모든 jig 스킬의 상세 가이드는 [`skills/`](skills/index.md)에 있습니다. 각 가이드는 사용 시점, 읽기·변경 범위, 안전 경계, workflow를 설명합니다.

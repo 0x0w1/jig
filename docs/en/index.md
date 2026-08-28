@@ -14,4 +14,4 @@ Use this page as the English entry point for jig's installation, repository work
 
 ## Skills
 
-Detailed guides for every installed jig skill will live under [`skills/`](skills/index.md). Each guide explains when to use the skill, what it reads and changes, its safety boundaries, and its workflow.
+Detailed guides for every installed jig skill live under [`skills/`](skills/index.md). Each guide explains when to use the skill, what it reads and changes, its safety boundaries, and its workflow.

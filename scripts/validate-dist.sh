@@ -60,6 +60,7 @@ require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" '~/.claude
 sh scripts/test-update-claude-standalone.sh
 sh scripts/test-doctor-installation-inventory.sh
 sh scripts/test-install-skill-aliases.sh
+sh scripts/test-docs-structure.sh
 # The product name is jig everywhere the user types it.
 require_text .claude-plugin/marketplace.json '"name": "jig"'
 require_text .claude-plugin/marketplace.json '"./dist/claude-code-plugin/jig"'

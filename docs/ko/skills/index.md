@@ -2,4 +2,38 @@
 
 [English](../../en/skills/index.md) · [문서 홈](../index.md)
 
-jig가 배포하는 스킬을 설명하는 영역입니다. 스킬별 workflow 문서는 국문·영문에서 같은 구조로 관리합니다.
+jig는 단순한 prompt 모음이 아니라 저장소 절차를 배포합니다. 아래 가이드는 각 `SKILL.md`의 사용자 계약, 즉 사용 시점, 변경 범위, 중단 조건, 다른 스킬로의 위임을 설명합니다.
+
+## 전체 생명주기
+
+```mermaid
+flowchart LR
+    Install[jig 설치] --> Setup[jig-setup]
+    Setup --> Sync[github-sync]
+    Setup --> Doctor[jig-doctor]
+    Doctor --> Work[develop-task-flow]
+    Work --> Readme[readme]
+    Work --> Rubric[rubric-scan + version-rubric]
+    Rubric --> Release[github-release]
+    Release --> Update[jig-update]
+    Update --> Sync
+    Update --> Doctor
+```
+
+초기 설정에서 저장소에 올바른 GitHub identity를 연결하고, 일반 작업은 `develop`에 합친 뒤 릴리즈 시 `main`으로 fast-forward합니다. 이후 update와 doctor가 감지된 모든 설치본을 관리합니다.
+
+## 상황별 스킬
+
+| 필요 | 스킬 | Claude Code | Codex / Antigravity |
+|---|---|---|---|
+| 초기 설정 마무리 | [`jig-setup`](jig-setup.md) | `/jig:jig-setup` | `jig-setup` |
+| GitHub 수렴 | [`github-sync`](github-sync.md) | `/jig:github-sync` | `jig-github-sync` |
+| jig 진단 | [`jig-doctor`](jig-doctor.md) | `/jig:jig-doctor` | `jig-doctor` |
+| jig 업데이트 | [`jig-update`](jig-update.md) | `/jig:jig-update` | `jig-update` |
+| 일반 개발 | [`develop-task-flow`](develop-task-flow.md) | `/jig:develop-task-flow` | `jig-develop-task-flow` |
+| 릴리즈 발행 | [`github-release`](github-release.md) | `/jig:github-release` | `jig-github-release` |
+| README 관리 | [`readme`](readme.md) | `/jig:readme` | `jig-readme` |
+| rubric 추천 | [`rubric-scan`](rubric-scan.md) | `/jig:rubric-scan` | `jig-rubric-scan` |
+| rubric 작성 | [`version-rubric`](version-rubric.md) | `/jig:version-rubric` | `jig-version-rubric` |
+
+Claude Code는 `jig` plugin namespace로 스킬을 부릅니다. Codex와 Antigravity는 `jig-` prefix 디렉터리를 사용하며, 이미 `jig-`로 시작하는 이름에는 prefix를 중복하지 않습니다.

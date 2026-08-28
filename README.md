@@ -85,9 +85,10 @@ Skill bodies and the rubric catalog are written in English. What a skill **produ
 
 ## Documentation
 
-Written in Korean, except the rubric catalog.
+English guides live under `docs/en/`; matching Korean guides live under `docs/ko/`. The rubric catalog remains English-only because it ships as skill payload.
 
 - [Documentation home](docs/en/index.md): all English guides and the skill documentation entry point.
+- [Skill guides](docs/en/skills/index.md): detailed workflows, safety boundaries, and diagrams for every `SKILL.md`.
 - [Installation guide](docs/en/installation.md): what lands where for each CLI, installer options, skill namespacing, and removal.
 - [Version rubric](docs/en/version-rubric.md): how an installed project grades `patch`/`minor`/`major` on its own terms, plus the `.jig/versioning.md` file contract.
 - [Rubric catalog by project type](skills/version-rubric/rubrics/INDEX.md): 17 rubric drafts and the detection signal table `rubric-scan` uses. In English.
