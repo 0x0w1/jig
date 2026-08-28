@@ -18,7 +18,15 @@
 
 ## What This Is
 
-Using AI agents (Claude Code, Codex, Antigravity CLI) across side projects means re-explaining branch rules, commit rules, and release procedures to every project and every agent. jig removes that repetition: it installs the same set of procedure skills into any agent environment, and manages updates and health checks after the install.
+Using AI agents (Claude Code, Codex, Antigravity CLI) across side projects means re-explaining branch rules, commit rules, and release procedures to every project and every agent. jig settles those rules once, in a form a hook enforces and a version ships.
+
+Conventions on their own — branch prefixes, squash merges, a commit format — fit in a short rules file, and jig does not pretend otherwise. Three things do not fit there.
+
+- **A rule in a prompt is a request; a rule in a hook is a barrier.** The `PreToolUse` guard reads a push command and blocks the tool call before it runs, and the tracked `pre-push` hook blocks it again at git level, including the `--no-verify` attempt that would skip it. A rules file reproduces the prompt layer and nothing below it.
+- **Copied rules carry no version.** A rules file pasted into ten repositories cannot say which copy went stale. A jig installation carries a version stamp and its own selection, `jig-doctor` compares what is installed against that release's file catalog, and `jig-update` converges every installation it detects while preserving each selection.
+- **Release grading belongs in a file, not in a habit.** Nothing proves that a reworded agent instruction still fires on the same input, so the version number is the channel left for "a human should look at this." `.jig/versioning.md` holds that grading axis as committed, project-owned text.
+
+It pays off across several repositories and one or more agent CLIs. For a single repository, keeping jig current costs more than running the flow by hand.
 
 Supported: **Claude Code** (recommended), **Codex**, **Antigravity CLI**
 
@@ -67,7 +75,7 @@ From there, call a skill by name or just say what you want; the agent picks it.
 
 ## Skills
 
-Unlike a plain collection of skills, jig converges *repository state* — the branch model, branch protection, release discipline — and not only session procedures, then manages the install afterwards with `jig-update` and `jig-doctor`. One procedure source (`skills/`) is rendered into each CLI's native format: a plugin for Claude Code, `jig-` prefixed files for Codex and Antigravity.
+Unlike a plain collection of skills, jig converges *repository state* — the branch model, branch protection, release discipline — and not only session procedures. One procedure source (`skills/`) is rendered into each CLI's native format: a plugin for Claude Code, `jig-` prefixed files for Codex and Antigravity.
 
 | Skill | Role |
 |---|---|
