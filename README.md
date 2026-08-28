@@ -18,11 +18,11 @@
 
 ## What This Is
 
-Using AI agents (Claude Code, Codex, Antigravity CLI) across side projects means re-explaining branch rules, commit rules, and release procedures to every project and every agent. jig installs one procedure source into any agent environment, then keeps every installation current and diagnosable. What a rules file can only ask for, jig enforces, versions, and grades.
+Using AI agents (Claude Code, Codex, Antigravity CLI) across side projects means re-explaining branch rules, commit rules, and release procedures to every project and every agent. jig installs one procedure source into any agent environment, then keeps every installation current and diagnosable. What a rules file can only ask for, jig grades, enforces, and versions.
 
+- The release grade is decided once instead of re-argued at every release
 - A force push or a direct `main` push fails at the command, so nothing rests on remembering the rule
 - One command shows which repositories fell behind, and brings them all forward together
-- The release grade is decided once instead of re-argued at every release
 
 Supported: **Claude Code** (recommended), **Codex**, **Antigravity CLI**
 
