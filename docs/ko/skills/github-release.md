@@ -1,6 +1,6 @@
 # GitHub Release
 
-<!-- jig:skill-source-digest 00e7b822b90eb1e7f95448b3952756a6b7cb1aa5 -->
+<!-- jig:skill-source-digest 05ff8c6611ecd7ce18ef9311279fa09b1838350c -->
 
 [English](../../en/skills/github-release.md) · [스킬 index](index.md) · [버전 판정 기준](../version-rubric.md)
 
@@ -39,7 +39,7 @@ sequenceDiagram
     GitHub-->>Agent: non-draft release와 URL 검증
 ```
 
-판정은 `develop-task-flow`가 각 squash commit에 기록한 `Release-Grade` trailer에서 출발합니다. 범위 안 최고 등급이 하한이 되고, trailer가 없는 commit은 본문으로 판정해 하한에 반영합니다. 이후 rubric을 범위 전체에 다시 적용하며, 이때 하한은 올라갈 수 있어도 내려가지 않습니다. rubric의 순서화된 문항은 첫 일치에서 멈추고 hard rule이 등급을 올릴 수 있습니다. major version이 `0`일 때 `major`는 minor 자리를 올리지만 판정 자체는 `major`로 기록합니다.
+판정은 `develop-task-flow`가 각 squash commit에 기록한 `Release-Grade` trailer에서 출발합니다. 범위 안 최고 등급이 하한이 되고, trailer가 없는 commit은 본문으로 판정해 하한에 반영합니다. rubric에 `## Interface Paths` 표가 있으면 `git diff --name-only` 결과로 두 번째 하한을 계산하며, 바뀐 경로마다 처음 걸리는 행을 취합니다. 이 경로 하한은 참고값이라 이유를 남기면 더 낮게 낼 수 있고, 기록된 task 등급은 그렇지 않습니다. 이후 rubric을 범위 전체에 다시 적용하며, 이때 하한은 올라갈 수 있어도 내려가지 않습니다. rubric의 순서화된 문항은 첫 일치에서 멈추고 hard rule이 등급을 올릴 수 있습니다. major version이 `0`일 때 `major`는 minor 자리를 올리지만 판정 자체는 `major`로 기록합니다.
 
 ## Release note와 migration
 

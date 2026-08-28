@@ -1,6 +1,6 @@
 # Develop Task Flow
 
-<!-- jig:skill-source-digest d576956bd11a64b2b0209f6a080fd74b389dd434 -->
+<!-- jig:skill-source-digest 05f47a2cdb65ba1bca160b6894cc85e3b5d82d01 -->
 
 [English](../../en/skills/develop-task-flow.md) · [스킬 index](index.md)
 
@@ -40,7 +40,7 @@ flowchart LR
 
 squash commit이 release note의 원천입니다. subject는 conventional prefix를 사용하고, body는 저장소 언어의 사용자 관점 bullet을 담은 뒤 `Release-Grade: patch|minor|major` trailer로 끝납니다.
 
-등급 판정은 release 시점이 아니라 병합 시점에 합니다. 이 자리에는 diff와 test 결과가 아직 남아 있기 때문입니다. 등급은 `JIG_VERSION_RUBRIC`, `jig.versionRubric`, `.jig/versioning.md` 순으로 해석한 프로젝트 rubric을 이 task의 변경 경로에만 적용해 정합니다. 이후 `github-release`가 범위 안에 기록된 등급 중 가장 높은 값을 하한으로 삼습니다. rubric을 해석할 수 없으면 추측하지 않고 trailer를 생략합니다.
+등급 판정은 release 시점이 아니라 병합 시점에 합니다. 이 자리에는 diff와 test 결과가 아직 남아 있기 때문입니다. 등급은 `JIG_VERSION_RUBRIC`, `jig.versionRubric`, `.jig/versioning.md` 순으로 해석한 프로젝트 rubric을 이 task의 변경 경로에만 적용해 정합니다. rubric에 `## Interface Paths` 표가 있으면 경로를 눈으로 판단하지 않고 표에서 바닥을 읽습니다. 바뀐 경로마다 처음 걸리는 행을 취하며, 이 바닥은 참고값입니다. 이후 `github-release`가 범위 안에 기록된 등급 중 가장 높은 값을 하한으로 삼습니다. rubric을 해석할 수 없으면 추측하지 않고 trailer를 생략합니다.
 
 ## 읽기·변경 범위
 

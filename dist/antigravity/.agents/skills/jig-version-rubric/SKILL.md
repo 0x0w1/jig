@@ -23,7 +23,7 @@ Resolve the rubric path in this order:
 
 ### File Contract
 
-Two required sections, four optional. The section titles are the contract.
+Two required sections, five optional. The section titles are the contract.
 
 ```md
 # Version Policy
@@ -39,6 +39,7 @@ Two required sections, four optional. The section titles are the contract.
 | bump | definition |
 
 ## Hard Rules            (optional) conditions that always escalate
+## Interface Paths       (optional) changed paths that set a starting grade
 ## Release Notes         (optional) note section order and titles
 ## Version Format        (optional) tag pattern, pre-1.0 handling, summary language
 ## Pre-Release Checks    (optional) commands to run before releasing
@@ -49,6 +50,25 @@ Two required sections, four optional. The section titles are the contract.
 - The `> Basis:` line records whether the default was adopted or the rubric was written for the project.
 - Sections beyond these are read as context, not ignored. A project may add its own, such as a list of what counts as its public interface.
 
+### Interface Paths
+
+`## Public Interface`, where a rubric has one, is prose: a reader decides whether a change touched it. `## Interface Paths` is the machine-readable companion, so the grading skills can compute a starting grade from the diff instead of eyeballing it.
+
+```md
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `src/api/**` | the HTTP surface consumers call | `minor` |
+| `docs/**` | internal | `patch` |
+```
+
+- A changed path takes the floor of the **first row it matches**, so order specific globs above general ones. The path floor for a range is the highest floor any changed path took.
+- A path matching no row contributes nothing. A table that lists only the public paths is complete; there is no need to enumerate the internal ones.
+- **The floor is advisory.** Paths say what changed, never how, so a typo fix and a contract break under the same glob match the same row. A grade below the path floor is allowed and must record its reason; a grade above it needs no justification.
+- This is the opposite of a recorded task grade, which is a judgement made with the diff in hand and is never lowered. Keep the two apart in the report.
+- Write the globs against repository-root-relative paths, matching what `git diff --name-only` prints.
+
 ### Legacy Section Titles
 
 Rubrics written before this contract switched to English carry Korean titles. They stay valid, and every jig skill that reads a rubric accepts either spelling:
@@ -58,6 +78,7 @@ Rubrics written before this contract switched to English carry Korean titles. Th
 | `## Decision Order` | `## 판정 순서` |
 | `## Grade Definitions` | `## 등급 정의` |
 | `## Hard Rules` | `## 강경 규칙` |
+| `## Interface Paths` | `## 인터페이스 경로` |
 | `## Release Notes` | `## 릴리즈 노트` |
 | `## Version Format` | `## 버전 형식` |
 | `## Pre-Release Checks` | `## 릴리즈 전 검증` |

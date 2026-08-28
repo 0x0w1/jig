@@ -43,6 +43,27 @@ jig는 다른 저장소에 설치되는 도구다. 릴리즈 노트의 주 소�
 
 내부 — 깨져도 `patch`: `dist/` 레이아웃, `scripts/*`, 스킬 본문 내용, 버전 스탬프의 `version` 외 필드, 로그 문구, `README`·`docs` 구조
 
+## 인터페이스 경로
+
+| 경로 glob | 인터페이스 | 바닥 |
+|---|---|---|
+| `install.sh` | installer·프로필 계약 | `minor` |
+| `manifest.tsv` | 스킬 호출 이름 | `minor` |
+| `.claude-plugin/marketplace.json` | 플러그인·마켓플레이스 이름 | `minor` |
+| `hooks/**` | 저장소 모델, push 가드 | `minor` |
+| `skills/*/assets/**` | 설치본에 설치되는 리소스 | `minor` |
+| `skills/*/scripts/**` | 설치본이 실행하는 스크립트 | `minor` |
+| `skills/version-rubric/rubrics/**` | 카탈로그 payload | `patch` |
+| `skills/**` | 스킬 본문 | `patch` |
+| `dist/**` | 생성물 | `patch` |
+| `scripts/**` | 저장소 도구 | `patch` |
+| `docs/**` | 문서 | `patch` |
+| `README.md` | 문서 | `patch` |
+| `README.ko.md` | 문서 | `patch` |
+| `.jig/**` | 이 저장소의 판정 기준 | `patch` |
+
+바닥은 참고값이다. 경로는 무엇이 바뀌었는지만 말하고 어떻게 바뀌었는지는 말하지 않으므로, 공개 경로의 오타 수정처럼 더 낮게 낼 이유가 있으면 릴리즈 보고에 이유를 남긴다. 기록된 task 등급과 달리 이 바닥은 내릴 수 있다.
+
 ## 릴리즈 전 검증
 
 - `sh scripts/validate-dist.sh`

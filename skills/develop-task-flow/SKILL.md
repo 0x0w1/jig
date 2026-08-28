@@ -45,6 +45,8 @@ git diff --name-only origin/develop...HEAD
 
 Check that list against whatever the rubric names as the project's public interface. A path the rubric calls internal does not raise the grade on its own; a path it calls public sets the floor at the grade the rubric assigns it.
 
+When the rubric has an `## Interface Paths` table, read the floor from it instead of judging the paths by eye: each changed path takes the floor of the first row it matches, and the task floor is the highest of those. That floor is advisory — it says what the task touched, never how — so grading below it is allowed when the change under a public path does not reach that grade. Say so in the report when it happens.
+
 Record the verdict as a trailer on the last line of the squash commit body:
 
 ```text

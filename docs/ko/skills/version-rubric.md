@@ -1,6 +1,6 @@
 # Version Rubric
 
-<!-- jig:skill-source-digest e848de66272ebe3a62c52a4ee4b255a8b83821cd -->
+<!-- jig:skill-source-digest ad211d9d06cdd357e15919d3638245aa8ba19d28 -->
 
 [English](../../en/skills/version-rubric.md) · [스킬 index](index.md) · [Rubric 계약](../version-rubric.md)
 
@@ -17,7 +17,9 @@ rubric이 없을 때, project의 `patch`·`minor`·`major` 판정 방식을 revi
 - Claude Code: `/jig:version-rubric`
 - Codex·Antigravity: `jig-version-rubric`
 - 필수 section: `## Decision Order`, `## Grade Definitions`
-- 선택 section: `## Hard Rules`, `## Release Notes`, `## Version Format`, `## Pre-Release Checks`
+- 선택 section: `## Hard Rules`, `## Interface Paths`, `## Release Notes`, `## Version Format`, `## Pre-Release Checks`
+
+`## Interface Paths`는 path glob을 그 아래 변경이 가질 수 있는 최저 등급에 대응시킵니다. 덕분에 `develop-task-flow`와 `github-release`가 산문 목록을 눈으로 읽는 대신 `git diff --name-only`로 시작 등급을 계산합니다. 처음 걸리는 행이 이기고, 여기서 나온 바닥은 참고값이라 이유를 남기면 더 낮게 낼 수 있습니다.
 
 legacy Korean title도 유효하지만 English title과 한 파일에서 섞으면 안 됩니다. `> Basis:` line은 default adoption, catalog type, project-specific 원천을 기록합니다. clone과 CI가 같은 기준을 쓰도록 file을 commit해야 합니다.
 

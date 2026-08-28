@@ -35,8 +35,8 @@ Apply it like this:
 - Grade with the rubric's `## Decision Order`: ask its questions in order and **stop at the first match**. That ordering is fixed; a rubric cannot change it.
 - Check the graded bump against the rubric's `## Grade Definitions` before computing the version, and quote the deciding question in the report.
 - Apply `## Hard Rules` after the ordered questions. A rubric without that section has no escalation rule.
-- A missing optional section (`## Hard Rules`, `## Release Notes`, `## Version Format`, `## Pre-Release Checks`) means that rule does not apply.
-- Rubrics written before the contract switched to English carry Korean titles, and they stay valid. Accept either spelling for every section: `## 판정 순서`, `## 등급 정의`, `## 강경 규칙`, `## 릴리즈 노트`, `## 버전 형식`, `## 릴리즈 전 검증`, and `> 기준:` for `> Basis:`. Read the file as it is; never retitle it during a release.
+- A missing optional section (`## Hard Rules`, `## Interface Paths`, `## Release Notes`, `## Version Format`, `## Pre-Release Checks`) means that rule does not apply.
+- Rubrics written before the contract switched to English carry Korean titles, and they stay valid. Accept either spelling for every section: `## 판정 순서`, `## 등급 정의`, `## 강경 규칙`, `## 인터페이스 경로`, `## 릴리즈 노트`, `## 버전 형식`, `## 릴리즈 전 검증`, and `> 기준:` for `> Basis:`. Read the file as it is; never retitle it during a release.
 - Read sections beyond the contract as grading context; a project may list what counts as its public interface there.
 - Report the rubric path, its source, and whether it records the adopted default or a project-specific rubric.
 - Never edit the rubric file from this skill.
@@ -53,6 +53,19 @@ git log <previous>..HEAD --no-merges --format='%h %(trailers:key=Release-Grade,v
 - Grade any commit with no trailer from its subject and body, then fold that verdict into the floor. A range with no trailers at all grades exactly as it did before.
 - The floor is a starting point, not the verdict. Apply the rubric once more to the range as a whole: a combination of tasks can cost more than any one of them did alone, and `## Hard Rules` still runs against the composed notes in step 6.
 - Never settle the release below the floor. Raising it is a normal outcome; lowering it discards evidence that is no longer available.
+
+### Interface Path Floor
+
+When the rubric has an `## Interface Paths` table, compute a second floor from the changed paths:
+
+```bash
+git diff --name-only <previous>..HEAD
+```
+
+- Each changed path takes the floor of the **first row it matches**; rows are read top to bottom. The path floor is the highest floor any changed path took. A path matching no row contributes nothing.
+- Report the floor and the path that set it, so the reader can see which interface the range touched.
+- **This floor is advisory, unlike a recorded task grade.** Paths say what changed, never how. Releasing below it is allowed and must state the reason in the report — for example, that the only change under a public path was a comment. Releasing above it needs no justification.
+- A rubric with no such table skips this step entirely; do not invent globs for a project that did not write any.
 
 When the rubric is missing or unusable:
 
@@ -141,7 +154,7 @@ The `### Migration` section is not prose. It is the input an updating agent exec
    - `git fetch origin --prune`
    - verify local `develop` matches `origin/develop`
 2. Determine the previous version: latest `vX.Y.Z` tag reachable from `origin/main` (`git describe --tags --abbrev=0 origin/main`).
-3. Resolve and read the version rubric, then grade the release against it before computing anything. Start from the grades recorded by `develop-task-flow` per Recorded Task Grades, read the subjects and bodies of any commit that carries none, and review that floor against the rubric for the range as a whole. Handle a missing, uninstalled, or broken rubric per Version Rubric.
+3. Resolve and read the version rubric, then grade the release against it before computing anything. Start from the grades recorded by `develop-task-flow` per Recorded Task Grades, read the subjects and bodies of any commit that carries none, compute the path floor per Interface Path Floor when the rubric has that table, and review both floors against the rubric for the range as a whole. Handle a missing, uninstalled, or broken rubric per Version Rubric.
    - If the graded bump is higher than the one the user requested, say so with the specific reason and ask before continuing. The user's choice wins if they repeat it; record the graded verdict in the report either way.
    - If the graded bump is lower, use the requested one; a user may always release higher than required.
 4. Verify `origin/develop` already contains every intended release change. If not, stop and run the Develop-First Gate.
@@ -164,6 +177,7 @@ Keep reports short and include:
 - Previous and new version
 - Rubric path, source, and kind (adopted default or project-specific)
 - Recorded task-grade floor and the commit that set it, or that the range carried no trailers
+- Interface path floor and the path that set it, or that the rubric has no `## Interface Paths` table; when the release lands below it, the reason
 - Graded bump versus the requested bump, with the rubric question that decided it
 - `develop` to `main` promotion result
 - Tag and release status

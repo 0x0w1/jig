@@ -1,6 +1,6 @@
 # Develop Task Flow
 
-<!-- jig:skill-source-digest d576956bd11a64b2b0209f6a080fd74b389dd434 -->
+<!-- jig:skill-source-digest 05f47a2cdb65ba1bca160b6894cc85e3b5d82d01 -->
 
 [한국어](../../ko/skills/develop-task-flow.md) · [Skill index](index.md)
 
@@ -40,7 +40,7 @@ flowchart LR
 
 The squash commit is the release-note source. Its subject uses a conventional prefix and its body contains user-facing bullets in the repository's language, ending with a `Release-Grade: patch|minor|major` trailer.
 
-Grading happens at merge rather than at release, because the diff and the tests are still in hand here. The grade comes from the project's own rubric — resolved from `JIG_VERSION_RUBRIC`, `jig.versionRubric`, or `.jig/versioning.md` — applied to the changed paths of this task alone. `github-release` later takes the highest grade recorded across the range as its floor. When no rubric resolves, the trailer is omitted rather than guessed.
+Grading happens at merge rather than at release, because the diff and the tests are still in hand here. The grade comes from the project's own rubric — resolved from `JIG_VERSION_RUBRIC`, `jig.versionRubric`, or `.jig/versioning.md` — applied to the changed paths of this task alone. When the rubric carries an `## Interface Paths` table, the floor is read from it rather than judged by eye: each changed path takes the first matching row, and that floor is advisory. `github-release` later takes the highest grade recorded across the range as its floor. When no rubric resolves, the trailer is omitted rather than guessed.
 
 ## Reads and writes
 

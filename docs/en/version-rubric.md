@@ -148,19 +148,38 @@ While the project is on `0.x`, `minor` and `major` land on the same position (`v
 
 ## The File Contract
 
-Two required sections, four optional. **The section titles are the contract.**
+Two required sections, five optional. **The section titles are the contract.**
 
 | Section | Required | Contents |
 |---|---|---|
 | `## Decision Order` | required | three questions asked in order, each with its grade |
 | `## Grade Definitions` | required | the per-grade definition table |
 | `## Hard Rules` | optional | conditions that always escalate |
+| `## Interface Paths` | optional | changed paths that set a starting grade |
 | `## Release Notes` | optional | override for note section order and titles |
 | `## Version Format` | optional | tag pattern, pre-1.0 handling, summary language |
 | `## Pre-Release Checks` | optional | commands to run before releasing |
 
 - `## Decision Order` is asked in order and **stops at the first match.** A rubric file cannot change that meaning.
 - An optional section the file omits does not apply to that project. Deleting `## Hard Rules` means there is no escalation rule; the default's rules do not step in.
+
+### Interface Paths
+
+`## Interface Paths` is the one optional section that is read by a command rather than by a person. Where a prose list of the public interface leaves the grading skills to judge by eye whether a change touched it, this table lets them compute a starting grade from `git diff --name-only`.
+
+```md
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `src/api/**` | the HTTP surface consumers call | `minor` |
+| `docs/**` | internal | `patch` |
+```
+
+- A changed path takes the floor of the **first row it matches**, so specific globs go above general ones. The floor for a range is the highest one any changed path took, and a path matching no row contributes nothing.
+- **The floor is advisory.** Paths say what changed, never how, so a typo fix and a broken promise under the same glob match the same row. A release may land below the floor as long as it records why; landing above it needs no justification.
+- That is the opposite of the `Release-Grade` trailer `develop-task-flow` writes, which was a judgement made with the diff in hand and is never lowered. Both appear separately in the release report.
+- Omit the section and nothing changes: the release grades exactly as it did before.
 
 ### Section Titles
 
@@ -173,6 +192,7 @@ The contract titles are English. The skills are written in English throughout, s
 | `## Decision Order` | `## 판정 순서` |
 | `## Grade Definitions` | `## 등급 정의` |
 | `## Hard Rules` | `## 강경 규칙` |
+| `## Interface Paths` | `## 인터페이스 경로` |
 | `## Release Notes` | `## 릴리즈 노트` |
 | `## Version Format` | `## 버전 형식` |
 | `## Pre-Release Checks` | `## 릴리즈 전 검증` |

@@ -144,7 +144,7 @@ require_text "dist/antigravity/.agents/skills/jig-github-release/SKILL.md" 'gh r
 
 # The version rubric is a contract between four skills: version-rubric owns the file,
 # github-release reads it, jig-setup delegates to it, jig-doctor reports it.
-for rubric_skill in github-release jig-setup jig-doctor version-rubric; do
+for rubric_skill in github-release jig-setup jig-doctor version-rubric develop-task-flow; do
   require_text "dist/claude-code-plugin/jig/skills/$rubric_skill/SKILL.md" ".jig/versioning.md"
   require_text "dist/codex/.agents/skills/$(prefixed_skill_name "$rubric_skill")/SKILL.md" ".jig/versioning.md"
 done
@@ -161,6 +161,15 @@ for rubric_skill in github-release jig-doctor version-rubric; do
   require_text "dist/claude-code-plugin/jig/skills/$rubric_skill/SKILL.md" "## 판정 순서"
   require_text "dist/claude-code-plugin/jig/skills/$rubric_skill/SKILL.md" "## 등급 정의"
 done
+# The interface-path table is read by a command, so every skill that computes a floor
+# from it must name the section under both spellings.
+for rubric_skill in github-release version-rubric develop-task-flow; do
+  require_text "dist/claude-code-plugin/jig/skills/$rubric_skill/SKILL.md" "## Interface Paths"
+done
+for rubric_skill in github-release version-rubric; do
+  require_text "dist/claude-code-plugin/jig/skills/$rubric_skill/SKILL.md" "## 인터페이스 경로"
+done
+
 require_text "dist/claude-code-plugin/jig/skills/version-rubric/SKILL.md" "> 기준:"
 require_text "dist/claude-code-plugin/jig/skills/version-rubric/SKILL.md" "> Basis:"
 

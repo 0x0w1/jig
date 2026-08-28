@@ -1,6 +1,6 @@
 # Version Rubric
 
-<!-- jig:skill-source-digest e848de66272ebe3a62c52a4ee4b255a8b83821cd -->
+<!-- jig:skill-source-digest ad211d9d06cdd357e15919d3638245aa8ba19d28 -->
 
 [한국어](../../ko/skills/version-rubric.md) · [Skill index](index.md) · [Rubric contract](../version-rubric.md)
 
@@ -17,7 +17,9 @@ Use it when the rubric is missing, when reviewing how the project grades `patch`
 - Claude Code: `/jig:version-rubric`
 - Codex and Antigravity: `jig-version-rubric`
 - Required sections: `## Decision Order`, `## Grade Definitions`
-- Optional: `## Hard Rules`, `## Release Notes`, `## Version Format`, `## Pre-Release Checks`
+- Optional: `## Hard Rules`, `## Interface Paths`, `## Release Notes`, `## Version Format`, `## Pre-Release Checks`
+
+`## Interface Paths` maps path globs to the lowest grade a change under them can be, so `develop-task-flow` and `github-release` can compute a starting grade from `git diff --name-only` instead of reading a prose interface list by eye. First matching row wins, and the floor it produces is advisory: a release may land below it with a recorded reason.
 
 Legacy Korean titles remain valid but must not be mixed with English titles. The `> Basis:` line records default adoption, catalog type, or project-specific origin. The file must be committed so clones and CI grade the same way.
 

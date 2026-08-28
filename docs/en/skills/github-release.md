@@ -1,6 +1,6 @@
 # GitHub Release
 
-<!-- jig:skill-source-digest 00e7b822b90eb1e7f95448b3952756a6b7cb1aa5 -->
+<!-- jig:skill-source-digest 05ff8c6611ecd7ce18ef9311279fa09b1838350c -->
 
 [한국어](../../ko/skills/github-release.md) · [Skill index](index.md) · [Version rubric](../version-rubric.md)
 
@@ -39,7 +39,7 @@ sequenceDiagram
     GitHub-->>Agent: Verify non-draft release and URL
 ```
 
-Grading starts from the `Release-Grade` trailers that `develop-task-flow` recorded on each squash commit; the highest grade in the range is the floor, and a commit without a trailer is graded from its text and folded in. The rubric then runs over the whole range, which may raise that floor but never lowers it. The rubric's ordered questions stop at the first match, then hard rules may escalate. While the major version is `0`, a `major` grade raises the minor position but remains recorded as `major`.
+Grading starts from the `Release-Grade` trailers that `develop-task-flow` recorded on each squash commit; the highest grade in the range is the floor, and a commit without a trailer is graded from its text and folded in. When the rubric carries an `## Interface Paths` table, a second floor is computed from `git diff --name-only`, where each changed path takes the first matching row. That path floor is advisory — a release may land below it with a recorded reason — while a recorded task grade never is. The rubric then runs over the whole range, which may raise that floor but never lowers it. The rubric's ordered questions stop at the first match, then hard rules may escalate. While the major version is `0`, a `major` grade raises the minor position but remains recorded as `major`.
 
 ## Release notes and migrations
 

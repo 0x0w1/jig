@@ -148,19 +148,38 @@ Claude Code는 `/jig:version-rubric`, Codex와 Antigravity는 `jig-version-rubri
 
 ## 파일 계약
 
-필수 섹션 2개, 선택 4개입니다. **섹션 제목이 계약입니다.**
+필수 섹션 2개, 선택 5개입니다. **섹션 제목이 계약입니다.**
 
 | 섹션 | 필수 | 내용 |
 |---|---|---|
 | `## Decision Order` | 필수 | 순서대로 묻는 질문 3개와 각 등급 |
 | `## Grade Definitions` | 필수 | 등급별 정의 표 |
 | `## Hard Rules` | 선택 | 무조건 승격시키는 조건 |
+| `## Interface Paths` | 선택 | 시작 등급을 정하는 변경 경로 |
 | `## Release Notes` | 선택 | 노트 섹션 순서·제목 override |
 | `## Version Format` | 선택 | 태그 정규식, 1.0 이전 처리, 요약 언어 |
 | `## Pre-Release Checks` | 선택 | 릴리즈 전에 실행할 명령 |
 
 - `## Decision Order`는 순서대로 묻고 **처음 걸리는 곳에서 멈춥니다.** 이 의미는 기준 파일이 바꿀 수 없습니다.
 - 기준 파일에 없는 선택 섹션은 그 프로젝트에 적용되지 않습니다. `## Hard Rules`를 지우면 승격 규칙이 없는 것이고 기본 기준의 규칙이 대신 적용되지는 않습니다.
+
+### 인터페이스 경로
+
+`## Interface Paths`는 사람이 아니라 명령이 읽는 유일한 선택 섹션입니다. 공개 인터페이스를 산문 목록으로만 적어두면 판정 스킬이 "이번 변경이 거기 닿았나"를 눈으로 판단해야 하지만, 이 표가 있으면 `git diff --name-only` 결과로 시작 등급을 계산할 수 있습니다.
+
+```md
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `src/api/**` | 소비자가 호출하는 HTTP 표면 | `minor` |
+| `docs/**` | 내부 | `patch` |
+```
+
+- 바뀐 경로는 **처음 걸리는 행**의 바닥을 갖습니다. 그래서 구체적인 glob을 일반적인 glob 위에 둡니다. 범위의 바닥은 바뀐 경로들이 가진 값 중 최대값이고, 어느 행에도 안 걸리는 경로는 아무것도 더하지 않습니다.
+- **이 바닥은 참고값입니다.** 경로는 무엇이 바뀌었는지만 말하고 어떻게 바뀌었는지는 말하지 않으므로, 같은 glob 아래에서 오타 수정과 약속 파기가 같은 행에 걸립니다. 이유를 남기면 바닥보다 낮게 낼 수 있고, 높게 내는 데는 근거가 필요 없습니다.
+- 이는 `develop-task-flow`가 남기는 `Release-Grade` trailer와 반대입니다. 그쪽은 diff를 손에 쥔 채 내린 판단이라 내리지 않습니다. 릴리즈 보고에는 둘을 따로 적습니다.
+- 섹션을 두지 않으면 달라지는 것은 없습니다. 이전과 똑같이 판정합니다.
 
 ### 섹션 제목
 
@@ -173,6 +192,7 @@ Claude Code는 `/jig:version-rubric`, Codex와 Antigravity는 `jig-version-rubri
 | `## Decision Order` | `## 판정 순서` |
 | `## Grade Definitions` | `## 등급 정의` |
 | `## Hard Rules` | `## 강경 규칙` |
+| `## Interface Paths` | `## 인터페이스 경로` |
 | `## Release Notes` | `## 릴리즈 노트` |
 | `## Version Format` | `## 버전 형식` |
 | `## Pre-Release Checks` | `## 릴리즈 전 검증` |
