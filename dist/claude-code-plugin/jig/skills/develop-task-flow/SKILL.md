@@ -27,6 +27,35 @@ The squash commit on `develop` is the release-note source. Every squash commit m
 - Body: bullet items describing the change from the user's perspective, release-note ready. Write them in the language the repository already uses for its commit bodies, defaulting to English; match the existing history rather than switching it.
 - In body bullets, wrap useful technical terms in backticks, such as file paths, config keys, branch names, workflow names, command names, and env vars.
 
+## Release Grade
+
+The squash commit records the grade this task earns. Decide it here rather than at release time: at merge the diff, the tests, and the reasoning are still in hand, while a release has to reconstruct all of it from commit text.
+
+Grade against the repository's own rubric, not a fixed prefix mapping — a prefix names the kind of change, not what it costs. Resolve the rubric path in this order:
+
+1. `JIG_VERSION_RUBRIC` environment variable.
+2. `git config --local --get jig.versionRubric`.
+3. `.jig/versioning.md`.
+
+Apply that rubric's `## Decision Order` to this task alone, asking its questions in order and stopping at the first match, then apply its `## Hard Rules`. Use the changed paths as evidence, not only the commit text:
+
+```bash
+git diff --name-only origin/develop...HEAD
+```
+
+Check that list against whatever the rubric names as the project's public interface. A path the rubric calls internal does not raise the grade on its own; a path it calls public sets the floor at the grade the rubric assigns it.
+
+Record the verdict as a trailer on the last line of the squash commit body:
+
+```text
+Release-Grade: minor
+```
+
+- One trailer per squash commit. The value is `patch`, `minor`, or `major`, lowercase, with nothing else on the line.
+- The grade covers this task only. `github-release` takes the highest grade recorded across the release range as the floor, so a task never has to predict what ships alongside it.
+- If no rubric resolves, omit the trailer instead of guessing. The release then grades that commit from its text, as it did before.
+- The trailer is grading input, not release-note prose. Never copy it into a note bullet.
+
 ## Phase Rules
 
 If the task is large, split it into phases:
@@ -55,6 +84,7 @@ If the task is large, split it into phases:
 - Do not modify or revert unrelated user changes.
 - Do not overwrite files with different content without explicit confirmation.
 - Do not merge into `develop` if tests fail or the squash commit would include changes outside the current task.
+- Do not record a `Release-Grade` the resolved rubric does not support, and omit the trailer entirely when no rubric resolves.
 - Do not use this skill for release execution; use `github-release`.
 - If the user has not explicitly asked for a release, stop after `develop` is pushed.
 
@@ -79,7 +109,7 @@ If the task is large, split it into phases:
 7. Apply the Documentation Rules before committing.
 8. Commit only the task changes on the task branch.
 9. Update `develop`: `git checkout develop` then `git pull --ff-only origin develop`.
-10. Squash-merge: `git merge --squash <prefix>/<slug>`, then commit once following the Commit Message Rules.
+10. Squash-merge: `git merge --squash <prefix>/<slug>`, then grade the task per Release Grade and commit once following the Commit Message Rules, ending the body with the `Release-Grade` trailer.
 11. Push `develop` without force.
 12. Leave the task branch in place; offer cleanup only as an optional next action.
 
@@ -92,5 +122,6 @@ Keep reports short and include:
 - Tests run and result
 - README/docs update status
 - Squash commit subject pushed to `develop`
+- Recorded `Release-Grade` and the rubric question that decided it, or why the trailer was omitted
 - Commands that could not run and why
 - User next actions, if any

@@ -1,6 +1,6 @@
 # Develop Task Flow
 
-<!-- jig:skill-source-digest 34fd6c0e459379a3448306cdf4e070ca677cb482 -->
+<!-- jig:skill-source-digest d576956bd11a64b2b0209f6a080fd74b389dd434 -->
 
 [한국어](../../ko/skills/develop-task-flow.md) · [Skill index](index.md)
 
@@ -34,10 +34,13 @@ flowchart LR
     UpdateDocs --> Commit
     Commit --> Refresh[Pull develop with --ff-only]
     Refresh --> Squash[Squash merge task branch]
-    Squash --> Push[Create one conventional commit and push develop]
+    Squash --> Grade[Grade the task against the project rubric]
+    Grade --> Push[Commit with Release-Grade trailer and push develop]
 ```
 
-The squash commit is the release-note source. Its subject uses a conventional prefix and its body contains user-facing bullets in the repository's language.
+The squash commit is the release-note source. Its subject uses a conventional prefix and its body contains user-facing bullets in the repository's language, ending with a `Release-Grade: patch|minor|major` trailer.
+
+Grading happens at merge rather than at release, because the diff and the tests are still in hand here. The grade comes from the project's own rubric — resolved from `JIG_VERSION_RUBRIC`, `jig.versionRubric`, or `.jig/versioning.md` — applied to the changed paths of this task alone. `github-release` later takes the highest grade recorded across the range as its floor. When no rubric resolves, the trailer is omitted rather than guessed.
 
 ## Reads and writes
 
@@ -53,7 +56,7 @@ It reads Git status, branches, remotes, repository instructions, tests, and rele
 
 ## Outputs
 
-The report names the branch, changed files, tests, README/docs status, squash subject pushed to `develop`, blocked commands, and remaining actions.
+The report names the branch, changed files, tests, README/docs status, squash subject pushed to `develop`, the recorded `Release-Grade` and the rubric question behind it, blocked commands, and remaining actions.
 
 ## Related skills
 

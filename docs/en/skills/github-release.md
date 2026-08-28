@@ -1,6 +1,6 @@
 # GitHub Release
 
-<!-- jig:skill-source-digest 8215e11015fafe54648dfa31dae73d7b3c039af2 -->
+<!-- jig:skill-source-digest 00e7b822b90eb1e7f95448b3952756a6b7cb1aa5 -->
 
 [한국어](../../ko/skills/github-release.md) · [Skill index](index.md) · [Version rubric](../version-rubric.md)
 
@@ -16,7 +16,7 @@ Use only after the user explicitly asks for a release and all intended changes a
 
 - Claude Code: `/jig:github-release`
 - Codex and Antigravity: `jig-github-release`
-- Inputs: clean/synced `develop`, latest reachable `vX.Y.Z` tag, project rubric, commit subjects/bodies, authenticated GitHub profile
+- Inputs: clean/synced `develop`, latest reachable `vX.Y.Z` tag, project rubric, commit subjects/bodies and their `Release-Grade` trailers, authenticated GitHub profile
 
 ## Workflow
 
@@ -29,6 +29,7 @@ sequenceDiagram
 
     Agent->>Local: Inspect clean develop and rubric
     Agent->>Origin: Fetch and verify develop/main ancestry
+    Agent->>Local: Read Release-Grade trailers and set the floor
     Agent->>Local: Grade bump and draft release notes
     Agent->>Local: Run rubric pre-release checks
     Agent->>Origin: Push develop:main (fast-forward only)
@@ -38,7 +39,7 @@ sequenceDiagram
     GitHub-->>Agent: Verify non-draft release and URL
 ```
 
-The rubric's ordered questions stop at the first match, then hard rules may escalate. While the major version is `0`, a `major` grade raises the minor position but remains recorded as `major`.
+Grading starts from the `Release-Grade` trailers that `develop-task-flow` recorded on each squash commit; the highest grade in the range is the floor, and a commit without a trailer is graded from its text and folded in. The rubric then runs over the whole range, which may raise that floor but never lowers it. The rubric's ordered questions stop at the first match, then hard rules may escalate. While the major version is `0`, a `major` grade raises the minor position but remains recorded as `major`.
 
 ## Release notes and migrations
 
@@ -57,7 +58,7 @@ The skill reads Git refs/status/logs, `.jig/versioning.md` or its configured ove
 
 ## Outputs
 
-The report includes repository/branch, previous/new versions, rubric path/source/kind, graded versus requested bump and deciding question, promotion, tag and release status, summary, blocked commands, and user actions.
+The report includes repository/branch, previous/new versions, rubric path/source/kind, the recorded task-grade floor and the commit that set it, graded versus requested bump and deciding question, promotion, tag and release status, summary, blocked commands, and user actions.
 
 ## Related skills
 

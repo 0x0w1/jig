@@ -1,6 +1,6 @@
 # Develop Task Flow
 
-<!-- jig:skill-source-digest 34fd6c0e459379a3448306cdf4e070ca677cb482 -->
+<!-- jig:skill-source-digest d576956bd11a64b2b0209f6a080fd74b389dd434 -->
 
 [English](../../en/skills/develop-task-flow.md) · [스킬 index](index.md)
 
@@ -34,10 +34,13 @@ flowchart LR
     UpdateDocs --> Commit
     Commit --> Refresh[develop --ff-only pull]
     Refresh --> Squash[task branch squash merge]
-    Squash --> Push[하나의 conventional commit 생성 후 develop push]
+    Squash --> Grade[프로젝트 rubric으로 등급 판정]
+    Grade --> Push[Release-Grade trailer 포함 commit 후 develop push]
 ```
 
-squash commit이 release note의 원천입니다. subject는 conventional prefix를 사용하고 body는 저장소 언어의 사용자 관점 bullet을 담습니다.
+squash commit이 release note의 원천입니다. subject는 conventional prefix를 사용하고, body는 저장소 언어의 사용자 관점 bullet을 담은 뒤 `Release-Grade: patch|minor|major` trailer로 끝납니다.
+
+등급 판정은 release 시점이 아니라 병합 시점에 합니다. 이 자리에는 diff와 test 결과가 아직 남아 있기 때문입니다. 등급은 `JIG_VERSION_RUBRIC`, `jig.versionRubric`, `.jig/versioning.md` 순으로 해석한 프로젝트 rubric을 이 task의 변경 경로에만 적용해 정합니다. 이후 `github-release`가 범위 안에 기록된 등급 중 가장 높은 값을 하한으로 삼습니다. rubric을 해석할 수 없으면 추측하지 않고 trailer를 생략합니다.
 
 ## 읽기·변경 범위
 
@@ -53,7 +56,7 @@ Git status, branch, remote, 저장소 지침, test, 관련 code·docs를 읽습�
 
 ## 결과물
 
-branch, 변경 파일, test, README·docs 상태, `develop`에 push한 squash subject, blocked command, 남은 작업을 보고합니다.
+branch, 변경 파일, test, README·docs 상태, `develop`에 push한 squash subject, 기록한 `Release-Grade`와 판정 근거 질문, blocked command, 남은 작업을 보고합니다.
 
 ## 관련 스킬
 

@@ -41,6 +41,19 @@ Apply it like this:
 - Report the rubric path, its source, and whether it records the adopted default or a project-specific rubric.
 - Never edit the rubric file from this skill.
 
+### Recorded Task Grades
+
+`develop-task-flow` grades each task as it is squash-merged and records the verdict as a `Release-Grade` trailer. Read those first: they were decided with the diff in hand, which this step no longer has.
+
+```bash
+git log <previous>..HEAD --no-merges --format='%h %(trailers:key=Release-Grade,valueonly)'
+```
+
+- The release floor is the highest grade recorded in the range, ordered `patch` < `minor` < `major`. Name the commit that set it in the report.
+- Grade any commit with no trailer from its subject and body, then fold that verdict into the floor. A range with no trailers at all grades exactly as it did before.
+- The floor is a starting point, not the verdict. Apply the rubric once more to the range as a whole: a combination of tasks can cost more than any one of them did alone, and `## Hard Rules` still runs against the composed notes in step 6.
+- Never settle the release below the floor. Raising it is a normal outcome; lowering it discards evidence that is no longer available.
+
 When the rubric is missing or unusable:
 
 - **Missing file**: run the `version-rubric` skill to settle it, then continue the release. Do not stop the release for this.
@@ -75,6 +88,7 @@ Defaults, each overridable by the rubric's `## Version Format` section:
 - The rubric's `## Release Notes` section overrides section order and titles.
 - One `- <commit subject without type prefix>` line per commit.
 - `### Summary`: user-perspective bullet items written from the commit subjects and bodies, release-note ready, with technical terms in backticks. Write them in the language the repository already uses for its release notes and commit bodies, defaulting to English.
+- The `Release-Grade` trailer is grading input, not prose. Keep it out of every note section.
 - `### Migration`: only when downstream projects must take action that re-running an update does not cover.
 
 ## Migration Blocks
@@ -127,7 +141,7 @@ The `### Migration` section is not prose. It is the input an updating agent exec
    - `git fetch origin --prune`
    - verify local `develop` matches `origin/develop`
 2. Determine the previous version: latest `vX.Y.Z` tag reachable from `origin/main` (`git describe --tags --abbrev=0 origin/main`).
-3. Resolve and read the version rubric, then grade the release against it before computing anything: read the commit subjects and bodies in the range and decide `patch`, `minor`, or `major`. Handle a missing, uninstalled, or broken rubric per Version Rubric.
+3. Resolve and read the version rubric, then grade the release against it before computing anything. Start from the grades recorded by `develop-task-flow` per Recorded Task Grades, read the subjects and bodies of any commit that carries none, and review that floor against the rubric for the range as a whole. Handle a missing, uninstalled, or broken rubric per Version Rubric.
    - If the graded bump is higher than the one the user requested, say so with the specific reason and ask before continuing. The user's choice wins if they repeat it; record the graded verdict in the report either way.
    - If the graded bump is lower, use the requested one; a user may always release higher than required.
 4. Verify `origin/develop` already contains every intended release change. If not, stop and run the Develop-First Gate.
@@ -149,6 +163,7 @@ Keep reports short and include:
 - Current repo and branch
 - Previous and new version
 - Rubric path, source, and kind (adopted default or project-specific)
+- Recorded task-grade floor and the commit that set it, or that the range carried no trailers
 - Graded bump versus the requested bump, with the rubric question that decided it
 - `develop` to `main` promotion result
 - Tag and release status

@@ -1,6 +1,6 @@
 # GitHub Release
 
-<!-- jig:skill-source-digest 8215e11015fafe54648dfa31dae73d7b3c039af2 -->
+<!-- jig:skill-source-digest 00e7b822b90eb1e7f95448b3952756a6b7cb1aa5 -->
 
 [English](../../en/skills/github-release.md) · [스킬 index](index.md) · [버전 판정 기준](../version-rubric.md)
 
@@ -16,7 +16,7 @@
 
 - Claude Code: `/jig:github-release`
 - Codex·Antigravity: `jig-github-release`
-- 입력: clean·synced `develop`, 최신 reachable `vX.Y.Z` tag, project rubric, commit subject·body, 인증된 GitHub profile
+- 입력: clean·synced `develop`, 최신 reachable `vX.Y.Z` tag, project rubric, commit subject·body와 그 `Release-Grade` trailer, 인증된 GitHub profile
 
 ## 작업 흐름
 
@@ -29,6 +29,7 @@ sequenceDiagram
 
     Agent->>Local: clean develop과 rubric 점검
     Agent->>Origin: fetch 후 develop·main 선후 관계 확인
+    Agent->>Local: Release-Grade trailer를 읽어 하한 설정
     Agent->>Local: bump 판정과 release note 초안
     Agent->>Local: rubric pre-release check 실행
     Agent->>Origin: develop:main push (fast-forward only)
@@ -38,7 +39,7 @@ sequenceDiagram
     GitHub-->>Agent: non-draft release와 URL 검증
 ```
 
-rubric의 순서화된 문항은 첫 일치에서 멈추고 hard rule이 등급을 올릴 수 있습니다. major version이 `0`일 때 `major`는 minor 자리를 올리지만 판정 자체는 `major`로 기록합니다.
+판정은 `develop-task-flow`가 각 squash commit에 기록한 `Release-Grade` trailer에서 출발합니다. 범위 안 최고 등급이 하한이 되고, trailer가 없는 commit은 본문으로 판정해 하한에 반영합니다. 이후 rubric을 범위 전체에 다시 적용하며, 이때 하한은 올라갈 수 있어도 내려가지 않습니다. rubric의 순서화된 문항은 첫 일치에서 멈추고 hard rule이 등급을 올릴 수 있습니다. major version이 `0`일 때 `major`는 minor 자리를 올리지만 판정 자체는 `major`로 기록합니다.
 
 ## Release note와 migration
 
@@ -57,7 +58,7 @@ Git ref·status·log, `.jig/versioning.md` 또는 설정된 override, release ta
 
 ## 결과물
 
-저장소·branch, 이전·새 version, rubric path·source·kind, graded·requested bump와 판정 문항, promotion, tag·release, summary, blocked command, 사용자 조치를 보고합니다.
+저장소·branch, 이전·새 version, rubric path·source·kind, 기록된 task 등급 하한과 그것을 정한 commit, graded·requested bump와 판정 문항, promotion, tag·release, summary, blocked command, 사용자 조치를 보고합니다.
 
 ## 관련 스킬
 
