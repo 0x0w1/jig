@@ -75,7 +75,7 @@ Unlike a plain collection of skills, jig converges *repository state* — the br
 
 | Skill | Role |
 |---|---|
-| `develop-task-flow` | Branch, work, squash merge into `develop` |
+| `develop-task-flow` | Branch, work, grade, squash merge into `develop` |
 | `github-release` | Fast-forward `develop` to `main`, tag, publish notes |
 | `github-sync` | Branches, optional protection, local `pre-push` guard |
 | `jig-setup` | Bind the repository to a GitHub CLI profile |

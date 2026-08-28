@@ -75,7 +75,7 @@ jig는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니다
 
 | 스킬 | 역할 |
 |---|---|
-| `develop-task-flow` | 작업 브랜치에서 작업 후 `develop`에 squash merge |
+| `develop-task-flow` | 작업·등급 판정 후 `develop`에 squash merge |
 | `github-release` | `develop`을 `main`으로 승격, 태그와 릴리즈 발행 |
 | `github-sync` | 브랜치 수렴, 선택적 보호 설정, 로컬 `pre-push` 가드 |
 | `jig-setup` | 저장소에 GitHub CLI 프로필 연결 |
