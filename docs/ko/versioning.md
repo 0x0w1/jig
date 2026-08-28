@@ -1,10 +1,10 @@
 # 버전 정책
 
-[English](versioning.md)
+[English](../en/versioning.md)
 
-> 이 문서는 사람이 읽는 해설입니다. jig 릴리즈 판정의 규범 원본은 [`.jig/versioning.md`](../.jig/versioning.md)이고 `github-release`가 릴리즈할 때 읽는 파일도 그쪽입니다. 두 파일은 같은 내용을 말해야 합니다.
+> 이 문서는 사람이 읽는 해설입니다. jig 릴리즈 판정의 규범 원본은 [`.jig/versioning.md`](../../.jig/versioning.md)이고 `github-release`가 릴리즈할 때 읽는 파일도 그쪽입니다. 두 파일은 같은 내용을 말해야 합니다.
 >
-> 다른 프로젝트에 설치된 jig는 그 프로젝트의 `.jig/versioning.md`를 읽습니다. 판정 기준을 만들거나 다시 잡는 방법은 [버전 판정 기준](version-rubric.ko.md)에 있습니다.
+> 다른 프로젝트에 설치된 jig는 그 프로젝트의 `.jig/versioning.md`를 읽습니다. 판정 기준을 만들거나 다시 잡는 방법은 [버전 판정 기준](version-rubric.md)에 있습니다.
 
 jig의 `vX.Y.Z` bump는 **변경의 종류**가 아니라 **설치본이 실제로 치르는 비용**으로 결정합니다. 릴리즈 노트의 주 소비자가 사람이 아니라 `jig-update` 스킬이기 때문에 에이전트가 무인으로 처리할 수 있는 변경과 사람의 판단이 필요한 변경을 같은 등급으로 묶지 않습니다.
 
@@ -101,5 +101,5 @@ jig의 `vX.Y.Z` bump는 **변경의 종류**가 아니라 **설치본이 실제�
 
 ## 관련 문서
 
-- [설치 가이드](installation.ko.md)
-- [GitHub Repository Settings](github-repository-settings.ko.md)
+- [설치 가이드](installation.md)
+- [GitHub Repository Settings](github-repository-settings.md)

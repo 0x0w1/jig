@@ -1,6 +1,6 @@
 # 버전 판정 기준
 
-[English](version-rubric.md)
+[English](../en/version-rubric.md)
 
 jig가 릴리즈 등급(`patch`/`minor`/`major`)을 어떤 기준으로 가를지는 **프로젝트가 결정합니다.** 그 결정은 저장소 안의 파일 하나에 담기고 `github-release`가 릴리즈할 때 그 파일을 읽습니다.
 
@@ -27,7 +27,7 @@ jig가 릴리즈 등급(`patch`/`minor`/`major`)을 어떤 기준으로 가를�
 |---|---|
 | Claude Code | `${CLAUDE_PLUGIN_ROOT}/skills/version-rubric/rubrics` |
 | Codex · Antigravity (project) | `.agents/skills/jig-version-rubric/rubrics` |
-| jig 저장소 자체 | [`skills/version-rubric/rubrics`](../skills/version-rubric/rubrics/INDEX.md) |
+| jig 저장소 자체 | [`skills/version-rubric/rubrics`](../../skills/version-rubric/rubrics/INDEX.md) |
 
 ```text
 rubrics/
@@ -229,11 +229,11 @@ Claude Code는 `/jig:version-rubric`, Codex와 Antigravity는 `jig-version-rubri
 
 ### 설치본을 가진 도구
 
-jig 자신이 이 경우입니다. [`.jig/versioning.md`](../.jig/versioning.md)를 참고하세요. 판정 축이 "설치본이 치르는 비용"이고 기본과는 다른 강경 규칙 두 개("조용한 동작 변경은 `major`", "`migration-manual` 블록이 있으면 `major`")와 공개 인터페이스 목록을 함께 둡니다.
+jig 자신이 이 경우입니다. [`.jig/versioning.md`](../../.jig/versioning.md)를 참고하세요. 판정 축이 "설치본이 치르는 비용"이고 기본과는 다른 강경 규칙 두 개("조용한 동작 변경은 `major`", "`migration-manual` 블록이 있으면 `major`")와 공개 인터페이스 목록을 함께 둡니다.
 
 ## 관련 문서
 
-- [기준 카탈로그 색인](../skills/version-rubric/rubrics/INDEX.md)
-- [공통 SemVer 원칙](../skills/version-rubric/rubrics/common.md)
-- [jig 버전 정책 해설](versioning.ko.md)
-- [설치 가이드](installation.ko.md)
+- [기준 카탈로그 색인](../../skills/version-rubric/rubrics/INDEX.md)
+- [공통 SemVer 원칙](../../skills/version-rubric/rubrics/common.md)
+- [jig 버전 정책 해설](versioning.md)
+- [설치 가이드](installation.md)

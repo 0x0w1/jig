@@ -1,6 +1,6 @@
 # GitHub Repository Settings
 
-[English](github-repository-settings.md)
+[English](../en/github-repository-settings.md)
 
 이 문서는 `install.sh`(Codex, Antigravity CLI 대상)의 GitHub 동작을 설명합니다. Claude Code는 플러그인으로 설치되어 installer를 거치지 않으므로 저장소 프로필 설정과 수렴은 설치 후 `/jig:jig-setup`으로 처리합니다.
 

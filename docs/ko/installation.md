@@ -1,6 +1,6 @@
 # 설치 가이드
 
-[English](installation.md)
+[English](../en/installation.md)
 
 jig는 지원하는 CLI마다 **설치 경로가 다릅니다.** 한 번에 전부 설치하는 방법은 없고 쓰는 CLI만 골라 설치합니다.
 
@@ -10,7 +10,7 @@ jig는 지원하는 CLI마다 **설치 경로가 다릅니다.** 한 번에 전�
 | Codex | `install.sh` | `.agents/skills/jig-*` 파일 | jig installer |
 | Antigravity CLI | `install.sh` | `.agents/skills/jig-*` 파일 | jig installer |
 
-명령만 필요하면 [README의 빠른 시작](../README.ko.md#빠른-시작)을 보세요. 이 문서는 각 방식이 **무엇을 어디에 설치하고 이후 어떻게 관리되는지**를 설명합니다.
+명령만 필요하면 [README의 빠른 시작](../../README.ko.md#빠른-시작)을 보세요. 이 문서는 각 방식이 **무엇을 어디에 설치하고 이후 어떻게 관리되는지**를 설명합니다.
 
 설치는 target별로 한 번씩 수행하지만 업데이트는 통합합니다. `jig-update`를 한 번 실행하면 현재 프로젝트의 `project`/`local` 범위와 사용자 전역 범위에서 Claude Code, Codex, Antigravity 설치를 모두 찾고 발견된 인스턴스를 함께 갱신합니다. 어느 에이전트에서 실행했는지는 업데이트 대상을 제한하지 않으며, 기존에 없던 target이나 범위를 새로 설치하지 않습니다.
 
@@ -242,7 +242,7 @@ project scope에서 GitHub 프로필이 이미 설정되어 있고 `gh`를 쓸 �
 
 프로필이 없으면 스킬 파일 설치는 그대로 완료하고 이 단계만 `jig-setup` 이후로 미룹니다. `.git` repository가 없거나 GitHub 저장소에 연결돼 있지 않아도 이 단계를 건너뛰고 통과 로그를 남깁니다.
 
-**branch protection은 installer가 설정하지 않습니다.** 종료 시 `GUIDE`로 안내만 하고 실제 적용은 `github-sync` 스킬이 담당합니다. 자세한 조건은 [GitHub Repository Settings](github-repository-settings.ko.md)를 참고하세요.
+**branch protection은 installer가 설정하지 않습니다.** 종료 시 `GUIDE`로 안내만 하고 실제 적용은 `github-sync` 스킬이 담당합니다. 자세한 조건은 [GitHub Repository Settings](github-repository-settings.md)를 참고하세요.
 
 ### 저장소별 GitHub 프로필
 

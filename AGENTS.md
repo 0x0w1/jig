@@ -61,7 +61,7 @@ Use these repo-scoped Codex skills:
 ## Release Rules
 
 - Release only when the user explicitly asks for a release.
-- Grade the bump against this repository's version rubric at `.jig/versioning.md`, which grades by what installed projects pay: `patch` when the public interface is unchanged, `minor` for new capability or a break that fails loudly and names its own fix, `major` when a human decision is needed or behavior changes silently. A silent behavior change is always `major`, and any `migration-manual` block forces `major`. `docs/versioning.md` is the human-readable commentary; `docs/version-rubric.md` explains the rubric contract for installed projects.
+- Grade the bump against this repository's version rubric at `.jig/versioning.md`, which grades by what installed projects pay: `patch` when the public interface is unchanged, `minor` for new capability or a break that fails loudly and names its own fix, `major` when a human decision is needed or behavior changes silently. A silent behavior change is always `major`, and any `migration-manual` block forces `major`. `docs/en/versioning.md` is the English commentary, `docs/ko/versioning.md` is its Korean mirror, and the matching `version-rubric.md` files explain the contract for installed projects.
 - While the major version is `0`, a `major` grade raises the minor position (`v0.Y.Z` → `v0.(Y+1).0`).
 - Compute the next version from the latest `vX.Y.Z` tag using the graded bump type; an explicit `vX.Y.Z` from the user overrides it. If the grade exceeds the requested bump, report the reason and ask before continuing.
 - Verify a clean worktree, `develop` synced with `origin/develop`, and a non-existing tag before promoting.

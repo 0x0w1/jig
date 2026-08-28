@@ -44,7 +44,7 @@ curl -fsSL https://raw.githubusercontent.com/0x0w1/jig/main/install.sh \
   | sh -s -- --target codex --scope project        # or --target antigravity
 ```
 
-Options, install layout, skill namespacing, and removal: [installation guide](docs/installation.md).
+Options, install layout, skill namespacing, and removal: [installation guide](docs/en/installation.md).
 
 ### 2. Bind the repository
 
@@ -87,12 +87,13 @@ Skill bodies and the rubric catalog are written in English. What a skill **produ
 
 Written in Korean, except the rubric catalog.
 
-- [Installation guide](docs/installation.md): what lands where for each CLI, installer options, skill namespacing, and removal.
-- [Version rubric](docs/version-rubric.md): how an installed project grades `patch`/`minor`/`major` on its own terms, plus the `.jig/versioning.md` file contract.
+- [Documentation home](docs/en/index.md): all English guides and the skill documentation entry point.
+- [Installation guide](docs/en/installation.md): what lands where for each CLI, installer options, skill namespacing, and removal.
+- [Version rubric](docs/en/version-rubric.md): how an installed project grades `patch`/`minor`/`major` on its own terms, plus the `.jig/versioning.md` file contract.
 - [Rubric catalog by project type](skills/version-rubric/rubrics/INDEX.md): 17 rubric drafts and the detection signal table `rubric-scan` uses. In English.
-- [Versioning policy](docs/versioning.md): commentary on how jig itself grades releases. The normative source is `.jig/versioning.md`.
-- [GitHub repository settings](docs/github-repository-settings.md): what the installer applies, and how optional branch protection is decided.
-- [Roadmap](docs/roadmap.md): jig's identity and its trigger-conditional direction candidates.
+- [Versioning policy](docs/en/versioning.md): commentary on how jig itself grades releases. The normative source is `.jig/versioning.md`.
+- [GitHub repository settings](docs/en/github-repository-settings.md): what the installer applies, and how optional branch protection is decided.
+- [Roadmap](docs/en/roadmap.md): jig's identity and its trigger-conditional direction candidates.
 
 ## Updating
 

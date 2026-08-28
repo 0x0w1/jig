@@ -1,6 +1,6 @@
 # jig Roadmap
 
-[English](roadmap.md)
+[English](../en/roadmap.md)
 
 > 방향 아이디에이션 기록. 착수 여부와 무관하게 후보를 트리거 조건과 함께 보존한다.
 

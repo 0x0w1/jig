@@ -1,8 +1,8 @@
 # Versioning Policy
 
-[한국어](versioning.ko.md)
+[한국어](../ko/versioning.md)
 
-> This document is the human-readable commentary. The normative source for grading a jig release is [`.jig/versioning.md`](../.jig/versioning.md), and that is the file `github-release` reads at release time. The two must say the same thing.
+> This document is the human-readable commentary. The normative source for grading a jig release is [`.jig/versioning.md`](../../.jig/versioning.md), and that is the file `github-release` reads at release time. The two must say the same thing.
 >
 > jig installed in another project reads *that* project's `.jig/versioning.md`. How to create or re-settle a rubric is in [version rubric](version-rubric.md).
 

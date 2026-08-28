@@ -1,6 +1,6 @@
 # jig Roadmap
 
-[한국어](roadmap.ko.md)
+[한국어](../ko/roadmap.md)
 
 > A record of direction ideation. Candidates are kept together with their trigger conditions, whether or not they are being worked on.
 

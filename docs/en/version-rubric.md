@@ -1,6 +1,6 @@
 # Version Rubric
 
-[한국어](version-rubric.ko.md)
+[한국어](../ko/version-rubric.md)
 
 How jig grades a release as `patch`, `minor`, or `major` is **the project's decision.** That decision lives in one file in the repository, and `github-release` reads it at release time.
 
@@ -27,7 +27,7 @@ The per-type drafts install inside the `version-rubric` skill payload. Where the
 |---|---|
 | Claude Code | `${CLAUDE_PLUGIN_ROOT}/skills/version-rubric/rubrics` |
 | Codex, Antigravity (project) | `.agents/skills/jig-version-rubric/rubrics` |
-| The jig repository itself | [`skills/version-rubric/rubrics`](../skills/version-rubric/rubrics/INDEX.md) |
+| The jig repository itself | [`skills/version-rubric/rubrics`](../../skills/version-rubric/rubrics/INDEX.md) |
 
 ```text
 rubrics/
@@ -227,11 +227,11 @@ Use the default as-is. Fixes inside the existing feature set are `patch`; adding
 
 ### A tool with installations
 
-jig itself is this case; see [`.jig/versioning.md`](../.jig/versioning.md). Its axis is "what an installation pays", and it carries two hard rules different from the default ("a silent behavior change is `major`", "any `migration-manual` block makes it `major`") along with a public interface list.
+jig itself is this case; see [`.jig/versioning.md`](../../.jig/versioning.md). Its axis is "what an installation pays", and it carries two hard rules different from the default ("a silent behavior change is `major`", "any `migration-manual` block makes it `major`") along with a public interface list.
 
 ## Related
 
-- [Rubric catalog index](../skills/version-rubric/rubrics/INDEX.md)
-- [Common SemVer principles](../skills/version-rubric/rubrics/common.md)
+- [Rubric catalog index](../../skills/version-rubric/rubrics/INDEX.md)
+- [Common SemVer principles](../../skills/version-rubric/rubrics/common.md)
 - [jig versioning policy](versioning.md)
 - [Installation guide](installation.md)

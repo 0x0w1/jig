@@ -187,17 +187,32 @@ require_text .jig/versioning.md "## 강경 규칙"
 require_text .jig/versioning.md "sh scripts/validate-dist.sh"
 # Every linked document exists in both languages and the pair links each other.
 for doc_page in installation version-rubric versioning github-repository-settings roadmap; do
-  require_file "docs/$doc_page.md"
-  require_file "docs/$doc_page.ko.md"
-  require_text "docs/$doc_page.md" "($doc_page.ko.md)"
-  require_text "docs/$doc_page.ko.md" "($doc_page.md)"
+  require_file "docs/en/$doc_page.md"
+  require_file "docs/ko/$doc_page.md"
+  require_text "docs/en/$doc_page.md" "(../ko/$doc_page.md)"
+  require_text "docs/ko/$doc_page.md" "(../en/$doc_page.md)"
 done
-require_text README.ko.md "docs/installation.ko.md"
-require_text README.md "docs/installation.md"
+require_file docs/en/index.md
+require_file docs/ko/index.md
+require_text docs/en/index.md "(../ko/index.md)"
+require_text docs/ko/index.md "(../en/index.md)"
+require_text README.ko.md "docs/ko/index.md"
+require_text README.md "docs/en/index.md"
+require_text README.ko.md "docs/ko/installation.md"
+require_text README.md "docs/en/installation.md"
 
-require_file docs/version-rubric.md
-require_text docs/version-rubric.md "skills/version-rubric/rubrics/INDEX.md"
-require_text README.md "docs/version-rubric.md"
+require_text docs/en/version-rubric.md "../../skills/version-rubric/rubrics/INDEX.md"
+require_text README.md "docs/en/version-rubric.md"
+
+if find docs -maxdepth 1 -type f -name '*.md' | grep -q .; then
+  fail "docs root must contain only language directories"
+fi
+if find docs -type f -name '*.ko.md' | grep -q .; then
+  fail "localized docs use docs/ko, not .ko.md suffixes"
+fi
+english_docs=$(cd docs/en && find . -type f -name '*.md' | LC_ALL=C sort)
+korean_docs=$(cd docs/ko && find . -type f -name '*.md' | LC_ALL=C sort)
+[ "$english_docs" = "$korean_docs" ] || fail "docs/en and docs/ko must have matching Markdown paths"
 
 # README.md is the English canonical; README.ko.md is the Korean mirror. Each links the other,
 # so a reader landing on either one can switch.
@@ -400,7 +415,7 @@ if find dist -name "SKILL.*.md" ! -name "SKILL.md" | grep -q .; then
 fi
 
 if grep -R 'team-pr' dist .claude-plugin manifest.tsv >/dev/null 2>&1; then
-  fail "team-pr is not a supported flow; see docs/roadmap.md"
+  fail "team-pr is not a supported flow; see docs/en/roadmap.md"
 fi
 
 if grep -R 'jig:owned\|jig:skill-start' dist >/dev/null 2>&1; then

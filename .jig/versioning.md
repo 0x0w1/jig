@@ -4,7 +4,7 @@
 
 jig는 다른 저장소에 설치되는 도구다. 릴리즈 노트의 주 소비자가 사람이 아니라 `jig-update` 스킬이므로, 에이전트가 무인으로 처리할 수 있는 변경과 사람의 판단이 필요한 변경을 같은 등급으로 묶지 않는다.
 
-이 파일이 jig 릴리즈 판정의 규범 원본이다. `github-release`가 릴리즈할 때 읽는다. 사람이 읽는 해설과 적용 예는 [docs/versioning.md](../docs/versioning.md)에 있다.
+이 파일이 jig 릴리즈 판정의 규범 원본이다. `github-release`가 릴리즈할 때 읽는다. 사람이 읽는 해설과 적용 예는 [docs/ko/versioning.md](../docs/ko/versioning.md)에 있다.
 
 ## 판정 순서
 

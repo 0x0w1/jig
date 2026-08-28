@@ -1,6 +1,6 @@
 # GitHub Repository Settings
 
-[한국어](github-repository-settings.ko.md)
+[한국어](../ko/github-repository-settings.md)
 
 This document describes what `install.sh` (for Codex and Antigravity CLI) does on GitHub. Claude Code installs as a plugin and never goes through the installer, so profile selection and convergence happen afterwards through `/jig:jig-setup`.
 
