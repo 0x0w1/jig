@@ -7,6 +7,7 @@ jig의 설치, 저장소 workflow, 버전 정책, 스킬 문서를 탐색하는 
 ## 가이드
 
 - [설치](installation.md): target, scope, 경로, option, update, 제거 방법
+- [용어](terminology.md): jig 제품, jig 소스 저장소, jig 적용 프로젝트
 - [GitHub Repository Settings](github-repository-settings.md): branch, 선택적 protection, local push guard
 - [버전 판정 기준](version-rubric.md): 설치된 프로젝트가 사용하는 `.jig/versioning.md` 계약
 - [버전 정책](versioning.md): jig 저장소 자체의 릴리즈 판정 방식

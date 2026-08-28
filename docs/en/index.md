@@ -7,6 +7,7 @@ Use this page as the English entry point for jig's installation, repository work
 ## Guides
 
 - [Installation](installation.md): targets, scopes, paths, options, updates, and removal.
+- [Terminology](terminology.md): jig product, jig source repository, and jig-managed project.
 - [GitHub repository settings](github-repository-settings.md): branches, optional protection, and the local push guard.
 - [Version rubric](version-rubric.md): the `.jig/versioning.md` contract used by installed projects.
 - [Versioning policy](versioning.md): how the jig repository itself grades releases.

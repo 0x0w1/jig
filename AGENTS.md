@@ -20,6 +20,13 @@ Use these repo-scoped Codex skills:
 - A release promotes `develop` to `main` with a fast-forward push (`git push origin develop:main`), then creates the `vX.Y.Z` tag and GitHub release from the CLI.
 - Release notes are written by the agent from the commits in the release range; there is no release-drafter and there are no release labels.
 
+## Terminology
+
+- **jig product** means the behavior and payload delivered to users: installed skills, installer/update behavior, generated `dist/`, plugin hooks, and state created in installed repositories.
+- **jig source repository** means this repository where the jig product is developed. Repo-local instructions, validation, project plans, and contributor tooling belong to this scope unless they are deliberately added to the product payload.
+- **jig-managed project** means an external repository where jig is installed and used. Its clone-local hooks, `.jig/` files, Git config, and GitHub settings are managed-project state.
+- Avoid “this project” or “the current project” when the distinction affects implementation. Say **jig product**, **jig source repository**, or **jig-managed project** explicitly.
+
 ## Skill Copies
 
 - `skills/` is the source of truth for every skill and is built into `dist/` for distribution.
