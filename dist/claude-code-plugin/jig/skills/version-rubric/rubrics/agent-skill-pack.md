@@ -33,6 +33,17 @@ Prompt wording, the order of internal steps, and explanatory text are implementa
 
 > If the release notes carry migration guidance an installation must apply by hand, it is `major`.
 
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `install.sh`, `install.ps1` | the install command and supported agent targets | `minor` |
+| `manifest.tsv` | which skills ship and how they are invoked | `minor` |
+| `skills/*/scripts/**` | commands a skill runs on the user's machine | `minor` |
+| `skills/*/assets/**` | files a skill installs into a project | `minor` |
+| `skills/**` | skill bodies and their wording | `patch` |
+| `dist/**`, `docs/**` | generated payload and documentation | `patch` |
+
 ## Pre-Release Checks
 
 - Rebuild the distribution payload and run the validation script.

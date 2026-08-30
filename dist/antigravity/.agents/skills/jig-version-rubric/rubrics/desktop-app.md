@@ -36,6 +36,16 @@ The internal UI toolkit and packaging tools are implementation details unless th
 
 > If a code signing, permission, or install-location change requires manual action from the user, it is `major`.
 
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `**/plugin-api/**`, `**/extension-api/**` | the plugin and extension API | `minor` |
+| `**/schemas/**`, `**/migrations/**` | document, project, and settings file formats | `minor` |
+| `**/Info.plist`, `**/*.desktop`, `**/installer/**`, `**/updater/**` | protocol URLs, file associations, install and update channels | `minor` |
+| `src/**` | application internals | `patch` |
+| `tests/**`, `docs/**` | tests and documentation | `patch` |
+
 ## Pre-Release Checks
 
 - Run an upgrade test with the previous version's files, settings, and plugins.

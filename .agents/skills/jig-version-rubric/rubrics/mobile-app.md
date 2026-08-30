@@ -34,6 +34,17 @@ The internal UI framework and the build system are implementation details unless
 
 > When the server stops supporting older app versions, or a forced update becomes necessary, grade the app-to-server compatibility contract as `major`.
 
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `**/Info.plist`, `**/AndroidManifest.xml`, `**/*.entitlements` | deep links, URL schemes, and OS requirements | `minor` |
+| `**/schemas/**`, `**/migrations/**` | local data, backup, and sync formats | `minor` |
+| `**/notifications/**`, `**/push/**` | push payloads and how they are handled | `minor` |
+| `**/widgets/**`, `**/extensions/**` | extension and widget contracts | `minor` |
+| `src/**`, `app/**`, `lib/**` | application internals | `patch` |
+| `test/**`, `docs/**` | tests and documentation | `patch` |
+
 ## Pre-Release Checks
 
 - Test data upgrade and session retention from the previously published version.

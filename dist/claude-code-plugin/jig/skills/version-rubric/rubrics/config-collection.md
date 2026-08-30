@@ -32,6 +32,16 @@ Internal tidying, comments, and file splits are not the public interface as long
 
 > If the location or tracked status of a file holding personal values changes, it is `major`. Leaks and losses ride on it.
 
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `install.sh`, `bootstrap.sh`, `Makefile` | how the configuration is applied | `minor` |
+| `**/*.template`, `**/*.example` | where personal values are meant to live | `minor` |
+| `**/keybindings.*`, `**/aliases.*` | gestures that already live in someone's hands | `minor` |
+| `shell/**`, `editor/**`, `git/**` | tuning of existing configuration values | `patch` |
+| `docs/**` | documentation | `patch` |
+
 ## Pre-Release Checks
 
 - Run the install procedure from scratch on a clean account or container.

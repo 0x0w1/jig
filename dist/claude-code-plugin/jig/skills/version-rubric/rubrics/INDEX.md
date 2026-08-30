@@ -45,6 +45,8 @@ The `## Decision Order` in all 17 drafts is effectively the same three questions
 
 Write a new type with those four in mind. `## Decision Order` and `## Grade Definitions` only need the three questions from [Common SemVer Principles](common.md) restated with this type's nouns.
 
+The `## Interface Paths` globs in every draft describe the layout the type conventionally uses. They are a starting point, not a fact about the adopting repository: check them against the real tree when adopting, and delete the rows that match nothing.
+
 ## How to Choose
 
 1. Write down what **reaches someone else** when this repository releases: an endpoint that is called, a package that is installed, a screen that opens, a document that is read, an asset that is reused, a configuration that is applied.

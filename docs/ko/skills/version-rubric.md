@@ -1,6 +1,6 @@
 # Version Rubric
 
-<!-- jig:skill-source-digest 6a2e0de923555ca9e170cb92c5d1960b88048fd2 -->
+<!-- jig:skill-source-digest 3526be24851fdebcffc5d7a41738756213f80713 -->
 
 [English](../../en/skills/version-rubric.md) · [스킬 index](index.md) · [Rubric 계약](../version-rubric.md)
 
@@ -19,7 +19,7 @@ rubric이 없을 때, project의 `patch`·`minor`·`major` 판정 방식을 revi
 - 필수 section: `## Decision Order`, `## Grade Definitions`
 - 선택 section: `## Hard Rules`, `## Interface Paths`, `## Release Notes`, `## Version Format`, `## Pre-Release Checks`
 
-`## Interface Paths`는 path glob을 그 아래 변경이 가질 수 있는 최저 등급에 대응시킵니다. 덕분에 `develop-task-flow`와 `github-release`가 산문 목록을 눈으로 읽는 대신 `git diff --name-only`로 시작 등급을 계산합니다. 처음 걸리는 행이 이기고, 여기서 나온 바닥은 참고값이라 이유를 남기면 더 낮게 낼 수 있습니다.
+`## Interface Paths`는 path glob을 그 아래 변경이 가질 수 있는 최저 등급에 대응시킵니다. 덕분에 `develop-task-flow`와 `github-release`가 산문 목록을 눈으로 읽는 대신 `git diff --name-only`로 시작 등급을 계산합니다. 처음 걸리는 행이 이기고, 여기서 나온 바닥은 참고값이라 이유를 남기면 더 낮게 낼 수 있습니다. 카탈로그의 모든 유형 초안이 이 표를 갖고 있으므로 유형을 채택할 때는 glob이 실제 트리와 맞는지 확인하고, 기본 rubric은 표 없이 나가며 사용자가 요청할 때만 덧붙입니다.
 
 legacy Korean title도 유효하지만 English title과 한 파일에서 섞으면 안 됩니다. `> Basis:` line은 default adoption, catalog type, project-specific 원천을 기록합니다. clone과 CI가 같은 기준을 쓰도록 file을 commit해야 합니다.
 
@@ -29,9 +29,10 @@ legacy Korean title도 유효하지만 English title과 한 파일에서 섞으�
 flowchart TD
     Resolve[rubric path·source 해석] --> Exists{file 존재?}
     Exists -- Yes --> Review[basis·grade·title·commit state 보고]
-    Review --> Intent{Keep·re-set·edit·reset·convert?}
+    Review --> Intent{Keep·re-set·edit·reset·convert·add paths?}
     Intent -- Keep --> Report[변경 없음]
     Intent -- Edit --> Edit[요청한 grade 또는 title만 변경]
+    Intent -- Add paths --> Paths[Interface Paths 표 추가]
     Intent -- Re-set --> Offer[default를 보여주고 한 번 질문]
     Intent -- Reset --> Default[새 Basis로 default 작성]
     Exists -- No --> Offer
@@ -40,7 +41,8 @@ flowchart TD
     Catalog --> Fit{type 적합?}
     Fit -- Yes --> Adopt[선택 draft 작성]
     Fit -- No --> Custom[3개 grade의 project 용어 수집]
-    Edit --> Commit[develop-task-flow로 commit 위임]
+    Paths --> Commit[develop-task-flow로 commit 위임]
+    Edit --> Commit
     Default --> Commit
     Adopt --> Commit
     Custom --> Commit

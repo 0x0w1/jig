@@ -34,6 +34,16 @@ The internal concurrency model and the worker framework are implementation detai
 
 > If replaying the backlog produces a different result than before, or manual data cleanup is required, it is `major`.
 
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `**/schemas/**`, `**/*.proto`, `**/*.avsc` | message schemas producers and consumers share | `minor` |
+| `**/consumers/**`, `**/handlers/**`, `**/tasks/**` | processing order, side effects, and idempotency | `minor` |
+| `config/**` | topics, routing keys, retry, and dead-letter policy | `minor` |
+| `src/**`, `internal/**` | worker internals | `patch` |
+| `tests/**`, `docs/**` | tests and documentation | `patch` |
+
 ## Pre-Release Checks
 
 - Test old producer with new consumer, and new producer with every supported consumer.

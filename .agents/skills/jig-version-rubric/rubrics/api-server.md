@@ -33,6 +33,17 @@ Whether adding a response field is a compatible change depends on whether the co
 
 > A change where the existing request still succeeds but the meaning, permissions, or side effects of the result differ is `major`.
 
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `openapi.yaml`, `openapi.json`, `**/*.proto`, `**/*.graphql` | the published contract clients generate from | `minor` |
+| `**/routes/**`, `**/controllers/**`, `**/handlers/**` | endpoint methods, paths, and status codes | `minor` |
+| `**/schemas/**`, `**/serializers/**`, `**/dto/**` | request, response, and error schemas | `minor` |
+| `**/migrations/**` | storage changes callers can observe | `minor` |
+| `src/**`, `internal/**` | service internals | `patch` |
+| `tests/**`, `docs/**` | tests and documentation | `patch` |
+
 ## Pre-Release Checks
 
 - Check for breaking changes with an OpenAPI or schema diff.

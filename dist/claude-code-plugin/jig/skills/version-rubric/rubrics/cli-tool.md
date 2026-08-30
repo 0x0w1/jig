@@ -31,6 +31,16 @@ Progress text meant only for humans and internal modules are implementation deta
 
 > Even when a deprecated option fails while naming its replacement, if existing automation stops working it is `major`.
 
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `**/cli/**`, `**/commands/**`, `bin/**` | commands, options, and exit codes | `minor` |
+| `completions/**` | shell completion and the automation contract | `minor` |
+| `**/schemas/**` | the machine-readable output schema | `minor` |
+| `src/**`, `internal/**` | implementation | `patch` |
+| `tests/**`, `docs/**`, `man/**` | tests and documentation | `patch` |
+
 ## Pre-Release Checks
 
 - Compare representative command fixtures and exit codes against the previous version.

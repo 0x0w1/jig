@@ -35,6 +35,15 @@ Spelling fixes, smoother sentences, and better examples do not change the public
 
 > If what a person must do changes in a rules or procedure document, it is `major` even when only one line moved.
 
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `**/templates/**` | document templates, required fields, and approval markings | `minor` |
+| `**/INDEX.md`, `**/toc.*`, `**/_meta.*` | classification and the rule for which document is current | `minor` |
+| `scripts/**`, `.github/**` | the tooling that manages the documents | `minor` |
+| `docs/**`, `policies/**`, `archive/**` | document content | `patch` |
+
 ## Pre-Release Checks
 
 - Confirm that every relative link between documents still resolves.

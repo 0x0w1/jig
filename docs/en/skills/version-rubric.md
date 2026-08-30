@@ -1,6 +1,6 @@
 # Version Rubric
 
-<!-- jig:skill-source-digest 6a2e0de923555ca9e170cb92c5d1960b88048fd2 -->
+<!-- jig:skill-source-digest 3526be24851fdebcffc5d7a41738756213f80713 -->
 
 [한국어](../../ko/skills/version-rubric.md) · [Skill index](index.md) · [Rubric contract](../version-rubric.md)
 
@@ -19,7 +19,7 @@ Use it when the rubric is missing, when reviewing how the project grades `patch`
 - Required sections: `## Decision Order`, `## Grade Definitions`
 - Optional: `## Hard Rules`, `## Interface Paths`, `## Release Notes`, `## Version Format`, `## Pre-Release Checks`
 
-`## Interface Paths` maps path globs to the lowest grade a change under them can be, so `develop-task-flow` and `github-release` can compute a starting grade from `git diff --name-only` instead of reading a prose interface list by eye. First matching row wins, and the floor it produces is advisory: a release may land below it with a recorded reason.
+`## Interface Paths` maps path globs to the lowest grade a change under them can be, so `develop-task-flow` and `github-release` can compute a starting grade from `git diff --name-only` instead of reading a prose interface list by eye. First matching row wins, and the floor it produces is advisory: a release may land below it with a recorded reason. Every catalog draft ships this table with the globs its type conventionally uses, so adopting a type means checking those globs against the real tree; the default rubric ships none and gets one only when the user asks.
 
 Legacy Korean titles remain valid but must not be mixed with English titles. The `> Basis:` line records default adoption, catalog type, or project-specific origin. The file must be committed so clones and CI grade the same way.
 
@@ -29,9 +29,10 @@ Legacy Korean titles remain valid but must not be mixed with English titles. The
 flowchart TD
     Resolve[Resolve rubric path and source] --> Exists{File exists?}
     Exists -- Yes --> Review[Report basis, grades, titles, commit state]
-    Review --> Intent{Keep, re-set, edit, reset, convert?}
+    Review --> Intent{Keep, re-set, edit, reset, convert, add paths?}
     Intent -- Keep --> Report[No change]
     Intent -- Edit --> Edit[Change only requested grade or titles]
+    Intent -- Add paths --> Paths[Append Interface Paths table]
     Intent -- Re-set --> Offer[Show default and ask one question]
     Intent -- Reset --> Default[Write default with new Basis]
     Exists -- No --> Offer
@@ -40,7 +41,8 @@ flowchart TD
     Catalog --> Fit{Type fits?}
     Fit -- Yes --> Adopt[Write selected draft]
     Fit -- No --> Custom[Collect project wording for three grades]
-    Edit --> Commit[Hand change to develop-task-flow]
+    Paths --> Commit[Hand change to develop-task-flow]
+    Edit --> Commit
     Default --> Commit
     Adopt --> Commit
     Custom --> Commit

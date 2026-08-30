@@ -124,12 +124,13 @@ The default ships `## Hard Rules` and `## Version Format` alongside the two requ
 - The escalation rules exist because the break that matters in an AI project is a quiet one. No test suite confirms that a reworded instruction still fires on the same input, so the version number is the channel left for "a human should look at this."
 - While the major version is `0`, `minor` and `major` land on the same position, so the escalation rules cost nothing yet and the `> Basis:` line says so. They begin to bind at `v1.0.0`, which is why they are settled before then.
 - A project that wants neither section removes them; both are optional by contract.
+- The default ships no `## Interface Paths` table, because it grades by whether a human must step in and that axis names no paths. After writing it, offer to add one built from the project's own public paths; a project that declines keeps grading exactly as before.
 
 A project whose releases ship documents rather than features usually grades by artifact instead: `patch` for document add/edit/delete, `minor` for changes to the tooling that manages the documents, `major` for a restructure. That rubric and a dozen others are already written; take one from the catalog below instead of drafting it.
 
 ## Type Catalog
 
-`rubrics/` ships next to this skill and holds one ready draft per project type. Every file in it is a complete rubric: copy it to the resolved rubric path, fill the `> Basis:` date, and adjust the interface list to what this project actually promises.
+`rubrics/` ships next to this skill and holds one ready draft per project type. Every file in it is a complete rubric: copy it to the resolved rubric path, fill the `> Basis:` date, and adjust the interface list and the `## Interface Paths` globs to what this project actually promises and where it keeps it.
 
 ```text
 rubrics/
@@ -140,6 +141,7 @@ rubrics/
 ```
 
 - Read `INDEX.md` first. It is the only file that lists the types, so a draft not indexed there is invisible to the scan.
+- Every draft ships an `## Interface Paths` table, but its globs are the layout that type conventionally uses, not this repository's. Check them against the real tree before writing, and drop the rows that match nothing. A glob that matches nothing is dead weight; a glob that matches the wrong tree floors the wrong changes.
 - Drafts are not grouped into subdirectories. The `consumer` column in `INDEX.md` carries the grouping, because a project often serves several kinds of consumer at once and a directory would force it into one.
 - Do not read every body. Read `INDEX.md`, pick the type, read that one file.
 - The catalog grades on the SemVer consumer-compatibility axis, not the human-intervention axis the default rubric uses. The two disagree — removing a feature is `major` in the catalog and `minor` in the default. Adopt one whole; never merge questions from both into one rubric.
@@ -155,11 +157,12 @@ Called without arguments. Determine the current state first, then confirm the us
 |---|---|---|
 | Review | file exists | Report the current rubric: path, source, kind, the three grades, commit state. Stop. |
 | Create | file missing | Show the default, ask the binary question, write the file. |
-| Adopt a type | the project has a clear type, or `rubric-scan` handed one over | Write that catalog draft as the rubric, dated and with the interface list adjusted. |
+| Adopt a type | the project has a clear type, or `rubric-scan` handed one over | Write that catalog draft as the rubric, dated and with the interface list and path globs adjusted. |
 | Re-set | file exists, user wants a different rubric | Show the current rubric, confirm, then replace it. |
 | Edit one grade | file exists, one grade is wrong | Update that grade's question and definition only; preserve the rest. |
 | Reset to default | file exists, user wants the default back | Replace with the default rubric and update the `> Basis:` line. |
 | Convert titles | file exists with legacy Korean titles and the user asks | Rename only the section titles to the English spellings; leave every question, definition, and rule word for word. |
+| Add interface paths | file exists without `## Interface Paths` and the user wants the path floor | Append the table, built from the paths this project's public interface actually lives in. Change nothing else. |
 
 ## Procedure
 
@@ -167,7 +170,7 @@ Called without arguments. Determine the current state first, then confirm the us
 2. If the file exists, summarize it and confirm the intent: keep, re-set, edit one grade, or reset to default. Keep ends the run.
 3. For create or re-set, show the default rubric and ask one question: **use this rubric?**
    - Yes → write the default and record adoption in the `> Basis:` line.
-   - No → offer the catalog before drafting from scratch. Read `rubrics/INDEX.md`, name the types that fit what this repository ships, and let the user pick one; when the type is unclear, run `rubric-scan` and use its recommendation. A chosen draft is written as-is except for the `> Basis:` line and the interface list.
+   - No → offer the catalog before drafting from scratch. Read `rubrics/INDEX.md`, name the types that fit what this repository ships, and let the user pick one; when the type is unclear, run `rubric-scan` and use its recommendation. A chosen draft is written as-is except for the `> Basis:` line, the interface list, and the `## Interface Paths` globs, which are checked against the repository's actual layout.
    - No catalog type fits → ask, for each of the three grades, which changes in this project belong there. Put the user's own wording into `## Decision Order` and `## Grade Definitions`.
 4. If the user skips the question or does not answer, adopt the default and record it. Do not ask again.
 5. Keep the user's vocabulary, including the language they answered in. Only normalize the sentence shape into `<question> → \`patch\`` form. Translating their words into jig terms such as "silent behavior change" makes the next release grade differently than they intended.

@@ -63,7 +63,7 @@ The 17 catalog drafts grade on the **SemVer consumer-compatibility axis**. The [
 
 Use one or the other. Mixing the questions blurs where the decision order stops. A project with clear outside consumers — installs, callers, readers — fits the catalog; a project whose only consumer is itself, or whose consumers are not settled yet, fits the default.
 
-A catalog file is written so it can become `.jig/versioning.md` as-is. Copy it, then adjust only the date on the `> Basis:` line and the `## Public Interface` list. The catalog itself is payload that `jig-update` refreshes — the project's decision belongs in the rubric file, never in the catalog.
+A catalog file is written so it can become `.jig/versioning.md` as-is. Copy it, then adjust the date on the `> Basis:` line, the `## Public Interface` list, and the `## Interface Paths` globs, which describe the layout the type conventionally uses rather than this repository's. The catalog itself is payload that `jig-update` refreshes — the project's decision belongs in the rubric file, never in the catalog.
 
 ### Type Scan
 
@@ -179,6 +179,7 @@ Two required sections, five optional. **The section titles are the contract.**
 - A changed path takes the floor of the **first row it matches**, so specific globs go above general ones. The floor for a range is the highest one any changed path took, and a path matching no row contributes nothing.
 - **The floor is advisory.** Paths say what changed, never how, so a typo fix and a broken promise under the same glob match the same row. A release may land below the floor as long as it records why; landing above it needs no justification.
 - That is the opposite of the `Release-Grade` trailer `develop-task-flow` writes, which was a judgement made with the diff in hand and is never lowered. Both appear separately in the release report.
+- Every catalog draft ships this table, so adopting a type turns the path floor on. The default rubric ships none, because the human-intervention axis names no paths; ask `version-rubric` to append one when the project wants the floor.
 - Omit the section and nothing changes: the release grades exactly as it did before.
 
 ### Section Titles

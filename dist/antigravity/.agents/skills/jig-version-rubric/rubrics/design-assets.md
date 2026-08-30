@@ -33,6 +33,16 @@ Layer structure in the source editing file and the way it is produced are not th
 
 > If brand rules (logo conditions, license) change, it is `major` even when no asset file moved.
 
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `**/tokens/**`, `**/*.tokens.json`, `**/theme.*` | design token names and values | `minor` |
+| `**/index.*`, `**/manifest.*` | asset names and where the library is published | `minor` |
+| `LICENSE*`, `**/brand/**` | license and logo restrictions | `minor` |
+| `assets/**`, `icons/**`, `exports/**` | refinement of existing assets | `patch` |
+| `src/**`, `docs/**` | editing sources and documentation | `patch` |
+
 ## Pre-Release Checks
 
 - List the files renamed or moved in this release and check the repositories that reference them.

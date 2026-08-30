@@ -33,6 +33,16 @@ Explanatory sentences, swapped examples, and slide design are not the public int
 
 > If grading criteria or the deliverable format changes, it is `major`, because it changes the outcome for learners already partway through.
 
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `**/syllabus.*`, `**/outline.*`, `**/INDEX.md` | curriculum order and session numbering | `minor` |
+| `**/grading.*`, `**/rubric.*` | grading criteria and the deliverable format | `minor` |
+| `environment.yml`, `requirements*.txt`, `package.json`, `Dockerfile`, `.tool-versions` | the environment an exercise needs | `minor` |
+| `**/exercises/**`, `**/solutions/**` | exercise wording and worked answers | `patch` |
+| `slides/**`, `notebooks/**`, `sessions/**` | explanations and examples | `patch` |
+
 ## Pre-Release Checks
 
 - Walk an exercise from the start and confirm the instructions match the result.

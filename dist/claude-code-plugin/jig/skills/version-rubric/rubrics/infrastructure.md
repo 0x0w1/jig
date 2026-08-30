@@ -34,6 +34,15 @@ How resources are composed internally is an implementation detail unless it affe
 
 > If consumers take on required cost or operational responsibility beyond the existing contract, it is `major`. Cost going up or down is not by itself grounds for a grade.
 
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `**/variables.tf`, `**/outputs.tf`, `**/values.yaml`, `**/*.schema.json` | module inputs, outputs, and defaults | `minor` |
+| `**/main.tf`, `**/templates/**`, `**/charts/**` | created resource names and boundaries | `minor` |
+| `**/versions.tf`, `**/providers.tf`, `Chart.yaml` | supported providers, platforms, and tool versions | `minor` |
+| `examples/**`, `tests/**`, `docs/**` | examples, tests, and documentation | `patch` |
+
 ## Pre-Release Checks
 
 - Run the new version's plan against state created by the previous version and inspect replacements and deletions.

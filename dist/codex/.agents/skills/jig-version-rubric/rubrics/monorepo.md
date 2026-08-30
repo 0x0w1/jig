@@ -56,6 +56,16 @@ Product groups ship on a fixed version while standalone tools and libraries carr
 
 > If a generated client and its schema change together so the repository builds but an external consumer breaks, it is `major`.
 
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `packages/*/src/public/**`, `**/schemas/**`, `**/*.proto` | shared schemas and generated clients | `minor` |
+| `packages/*/package.json`, `packages/*/*.toml` | workspace dependency ranges and published names | `minor` |
+| `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `Makefile` | root commands and release entrypoints | `minor` |
+| `packages/*/src/**` | package internals | `patch` |
+| `tests/**`, `docs/**` | tests and documentation | `patch` |
+
 ## Pre-Release Checks
 
 - Run the tests of the changed packages and of the packages that depend on them.

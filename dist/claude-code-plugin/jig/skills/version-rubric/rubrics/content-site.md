@@ -35,6 +35,16 @@ Themes, colors, fonts, and the build tool are not the public interface as long a
 
 > If the claim or conclusion of an already-published post changes, it is `major`. Leaving a correction notice included.
 
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `**/_redirects`, `netlify.toml`, `vercel.json`, `**/routes.*` | URL retention and redirects | `minor` |
+| `**/feed.*`, `**/rss.*`, `**/atom.*` | feed addresses and the shape of their items | `minor` |
+| `config/**`, `**/config.*`, `**/menu.*` | site structure, menus, and published languages | `minor` |
+| `content/**`, `posts/**`, `pages/**` | writing published under existing URLs | `patch` |
+| `themes/**`, `layouts/**`, `assets/**` | presentation | `patch` |
+
 ## Pre-Release Checks
 
 - Build, then confirm no internal link or image path broke.

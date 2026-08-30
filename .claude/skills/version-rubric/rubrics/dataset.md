@@ -35,6 +35,15 @@ The internal collection procedure and cleanup scripts are not the public interfa
 
 > Recomputing an already-published historical range and overwriting it is `major`.
 
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `**/schema.*`, `**/codebook.*`, `**/*.dictionary.*` | column types, units, and allowed values | `minor` |
+| `LICENSE*`, `DATASHEET*`, `**/PROVENANCE*` | provenance, audience, and use limits | `minor` |
+| `data/**` | published files and the values in them | `patch` |
+| `scripts/**`, `notebooks/**`, `docs/**` | collection procedure and documentation | `patch` |
+
 ## Pre-Release Checks
 
 - Diff the column list and types against the previous version.

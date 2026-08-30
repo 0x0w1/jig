@@ -35,6 +35,16 @@ Transformation logic, engines, and scheduler configuration are not the public in
 
 > Recomputing historical data so that already-published reports change value is `major`.
 
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `**/models/staging/**`, `**/intermediate/**` | intermediate steps no consumer reads | `patch` |
+| `**/models/**`, `**/marts/**`, `**/transforms/**` | the tables produced and their column meanings | `minor` |
+| `**/schema.*`, `**/contracts/**` | output schemas and null conventions | `minor` |
+| `**/dags/**`, `**/schedules/**` | refresh cadence and latency guarantees | `minor` |
+| `tests/**`, `docs/**` | tests and documentation | `patch` |
+
 ## Pre-Release Checks
 
 - Run the old and new versions on the same input and compare row counts and metric differences.

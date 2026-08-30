@@ -24,7 +24,7 @@ A generation change that keeps the public contract is `patch`, one that adds bac
 
 Stop at the first grade that matches. When several public interfaces are affected, grade each one separately and use the highest grade.
 
-When a rubric carries an `## Interface Paths` table, the changed paths set a starting grade before these questions are asked. That floor is advisory — it names what was touched, never how — so a grade may land below it when the reason is recorded.
+Every draft in this catalog carries an `## Interface Paths` table, and the changed paths set a starting grade from it before these questions are asked. That floor is advisory — it names what was touched, never how — so a grade may land below it when the reason is recorded.
 
 ## Judging Compatibility
 

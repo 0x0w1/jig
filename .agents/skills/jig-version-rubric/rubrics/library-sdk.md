@@ -33,6 +33,16 @@ Private symbols and the build and test setup are implementation details unless t
 
 > If adding a union member or enum case breaks an existing consumer's exhaustive check, it is `major`.
 
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `**/index.*`, `**/lib.rs`, `**/__init__.py`, `**/*.d.ts` | the exported surface and its signatures | `minor` |
+| `**/public/**`, `**/api/**` | public modules consumers import | `minor` |
+| `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod` | supported runtimes and peer dependencies | `minor` |
+| `src/**`, `internal/**` | implementation | `patch` |
+| `tests/**`, `docs/**`, `examples/**` | tests, documentation, and examples | `patch` |
+
 ## Pre-Release Checks
 
 - Review a public API or ABI diff.

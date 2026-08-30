@@ -33,6 +33,17 @@ Component structure, CSS implementation, and the bundler are implementation deta
 
 > If an existing URL still opens but performs a different task, or the meaning of an existing setting quietly changes, it is `major`.
 
+## Interface Paths
+
+| path glob | interface | floor |
+|---|---|---|
+| `**/routes/**`, `**/pages/**` | public URLs and routes | `minor` |
+| `**/storage/**`, `**/migrations/**` | local storage, IndexedDB, and cookie compatibility | `minor` |
+| `**/embed/**`, `**/sdk/**`, `**/public-api/**` | external embeds, `postMessage`, and the public JavaScript API | `minor` |
+| `browserslist*`, `package.json` | supported browsers | `minor` |
+| `src/**`, `components/**`, `styles/**` | component structure and CSS | `patch` |
+| `tests/**`, `docs/**` | tests and documentation | `patch` |
+
 ## Pre-Release Checks
 
 - Run an upgrade test against browser state saved by the previous version.
