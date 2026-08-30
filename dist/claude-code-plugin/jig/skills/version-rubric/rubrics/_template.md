@@ -52,7 +52,7 @@ How to write this file
 
 - `## Decision Order` and `## Grade Definitions` are required; the other five sections are optional. Delete a section this type has nothing to say about.
 - `## Interface Paths` turns `## Public Interface` into globs the grading skills can match against `git diff --name-only`. Rows are read top to bottom and the first match wins, so put specific globs above general ones. The floor it produces is advisory: a release may land below it with a recorded reason.
-- Spend the effort on `## Public Interface`, `## Hard Rules`, and `## Pre-Release Checks`. The decision order and grade definitions only need the three questions from common.md restated with this type's nouns.
+- Spend the effort on `## Public Interface`, `## Interface Paths`, `## Hard Rules`, and `## Pre-Release Checks`. The decision order and grade definitions only need the three questions from common.md restated with this type's nouns.
 - The decision order is asked top down and stops at the first match. That meaning cannot be changed.
 - What is graded is consumer compatibility across the release. AI effort, file counts, and implementation time are not grounds.
 - `## Hard Rules` holds **only conditions that always escalate**. Statements about what is not grounds for a grade belong in common.md, and version-number notation belongs in `## Version Format`.

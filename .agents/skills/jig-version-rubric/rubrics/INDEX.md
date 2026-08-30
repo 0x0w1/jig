@@ -34,7 +34,7 @@ The two axes grade the same change differently.
 
 ## What a Type Actually Changes
 
-The `## Decision Order` in all 17 drafts is effectively the same three questions. A type really changes only three things.
+The `## Decision Order` in all 17 drafts is effectively the same three questions. A type really changes only four things.
 
 | Section | What differs by type |
 |---|---|
@@ -43,7 +43,7 @@ The `## Decision Order` in all 17 drafts is effectively the same three questions
 | `## Hard Rules` | How this type **breaks quietly, without raising an error** |
 | `## Pre-Release Checks` | How to catch that break before releasing |
 
-Write a new type with those three in mind. `## Decision Order` and `## Grade Definitions` only need the three questions from [Common SemVer Principles](common.md) restated with this type's nouns.
+Write a new type with those four in mind. `## Decision Order` and `## Grade Definitions` only need the three questions from [Common SemVer Principles](common.md) restated with this type's nouns.
 
 ## How to Choose
 
