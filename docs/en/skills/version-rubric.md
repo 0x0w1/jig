@@ -1,6 +1,6 @@
 # Version Rubric
 
-<!-- jig:skill-source-digest 3526be24851fdebcffc5d7a41738756213f80713 -->
+<!-- jig:skill-source-digest f43a4026975729546de57fde328ceac60351ffd4 -->
 
 [한국어](../../ko/skills/version-rubric.md) · [Skill index](index.md) · [Rubric contract](../version-rubric.md)
 
@@ -17,7 +17,7 @@ Use it when the rubric is missing, when reviewing how the project grades `patch`
 - Claude Code: `/jig:version-rubric`
 - Codex and Antigravity: `jig-version-rubric`
 - Required sections: `## Decision Order`, `## Grade Definitions`
-- Optional: `## Hard Rules`, `## Interface Paths`, `## Release Notes`, `## Version Format`, `## Pre-Release Checks`
+- Optional: `## Hard Rules`, `## Interface Paths`, `## Hotfix Triggers`, `## Release Notes`, `## Version Format`, `## Pre-Release Checks`
 
 `## Interface Paths` maps path globs to the lowest grade a change under them can be, so `develop-task-flow` and `github-release` can compute a starting grade from `git diff --name-only` instead of reading a prose interface list by eye. First matching row wins, and the floor it produces is advisory: a release may land below it with a recorded reason. Every catalog draft ships this table with the globs its type conventionally uses, so adopting a type means checking those globs against the real tree; the default rubric ships none and gets one only when the user asks.
 

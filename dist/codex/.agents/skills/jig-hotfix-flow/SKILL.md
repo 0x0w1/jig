@@ -14,8 +14,34 @@ Every other fix is an ordinary task. Use `develop-task-flow` and let the fix rid
 All three must hold. If any one fails, this is not a hotfix.
 
 1. The defect is reachable from `main`, so people already have it.
-2. Waiting for the next `develop` release is not acceptable.
+2. The defect matches one of the project's hotfix triggers. See Hotfix Triggers — the user calling it urgent is not one.
 3. `develop` holds work that must **not** ship yet. When `develop` has nothing unreleased, there is no hotfix: fix it with `develop-task-flow` and release normally.
+
+## Hotfix Triggers
+
+Whether a defect deserves to bypass the `develop` queue is a judgement, and it is made while something is on fire. So the judgement is not made here: the project writes the conditions in advance and this run only matches against them.
+
+Resolve the list from the `## Hotfix Triggers` section of the rubric file, found in the same order the grade uses:
+
+1. `JIG_VERSION_RUBRIC` environment variable.
+2. `git config --local --get jig.versionRubric` (repository override).
+3. `.jig/versioning.md` (the convention).
+
+Accept either spelling of the section title: `## Hotfix Triggers` or `## 핫픽스 트리거`.
+
+When the rubric has no such section, use this default list, and say in the report that it was the default:
+
+- The released artifact does not install or start
+- Data is lost or corrupted
+- A credential or secret is exposed
+- A published security vulnerability is exploitable
+- A released capability is entirely broken for most users
+
+Then:
+
+- **Name the matching item.** A run that cannot point at one is not a hotfix; stop and hand the fix to `develop-task-flow`.
+- Record it on the squash commit as a `Hotfix-Trigger:` trailer, next to `Release-Grade:`.
+- Urgency asserted by the user is not a trigger. Neither is a deadline, a demo, or a release that feels overdue. The list holds observable states.
 
 ## Why the Model Needs a Separate Flow
 
@@ -45,6 +71,7 @@ Apply its `## Decision Order` to this fix alone, stopping at the first match, th
 
 ```text
 Release-Grade: patch
+Hotfix-Trigger: The released artifact does not install or start
 ```
 
 `version-rubric` owns the rubric file. Never edit it from here.
@@ -63,6 +90,7 @@ Release-Grade: patch
 - **Stop when `git rev-list --count origin/main..origin/develop` is `0`.** With nothing unreleased there is no work to protect, so a hotfix only adds steps. Use `develop-task-flow` and release normally.
 - Do not start a hotfix from `develop`. The branch point is `origin/main`, or the fix carries unreleased work with it. The `pre-push` guard enforces this: a hotfix push must be exactly one commit ahead of `main`, and a branch taken from `develop` is many.
 - Do not include anything beyond the defect. A hotfix that also carries a refactor is an ordinary task.
+- **Do not widen the trigger list to make this fix fit.** Editing `## Hotfix Triggers` is a change to the project's policy: it is proposed to the user, committed on its own, and never folded into a hotfix in progress. A fix that needs the list widened is telling you it is not a hotfix yet.
 - Do not leave `main` ahead of `develop`. The back-merge runs in the same session, before the report.
 - Do not resolve a failed `develop:main` fast-forward by force-pushing; that is the state this skill exists to prevent.
 - Do not delete branches without explicit user confirmation.
@@ -75,13 +103,14 @@ Release-Grade: patch
    - `git status --short --branch`
    - `git fetch origin --prune --tags`
    - `git rev-list --count origin/main..origin/develop` — **`0` ends the run.** Report that this is an ordinary task and hand it to `develop-task-flow`
+   - resolve `## Hotfix Triggers` per Hotfix Triggers and name the matching item. **No match ends the run.**
    - `git log --oneline origin/main..origin/develop` — name the unreleased work that must not ship, so the user can see what the hotfix is protecting
 2. Create the branch from the released state: `git checkout -b hotfix/<slug> origin/main`.
 3. Implement only the fix.
 4. Run the most relevant focused test, then the repository's broader validation when practical. Report any gap.
 5. Reduce the branch to one commit on top of `origin/main`:
    - `git reset --soft origin/main`
-   - commit once with a `fix:` subject, user-facing body bullets, and the `Release-Grade` trailer
+   - commit once with a `fix:` subject, user-facing body bullets, and the `Release-Grade` and `Hotfix-Trigger` trailers
 6. Land it: `git push origin hotfix/<slug>:main`. This must fast-forward, and the guard additionally requires it to be exactly one commit ahead of `main`. A rejection there means the branch did not start from `origin/main`; do not work around it.
 7. Tag the commit that is now `main` and publish:
    - `git tag <version> $(git rev-parse hotfix/<slug>)`
@@ -106,6 +135,7 @@ Say plainly that this release came from `main` and that `develop` work is not in
 
 - Branch, and the `origin/main` commit it started from
 - Files changed and tests run
+- The trigger that matched, and whether it came from the project's list or the shipped default
 - Graded bump, the rubric question that decided it, and the recorded `Release-Grade`
 - Version tagged and the release URL
 - Back-merge result and the `merge-base --is-ancestor` verification

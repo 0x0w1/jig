@@ -37,6 +37,11 @@
 | `<glob for what consumers depend on>` | <which promise it carries> | `minor` |
 | `<glob for internals>` | internal | `patch` |
 
+## Hotfix Triggers
+
+- <observable state that justifies bypassing the develop queue, 1>
+- <observable state, 2>
+
 ## Pre-Release Checks
 
 - <what to verify before releasing, 1>
@@ -50,7 +55,8 @@
 <!--
 How to write this file
 
-- `## Decision Order` and `## Grade Definitions` are required; the other five sections are optional. Delete a section this type has nothing to say about.
+- `## Decision Order` and `## Grade Definitions` are required; the other six sections are optional. Delete a section this type has nothing to say about.
+- `## Hotfix Triggers` lists observable states that justify shipping ahead of the develop queue. Write states, not feelings: `hotfix-flow` requires a run to name the item it matched, and falls back to its shipped default list when the section is absent.
 - `## Interface Paths` turns `## Public Interface` into globs the grading skills can match against `git diff --name-only`. Rows are read top to bottom and the first match wins, so put specific globs above general ones. The floor it produces is advisory: a release may land below it with a recorded reason.
 - Spend the effort on `## Public Interface`, `## Interface Paths`, `## Hard Rules`, and `## Pre-Release Checks`. The decision order and grade definitions only need the three questions from common.md restated with this type's nouns.
 - The decision order is asked top down and stops at the first match. That meaning cannot be changed.

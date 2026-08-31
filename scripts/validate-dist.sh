@@ -172,6 +172,15 @@ for rubric_skill in github-release version-rubric; do
   require_text "dist/claude-code-plugin/jig/skills/$rubric_skill/SKILL.md" "## 인터페이스 경로"
 done
 
+# hotfix-flow gates on a list the project writes in advance, so it must name the
+# section under both spellings and carry the default it falls back to.
+for spelling in "## Hotfix Triggers" "## 핫픽스 트리거"; do
+  require_text "dist/claude-code-plugin/jig/skills/hotfix-flow/SKILL.md" "$spelling"
+  require_text "dist/claude-code-plugin/jig/skills/version-rubric/SKILL.md" "$spelling"
+done
+require_text "dist/claude-code-plugin/jig/skills/hotfix-flow/SKILL.md" "Hotfix-Trigger:"
+require_text "dist/codex/.agents/skills/jig-hotfix-flow/SKILL.md" "Hotfix-Trigger:"
+
 require_text "dist/claude-code-plugin/jig/skills/version-rubric/SKILL.md" "> 기준:"
 require_text "dist/claude-code-plugin/jig/skills/version-rubric/SKILL.md" "> Basis:"
 

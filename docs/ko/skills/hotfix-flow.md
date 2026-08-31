@@ -1,6 +1,6 @@
 # Hotfix Flow
 
-<!-- jig:skill-source-digest 7f8d3bb38dc92ed4559388b0b4ce42453e7e31fe -->
+<!-- jig:skill-source-digest 932b91be4f36a4493469f0404be699f67f887cc8 -->
 
 [English](../../en/skills/hotfix-flow.md) · [스킬 목록](index.md)
 
@@ -32,6 +32,14 @@ flowchart LR
     Tag --> Back[main을 develop에 병합 후 push]
     Back --> Verify[merge-base --is-ancestor main develop]
 ```
+
+### 핫픽스 트리거
+
+`develop` 대기열을 건너뛸 만한 결함인지는 판단이고, 그 판단은 무언가 불타는 중에 내려집니다. 판단하기 가장 나쁜 순간입니다. 그래서 조건은 프로젝트가 미리 기준 파일의 `## Hotfix Triggers` 절에 써 두고, 실행 시에는 거기에 대조만 합니다.
+
+각 항목은 느낌이 아니라 관찰 가능한 상태입니다. "배포된 CLI가 시작에서 0이 아닌 코드로 종료한다"는 트리거이고 "급하다"는 아닙니다. 맞는 항목을 대지 못하면 실행을 멈추고 `develop-task-flow`로 넘깁니다. 맞은 항목은 squash commit에 `Hotfix-Trigger:` trailer로 기록합니다.
+
+절을 쓰지 않은 프로젝트에서는 `hotfix-flow`가 배포된 기본 목록으로 폴백합니다. `github-release`가 기본 rubric으로 폴백하는 것과 같습니다. 진행 중인 수정에 맞추려고 목록을 넓히는 것은 프로젝트 정책 변경이므로 따로 커밋하며, 핫픽스 안에 섞지 않습니다.
 
 ## 되돌림 병합이 절차의 일부인 이유
 

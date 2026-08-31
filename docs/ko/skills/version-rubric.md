@@ -1,6 +1,6 @@
 # Version Rubric
 
-<!-- jig:skill-source-digest 3526be24851fdebcffc5d7a41738756213f80713 -->
+<!-- jig:skill-source-digest f43a4026975729546de57fde328ceac60351ffd4 -->
 
 [English](../../en/skills/version-rubric.md) · [스킬 index](index.md) · [Rubric 계약](../version-rubric.md)
 
@@ -17,7 +17,7 @@ rubric이 없을 때, project의 `patch`·`minor`·`major` 판정 방식을 revi
 - Claude Code: `/jig:version-rubric`
 - Codex·Antigravity: `jig-version-rubric`
 - 필수 section: `## Decision Order`, `## Grade Definitions`
-- 선택 section: `## Hard Rules`, `## Interface Paths`, `## Release Notes`, `## Version Format`, `## Pre-Release Checks`
+- 선택 section: `## Hard Rules`, `## Interface Paths`, `## Hotfix Triggers`, `## Release Notes`, `## Version Format`, `## Pre-Release Checks`
 
 `## Interface Paths`는 path glob을 그 아래 변경이 가질 수 있는 최저 등급에 대응시킵니다. 덕분에 `develop-task-flow`와 `github-release`가 산문 목록을 눈으로 읽는 대신 `git diff --name-only`로 시작 등급을 계산합니다. 처음 걸리는 행이 이기고, 여기서 나온 바닥은 참고값이라 이유를 남기면 더 낮게 낼 수 있습니다. 카탈로그의 모든 유형 초안이 이 표를 갖고 있으므로 유형을 채택할 때는 glob이 실제 트리와 맞는지 확인하고, 기본 rubric은 표 없이 나가며 사용자가 요청할 때만 덧붙입니다.
 

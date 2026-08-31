@@ -148,7 +148,7 @@ Claude Code는 `/jig:version-rubric`, Codex와 Antigravity는 `jig-version-rubri
 
 ## 파일 계약
 
-필수 섹션 2개, 선택 5개입니다. **섹션 제목이 계약입니다.**
+필수 섹션 2개, 선택 6개입니다. **섹션 제목이 계약입니다.**
 
 | 섹션 | 필수 | 내용 |
 |---|---|---|
@@ -156,6 +156,7 @@ Claude Code는 `/jig:version-rubric`, Codex와 Antigravity는 `jig-version-rubri
 | `## Grade Definitions` | 필수 | 등급별 정의 표 |
 | `## Hard Rules` | 선택 | 무조건 승격시키는 조건 |
 | `## Interface Paths` | 선택 | 시작 등급을 정하는 변경 경로 |
+| `## Hotfix Triggers` | 선택 | develop 대기열을 건너뛸 근거 |
 | `## Release Notes` | 선택 | 노트 섹션 순서·제목 override |
 | `## Version Format` | 선택 | 태그 정규식, 1.0 이전 처리, 요약 언어 |
 | `## Pre-Release Checks` | 선택 | 릴리즈 전에 실행할 명령 |
@@ -194,6 +195,7 @@ Claude Code는 `/jig:version-rubric`, Codex와 Antigravity는 `jig-version-rubri
 | `## Grade Definitions` | `## 등급 정의` |
 | `## Hard Rules` | `## 강경 규칙` |
 | `## Interface Paths` | `## 인터페이스 경로` |
+| `## Hotfix Triggers` | `## 핫픽스 트리거` |
 | `## Release Notes` | `## 릴리즈 노트` |
 | `## Version Format` | `## 버전 형식` |
 | `## Pre-Release Checks` | `## 릴리즈 전 검증` |

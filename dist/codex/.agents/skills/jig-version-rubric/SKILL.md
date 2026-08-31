@@ -23,7 +23,7 @@ Resolve the rubric path in this order:
 
 ### File Contract
 
-Two required sections, five optional. The section titles are the contract.
+Two required sections, six optional. The section titles are the contract.
 
 ```md
 # Version Policy
@@ -40,6 +40,7 @@ Two required sections, five optional. The section titles are the contract.
 
 ## Hard Rules            (optional) conditions that always escalate
 ## Interface Paths       (optional) changed paths that set a starting grade
+## Hotfix Triggers       (optional) what justifies bypassing the develop queue
 ## Release Notes         (optional) note section order and titles
 ## Version Format        (optional) tag pattern, pre-1.0 handling, summary language
 ## Pre-Release Checks    (optional) commands to run before releasing
@@ -69,6 +70,25 @@ Two required sections, five optional. The section titles are the contract.
 - This is the opposite of a recorded task grade, which is a judgement made with the diff in hand and is never lowered. Keep the two apart in the report.
 - Write the globs against repository-root-relative paths, matching what `git diff --name-only` prints.
 
+### Hotfix Triggers
+
+`hotfix-flow` puts a commit on `main` that `develop` does not have, which is the one operation the branch model otherwise forbids. Whether a defect deserves that is a judgement, and a judgement made while something is on fire is the least reliable kind.
+
+This section moves the judgement earlier. The project writes, while calm, the conditions that justify the bypass; `hotfix-flow` then requires the run to name which one matched.
+
+```md
+## Hotfix Triggers
+
+- The released artifact does not install or start
+- Data is lost or corrupted
+- A credential or secret is exposed
+```
+
+- Every item is an **observable state**, not a feeling. "Urgent" is not a trigger; "the released CLI exits non-zero on startup" is.
+- `hotfix-flow` stops when nothing on the list matches, and hands the fix to `develop-task-flow`.
+- Omit the section and `hotfix-flow` falls back to the default list it ships, exactly as `github-release` falls back to the default rubric. A project that never wrote this section still grades and still gates.
+- Widening the list to fit a fix in progress is a change to the project's policy, not a step in a hotfix. It is written, committed, and reviewable like any other decision — which is the point of keeping it here rather than in someone's head.
+
 ### Legacy Section Titles
 
 Rubrics written before this contract switched to English carry Korean titles. They stay valid, and every jig skill that reads a rubric accepts either spelling:
@@ -79,6 +99,7 @@ Rubrics written before this contract switched to English carry Korean titles. Th
 | `## Grade Definitions` | `## 등급 정의` |
 | `## Hard Rules` | `## 강경 규칙` |
 | `## Interface Paths` | `## 인터페이스 경로` |
+| `## Hotfix Triggers` | `## 핫픽스 트리거` |
 | `## Release Notes` | `## 릴리즈 노트` |
 | `## Version Format` | `## 버전 형식` |
 | `## Pre-Release Checks` | `## 릴리즈 전 검증` |

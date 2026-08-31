@@ -1,6 +1,6 @@
 # Hotfix Flow
 
-<!-- jig:skill-source-digest 7f8d3bb38dc92ed4559388b0b4ce42453e7e31fe -->
+<!-- jig:skill-source-digest 932b91be4f36a4493469f0404be699f67f887cc8 -->
 
 [한국어](../../ko/skills/hotfix-flow.md) · [Skill index](index.md)
 
@@ -32,6 +32,14 @@ flowchart LR
     Tag --> Back[Merge main into develop and push]
     Back --> Verify[merge-base --is-ancestor main develop]
 ```
+
+### Hotfix triggers
+
+Whether a defect deserves to bypass the `develop` queue is a judgement made while something is on fire, which is the least reliable moment to make it. So the project writes the conditions in advance, in the `## Hotfix Triggers` section of the rubric file, and the run only matches against them.
+
+Every item is an observable state rather than a feeling: "the released CLI exits non-zero on startup" is a trigger, "urgent" is not. A run that cannot name a matching item stops and hands the fix to `develop-task-flow`. The matched item is recorded on the squash commit as a `Hotfix-Trigger:` trailer.
+
+When a project never wrote the section, `hotfix-flow` falls back to the default list it ships, the same way `github-release` falls back to the default rubric. Widening the list to fit a fix in progress is a change to the project's policy: it is committed separately, never folded into the hotfix.
 
 ## Why the back-merge is part of the procedure
 

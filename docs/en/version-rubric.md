@@ -148,7 +148,7 @@ While the project is on `0.x`, `minor` and `major` land on the same position (`v
 
 ## The File Contract
 
-Two required sections, five optional. **The section titles are the contract.**
+Two required sections, six optional. **The section titles are the contract.**
 
 | Section | Required | Contents |
 |---|---|---|
@@ -156,6 +156,7 @@ Two required sections, five optional. **The section titles are the contract.**
 | `## Grade Definitions` | required | the per-grade definition table |
 | `## Hard Rules` | optional | conditions that always escalate |
 | `## Interface Paths` | optional | changed paths that set a starting grade |
+| `## Hotfix Triggers` | optional | what justifies bypassing the develop queue |
 | `## Release Notes` | optional | override for note section order and titles |
 | `## Version Format` | optional | tag pattern, pre-1.0 handling, summary language |
 | `## Pre-Release Checks` | optional | commands to run before releasing |
@@ -194,6 +195,7 @@ The contract titles are English. The skills are written in English throughout, s
 | `## Grade Definitions` | `## 등급 정의` |
 | `## Hard Rules` | `## 강경 규칙` |
 | `## Interface Paths` | `## 인터페이스 경로` |
+| `## Hotfix Triggers` | `## 핫픽스 트리거` |
 | `## Release Notes` | `## 릴리즈 노트` |
 | `## Version Format` | `## 버전 형식` |
 | `## Pre-Release Checks` | `## 릴리즈 전 검증` |
