@@ -74,20 +74,26 @@ Two required sections, six optional. The section titles are the contract.
 
 `hotfix-flow` puts a commit on `main` that `develop` does not have, which is the one operation the branch model otherwise forbids. Whether a defect deserves that is a judgement, and a judgement made while something is on fire is the least reliable kind.
 
-This section moves the judgement earlier. The project writes, while calm, the conditions that justify the bypass; `hotfix-flow` then requires the run to name which one matched.
+This section moves the judgement earlier. The project writes, while calm, the question that decides the bypass and the conditions it has already recognised; `hotfix-flow` then requires the run to answer against them.
 
 ```md
 ## Hotfix Triggers
+
+> Does harm keep occurring and accumulating for as long as the released state stands?
 
 - The released artifact does not install or start
 - Data is lost or corrupted
 - A credential or secret is exposed
 ```
 
+The leading `>` line is the **anchoring question**, and the list is what answering it has produced so far. A closed list is wrong eventually, and a gate people route around is worse than no gate, so the question is what the list is measured against.
+
 - Every item is an **observable state**, not a feeling. "Urgent" is not a trigger; "the released CLI exits non-zero on startup" is.
-- `hotfix-flow` stops when nothing on the list matches, and hands the fix to `develop-task-flow`.
-- Omit the section and `hotfix-flow` falls back to the default list it ships, exactly as `github-release` falls back to the default rubric. A project that never wrote this section still grades and still gates.
-- Widening the list to fit a fix in progress is a change to the project's policy, not a step in a hotfix. It is written, committed, and reviewable like any other decision — which is the point of keeping it here rather than in someone's head.
+- The question is about the world, not about the person asking. "We have a demo tomorrow" and "the release is overdue" describe a schedule; neither says anything keeps happening because the released state stands. That is what makes the question answerable by someone other than the requester.
+- When nothing on the list matches, `hotfix-flow` puts the question instead. A `no` ends the run and the fix goes to `develop-task-flow`. A `yes` does not start the hotfix either: the new condition is added to this section and committed on its own first, so the list grows by decision rather than by exception.
+- Omit the section and `hotfix-flow` falls back to the question and list it ships, exactly as `github-release` falls back to the default rubric. A project that never wrote this section still grades and still gates.
+
+**This section is not written per project type.** Domain wording differs — a blank screen, a 5xx, a corrupted state file — but each is the same answer to the same question, so a catalog draft restates rather than decides. Keep the question general and let the project add the two or three conditions it has actually met.
 
 ### Legacy Section Titles
 

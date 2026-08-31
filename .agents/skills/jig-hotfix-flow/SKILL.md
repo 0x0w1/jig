@@ -14,7 +14,7 @@ Every other fix is an ordinary task. Use `develop-task-flow` and let the fix rid
 All three must hold. If any one fails, this is not a hotfix.
 
 1. The defect is reachable from `main`, so people already have it.
-2. The defect matches one of the project's hotfix triggers. See Hotfix Triggers — the user calling it urgent is not one.
+2. Harm keeps accumulating for as long as the released state stands. See Hotfix Triggers — the user calling it urgent is not that.
 3. `develop` holds work that must **not** ship yet. When `develop` has nothing unreleased, there is no hotfix: fix it with `develop-task-flow` and release normally.
 
 ## Hotfix Triggers
@@ -29,7 +29,9 @@ Resolve the list from the `## Hotfix Triggers` section of the rubric file, found
 
 Accept either spelling of the section title: `## Hotfix Triggers` or `## 핫픽스 트리거`.
 
-When the rubric has no such section, use this default list, and say in the report that it was the default:
+The section holds an anchoring question on a `>` line and the conditions answering it that the project has already recognised. When the rubric has no such section, use this default and say in the report that it was the default:
+
+> Does harm keep occurring and accumulating for as long as the released state stands?
 
 - The released artifact does not install or start
 - Data is lost or corrupted
@@ -37,11 +39,15 @@ When the rubric has no such section, use this default list, and say in the repor
 - A published security vulnerability is exploitable
 - A released capability is entirely broken for most users
 
-Then:
+Apply it in this order:
 
-- **Name the matching item.** A run that cannot point at one is not a hotfix; stop and hand the fix to `develop-task-flow`.
-- Record it on the squash commit as a `Hotfix-Trigger:` trailer, next to `Release-Grade:`.
-- Urgency asserted by the user is not a trigger. Neither is a deadline, a demo, or a release that feels overdue. The list holds observable states.
+1. **A listed condition matches.** Name it, record it as a `Hotfix-Trigger:` trailer next to `Release-Grade:`, and continue.
+2. **Nothing matches.** Put the anchoring question to the user, in terms of what keeps happening while the release stands. A `no` ends the run: hand the fix to `develop-task-flow` and say why.
+3. **Nothing matches but the answer is `yes`.** The list is short by one condition. Propose that condition, add it to the `## Hotfix Triggers` section, and commit that change on its own before the hotfix starts. Then continue from step 1 with the condition now listed.
+
+Step 3 is not a formality that lets a hotfix through. It is what stops the list from silently becoming whatever the current run needs: the addition is a policy change, committed separately, readable later next to every other one.
+
+Urgency asserted by the user is not an answer to the question. Neither is a deadline, a demo, or a release that feels overdue — those describe a schedule, not something the released state keeps doing.
 
 ## Why the Model Needs a Separate Flow
 
@@ -90,7 +96,7 @@ Hotfix-Trigger: The released artifact does not install or start
 - **Stop when `git rev-list --count origin/main..origin/develop` is `0`.** With nothing unreleased there is no work to protect, so a hotfix only adds steps. Use `develop-task-flow` and release normally.
 - Do not start a hotfix from `develop`. The branch point is `origin/main`, or the fix carries unreleased work with it. The `pre-push` guard enforces this: a hotfix push must be exactly one commit ahead of `main`, and a branch taken from `develop` is many.
 - Do not include anything beyond the defect. A hotfix that also carries a refactor is an ordinary task.
-- **Do not widen the trigger list to make this fix fit.** Editing `## Hotfix Triggers` is a change to the project's policy: it is proposed to the user, committed on its own, and never folded into a hotfix in progress. A fix that needs the list widened is telling you it is not a hotfix yet.
+- **Do not widen the trigger list inside a hotfix commit.** Adding a condition is allowed and expected over time, but it is proposed to the user and committed on its own before the fix begins, never folded into the fix. A list that grows inside the run it is gating has stopped being a gate.
 - Do not leave `main` ahead of `develop`. The back-merge runs in the same session, before the report.
 - Do not resolve a failed `develop:main` fast-forward by force-pushing; that is the state this skill exists to prevent.
 - Do not delete branches without explicit user confirmation.

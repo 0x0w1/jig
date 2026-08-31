@@ -179,6 +179,12 @@ for spelling in "## Hotfix Triggers" "## 핫픽스 트리거"; do
   require_text "dist/claude-code-plugin/jig/skills/version-rubric/SKILL.md" "$spelling"
 done
 require_text "dist/claude-code-plugin/jig/skills/hotfix-flow/SKILL.md" "Hotfix-Trigger:"
+# The list is measured against the question; shipping the list alone turns the
+# section back into a closed gate that people route around.
+for triggers_skill in hotfix-flow version-rubric; do
+  require_text "dist/claude-code-plugin/jig/skills/$triggers_skill/SKILL.md" \
+    "Does harm keep occurring and accumulating for as long as the released state stands?"
+done
 require_text "dist/codex/.agents/skills/jig-hotfix-flow/SKILL.md" "Hotfix-Trigger:"
 
 require_text "dist/claude-code-plugin/jig/skills/version-rubric/SKILL.md" "> 기준:"

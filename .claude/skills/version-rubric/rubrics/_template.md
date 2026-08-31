@@ -39,7 +39,9 @@
 
 ## Hotfix Triggers
 
-- <observable state that justifies bypassing the develop queue, 1>
+> Does harm keep occurring and accumulating for as long as the released state stands?
+
+- <observable state this question has already identified, 1>
 - <observable state, 2>
 
 ## Pre-Release Checks
@@ -56,7 +58,7 @@
 How to write this file
 
 - `## Decision Order` and `## Grade Definitions` are required; the other six sections are optional. Delete a section this type has nothing to say about.
-- `## Hotfix Triggers` lists observable states that justify shipping ahead of the develop queue. Write states, not feelings: `hotfix-flow` requires a run to name the item it matched, and falls back to its shipped default list when the section is absent.
+- `## Hotfix Triggers` holds one anchoring question and the observable states answering it. Write states, not feelings. When nothing matches, `hotfix-flow` puts the question and, on a `yes`, adds the new condition here in its own commit before the fix begins. Keep the question general: domain wording differs by type but the answer does not, so do not rewrite it per type.
 - `## Interface Paths` turns `## Public Interface` into globs the grading skills can match against `git diff --name-only`. Rows are read top to bottom and the first match wins, so put specific globs above general ones. The floor it produces is advisory: a release may land below it with a recorded reason.
 - Spend the effort on `## Public Interface`, `## Interface Paths`, `## Hard Rules`, and `## Pre-Release Checks`. The decision order and grade definitions only need the three questions from common.md restated with this type's nouns.
 - The decision order is asked top down and stops at the first match. That meaning cannot be changed.

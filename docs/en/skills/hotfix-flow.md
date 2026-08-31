@@ -1,6 +1,6 @@
 # Hotfix Flow
 
-<!-- jig:skill-source-digest 932b91be4f36a4493469f0404be699f67f887cc8 -->
+<!-- jig:skill-source-digest 00c3c4f35b63f27cdf1d5f04aac7919b14f43bfb -->
 
 [한국어](../../ko/skills/hotfix-flow.md) · [Skill index](index.md)
 
@@ -35,11 +35,15 @@ flowchart LR
 
 ### Hotfix triggers
 
-Whether a defect deserves to bypass the `develop` queue is a judgement made while something is on fire, which is the least reliable moment to make it. So the project writes the conditions in advance, in the `## Hotfix Triggers` section of the rubric file, and the run only matches against them.
+Whether a defect deserves to bypass the `develop` queue is a judgement made while something is on fire, which is the least reliable moment to make it. So the decision lives in the rubric file's `## Hotfix Triggers` section, written in advance: one anchoring question, and the conditions answering it that the project has already recognised.
 
-Every item is an observable state rather than a feeling: "the released CLI exits non-zero on startup" is a trigger, "urgent" is not. A run that cannot name a matching item stops and hands the fix to `develop-task-flow`. The matched item is recorded on the squash commit as a `Hotfix-Trigger:` trailer.
+> Does harm keep occurring and accumulating for as long as the released state stands?
 
-When a project never wrote the section, `hotfix-flow` falls back to the default list it ships, the same way `github-release` falls back to the default rubric. Widening the list to fit a fix in progress is a change to the project's policy: it is committed separately, never folded into the hotfix.
+The question is about the world, not about the person asking, which is what lets someone else check the answer. "We have a demo tomorrow" describes a schedule; it says nothing about what the released state keeps doing. Each listed condition is an observable state: "the released CLI exits non-zero on startup" is one, "urgent" is not.
+
+A run names the condition it matched and records it as a `Hotfix-Trigger:` trailer. When nothing matches, the question is put instead: a `no` ends the run and the fix goes to `develop-task-flow`, while a `yes` means the list is short by one condition, which is added to the section and committed on its own before the fix begins. The list grows by decision rather than by exception, and never inside the run it is gating.
+
+A project that never wrote the section gets the question and list `hotfix-flow` ships, the same way `github-release` falls back to the default rubric. The section is deliberately not written per project type: domain wording differs, but a blank screen, a 5xx, and a corrupted state file are the same answer to the same question.
 
 ## Why the back-merge is part of the procedure
 
