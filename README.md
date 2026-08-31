@@ -21,7 +21,7 @@
 Using AI agents (Claude Code, Codex, Antigravity CLI) across side projects means re-explaining branch rules, commit rules, and release procedures to every project and every agent. jig installs one procedure source into any agent environment, then keeps every installation current and diagnosable. What a rules file can only ask for, jig grades, enforces, and versions.
 
 - The release grade is decided once instead of re-argued at every release
-- A force push or a direct `main` push fails at the command, so nothing rests on remembering the rule
+- A force push fails at the command and `main` moves only two ways, so nothing rests on remembering the rule
 - One command shows which repositories fell behind, and brings them all forward together
 
 Supported: **Claude Code** (recommended), **Codex**, **Antigravity CLI**
@@ -88,6 +88,8 @@ Unlike a plain collection of skills, jig converges *repository state* — the br
 | `rubric-scan` | Classify the project type, recommend a rubric |
 
 There is a **single merge flow, solo-cli**: a work branch is squash-merged into `develop` locally and pushed directly. No pull requests.
+
+`main` moves only two ways: the release fast-forward `develop:main`, and `hotfix/<slug>:main` when a released defect has to ship ahead of the `develop` queue. Both guards allow those two and refuse everything else.
 
 Skill bodies and the rubric catalog are written in English. What a skill **produces** — reports, commit bodies, release notes, a README — follows the language that repository already uses.
 
