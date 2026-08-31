@@ -1,6 +1,6 @@
 # GitHub Release
 
-<!-- jig:skill-source-digest 05ff8c6611ecd7ce18ef9311279fa09b1838350c -->
+<!-- jig:skill-source-digest efc402cb3c591175bf2de17566ba8f6f380f8e4a -->
 
 [한국어](../../ko/skills/github-release.md) · [Skill index](index.md) · [Version rubric](../version-rubric.md)
 

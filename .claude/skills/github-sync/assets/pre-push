@@ -1,7 +1,8 @@
 #!/bin/sh
-# jig:pre-push v1
+# jig:pre-push v2
 # jig local guard. Blocks force pushes to and deletion of main/develop, and
-# direct pushes to main that do not come from develop. Server-side branch
+# direct pushes to main that come from neither develop nor a hotfix branch.
+# Server-side branch
 # protection remains the final defense. Do not bypass with --no-verify.
 
 zero=0000000000000000000000000000000000000000
@@ -17,9 +18,14 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     exit 1
   fi
 
-  if [ "$remote_ref" = "refs/heads/main" ] && [ "$local_ref" != "refs/heads/develop" ]; then
-    echo "jig pre-push: direct push to main is blocked. Release with: git push origin develop:main" >&2
-    exit 1
+  if [ "$remote_ref" = "refs/heads/main" ]; then
+    case "$local_ref" in
+      refs/heads/develop|refs/heads/hotfix/?*) ;;
+      *)
+        echo "jig pre-push: direct push to main is blocked. Release with: git push origin develop:main, or hotfix-flow with: git push origin hotfix/<slug>:main" >&2
+        exit 1
+        ;;
+    esac
   fi
 
   if [ "$remote_sha" != "$zero" ] && git cat-file -e "$remote_sha" 2>/dev/null; then

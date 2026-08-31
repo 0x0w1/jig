@@ -8,6 +8,7 @@ jig installs these repository workflow skills under .agents/skills. Every jig sk
 - `jig-github-sync`: repository setup and synchronization; not for creating releases.
 - `jig-github-release`: release execution promoting develop to main with a fast-forward push and a tagged GitHub release.
 - `jig-develop-task-flow`: normal development tasks on feature/fix/chore branches squash-merged back into develop.
+- `jig-hotfix-flow`: jig procedure.
 - `jig-setup`: install jig for a repository and select its GitHub CLI profile without changing the global active account.
 - `jig-update`: update the installed jig skills to the latest jig release and converge repository settings.
 - `jig-doctor`: diagnose every installed jig target and scope plus repository profile, version, protection, and legacy state; read-only.

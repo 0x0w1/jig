@@ -1,6 +1,6 @@
 # GitHub Sync
 
-<!-- jig:skill-source-digest 0ebf5db6ae9e9a82a610217d17834c24aa01282e -->
+<!-- jig:skill-source-digest 45030d5178a5ce8940bae93441acdb4094bbc8eb -->
 
 [한국어](../../ko/skills/github-sync.md) · [Skill index](index.md) · [Repository settings](../github-repository-settings.md)
 

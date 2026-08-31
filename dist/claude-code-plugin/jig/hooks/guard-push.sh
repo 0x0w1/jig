@@ -38,8 +38,8 @@ if printf '%s' "$cmd" | grep -qE '([[:space:]]:(main|develop)([[:space:]]|$)|--d
 fi
 
 if printf '%s' "$cmd" | grep -qE '(^|[[:space:]:])main([[:space:]]|$)' \
-  && ! printf '%s' "$cmd" | grep -qE 'develop:main'; then
-  deny "jig guard: direct push to main is blocked. Release with: git push origin develop:main"
+  && ! printf '%s' "$cmd" | grep -qE '(develop|hotfix/[A-Za-z0-9._-]+):main'; then
+  deny "jig guard: direct push to main is blocked. Release with: git push origin develop:main, or hotfix-flow with: git push origin hotfix/<slug>:main"
 fi
 
 if printf '%s' "$cmd" | grep -qE '(--no-verify)' && touches_protected; then

@@ -17,6 +17,8 @@ flowchart LR
     Work --> Readme[readme]
     Work --> Rubric[rubric-scan + version-rubric]
     Rubric --> Release[github-release]
+    Release --> Hotfix[릴리즈된 결함이 못 기다릴 때 hotfix-flow]
+    Hotfix --> Work
     Release --> Update[jig-update]
     Update --> Sync
     Update --> Doctor
@@ -33,6 +35,7 @@ flowchart LR
 | jig 진단 | [`jig-doctor`](jig-doctor.md) | `/jig:jig-doctor` | `jig-doctor` |
 | jig 업데이트 | [`jig-update`](jig-update.md) | `/jig:jig-update` | `jig-update` |
 | 일반 개발 | [`develop-task-flow`](develop-task-flow.md) | `/jig:develop-task-flow` | `jig-develop-task-flow` |
+| 긴급 수정 | [`hotfix-flow`](hotfix-flow.md) | `/jig:hotfix-flow` | `jig-hotfix-flow` |
 | 릴리즈 발행 | [`github-release`](github-release.md) | `/jig:github-release` | `jig-github-release` |
 | README 관리 | [`readme`](readme.md) | `/jig:readme` | `jig-readme` |
 | rubric 추천 | [`rubric-scan`](rubric-scan.md) | `/jig:rubric-scan` | `jig-rubric-scan` |

@@ -131,7 +131,7 @@ The `### Migration` section is not prose. It is the input an updating agent exec
 
 - Do not force push.
 - Do not bypass git hooks: never pass `--no-verify` to `git push`.
-- If `git push origin develop:main` would not fast-forward, stop and report that `main` has commits `develop` lacks; never resolve this by force-pushing.
+- If `git push origin develop:main` would not fast-forward, stop and report that `main` has commits `develop` lacks; never resolve this by force-pushing. The usual cause is a hotfix that landed on `main` without returning to `develop` — `hotfix-flow` step 8 restores the invariant with `git merge main` into `develop`.
 - Do not release while the worktree has uncommitted changes to tracked files.
 - Do not create a tag that already exists locally or on `origin`.
 - Do not release while local `develop` differs from `origin/develop`.

@@ -27,6 +27,7 @@ skill_title() {
     github-sync) printf '%s\n' "# GitHub Sync" ;;
     github-release) printf '%s\n' "# GitHub Release" ;;
     develop-task-flow) printf '%s\n' "# Develop Task Flow" ;;
+    hotfix-flow) printf '%s\n' "# Hotfix Flow" ;;
     jig-setup) printf '%s\n' "# jig Setup" ;;
     jig-update) printf '%s\n' "# jig Update" ;;
     jig-doctor) printf '%s\n' "# jig Doctor" ;;
@@ -396,7 +397,7 @@ require_text "dist/claude-code-plugin/jig/hooks/hooks.json" 'CLAUDE_PLUGIN_ROOT'
 require_text "dist/claude-code-plugin/jig/hooks/guard-push.sh" "jig:guard-push v1"
 require_file "dist/claude-code-plugin/jig/skills/github-sync/assets/pre-push"
 require_file "dist/claude-code-plugin/jig/skills/github-sync/scripts/manage-pre-push.sh"
-require_text "dist/claude-code-plugin/jig/skills/github-sync/assets/pre-push" "jig:pre-push v1"
+require_text "dist/claude-code-plugin/jig/skills/github-sync/assets/pre-push" "jig:pre-push v2"
 require_text "dist/claude-code-plugin/jig/skills/github-sync/SKILL.md" "manage-pre-push.sh uninstall"
 require_same "dist/claude-code-plugin/jig/skills/github-sync/SKILL.md" ".claude/skills/github-sync/SKILL.md"
 require_same "dist/claude-code-plugin/jig/skills/github-sync/assets/pre-push" ".claude/skills/github-sync/assets/pre-push"
@@ -418,7 +419,7 @@ fi
 for target in codex antigravity; do
   require_file "dist/$target/.agents/skills/jig-github-sync/assets/pre-push"
   require_file "dist/$target/.agents/skills/jig-github-sync/scripts/manage-pre-push.sh"
-  require_text "dist/$target/.agents/skills/jig-github-sync/assets/pre-push" "jig:pre-push v1"
+  require_text "dist/$target/.agents/skills/jig-github-sync/assets/pre-push" "jig:pre-push v2"
 done
 require_same "dist/codex/.agents/skills/jig-github-sync/SKILL.md" ".agents/skills/jig-github-sync/SKILL.md"
 require_same "dist/codex/.agents/skills/jig-github-sync/assets/pre-push" ".agents/skills/jig-github-sync/assets/pre-push"
@@ -459,8 +460,12 @@ if grep -R 'agent-release-skill' dist >/dev/null 2>&1; then
   fail "dist contains forbidden agent-release-skill string"
 fi
 
-if grep -R -E 'back-merge|backmerge|백머지' dist >/dev/null 2>&1; then
-  fail "dist contains forbidden back-merge text"
+# A release never merges main back into develop. The one legitimate back-merge is
+# hotfix-flow step 8, which restores the fast-forward invariant a hotfix breaks, so
+# that skill's payload is the only place the term may appear.
+if grep -R -E 'back-merge|backmerge|백머지' dist \
+    --exclude-dir=hotfix-flow --exclude-dir=jig-hotfix-flow >/dev/null 2>&1; then
+  fail "dist contains forbidden back-merge text outside hotfix-flow"
 fi
 
 if grep -R 'release-drafter/release-drafter' dist >/dev/null 2>&1; then

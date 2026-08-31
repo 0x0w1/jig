@@ -5,6 +5,7 @@ Use these repo-scoped Codex skills:
 - Repository setup/sync: `jig-github-sync` from `.agents/skills/jig-github-sync/SKILL.md`.
 - Release: `jig-github-release` from `.agents/skills/jig-github-release/SKILL.md`.
 - Ordinary implementation tasks targeting `develop`: `jig-develop-task-flow` from `.agents/skills/jig-develop-task-flow/SKILL.md`.
+- Urgent fix for a released defect: `jig-hotfix-flow` from `.agents/skills/jig-hotfix-flow/SKILL.md`.
 - README writing/updating: `jig-readme` from `.agents/skills/jig-readme/SKILL.md`.
 - jig project installation and GitHub profile setup: `jig-setup` from `.agents/skills/jig-setup/SKILL.md`.
 - jig installation updates: `jig-update` from `.agents/skills/jig-update/SKILL.md`.
