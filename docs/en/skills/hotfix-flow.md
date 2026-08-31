@@ -1,6 +1,6 @@
 # Hotfix Flow
 
-<!-- jig:skill-source-digest 9eb89c262cd6cf11913088ee1f0d680d999a8dc4 -->
+<!-- jig:skill-source-digest 7f8d3bb38dc92ed4559388b0b4ce42453e7e31fe -->
 
 [한국어](../../ko/skills/hotfix-flow.md) · [Skill index](index.md)
 
@@ -51,7 +51,8 @@ It reads Git refs, status, logs, tags, the rubric, and the code under repair. It
 
 ## Stop conditions and safety
 
-- Stop if the three conditions do not hold, or if the push to `main` is rejected as non-fast-forward.
+- Stop when `git rev-list --count origin/main..origin/develop` is `0`: with nothing unreleased there is no work to protect, so this is an ordinary task.
+- Stop if the three conditions do not hold, or if the push to `main` is rejected. The guard requires the push to fast-forward **and** to be exactly one commit ahead of `main`, which is what mechanically blocks a branch taken from `develop` from carrying unreleased work into the release.
 - Never bypass hooks, force push, branch the hotfix from `develop`, or carry anything beyond the defect.
 - Never leave `main` ahead of `develop`; the run is not finished until `git merge-base --is-ancestor origin/main origin/develop` succeeds.
 - Never resolve a failed `develop:main` fast-forward by force-pushing.

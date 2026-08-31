@@ -41,6 +41,7 @@ Each check reports on its own. A repository that fails none is a normal outcome,
 | Tag and release mismatch | `vX.Y.Z` tags with no GitHub release, or releases with no tag | report only |
 | Rubric reachability | the resolved rubric file is untracked or has uncommitted changes | report; it does not reach clones or CI |
 | Installer leftovers | `.bak` files the installer wrote, and payload files no longer in the manifest | report; deletion needs confirmation |
+| Unfinished hotfix | `git merge-base --is-ancestor origin/main origin/develop` fails | report loudly; the next release is blocked until `hotfix-flow` step 8 runs |
 
 ## Safety Rules
 
@@ -68,10 +69,11 @@ Each check reports on its own. A repository that fails none is a normal outcome,
 4. Report stale remote-tracking refs. `git fetch --prune` in step 1 already cleared them; name what it removed.
 5. Compare tags with releases, resolving the GitHub profile the way `github-release` does before any `gh` command. Skip this check with a one-line note when `gh` is unavailable.
 6. Check that the resolved rubric file is tracked and committed.
-7. Find `.bak` leftovers and payload files no longer listed in the manifest.
-8. Present the findings grouped by check, with counts and the exact deletion command for each group.
-9. Ask which groups to clear. Delete only those, one group at a time, echoing what was removed.
-10. Report.
+7. Check the release invariant: `git merge-base --is-ancestor origin/main origin/develop`. A failure means a hotfix landed on `main` and never returned to `develop`, so `github-release` cannot promote until `git merge main` runs. Report it first; it blocks more than anything else on this list.
+8. Find `.bak` leftovers and payload files no longer listed in the manifest.
+9. Present the findings grouped by check, with counts and the exact deletion command for each group.
+10. Ask which groups to clear. Delete only those, one group at a time, echoing what was removed.
+11. Report.
 
 ## Final Report
 
@@ -85,6 +87,7 @@ Write the report in the language the repository already uses.
 - Remote-tracking refs pruned: <n>
 - Tags without releases: <list or none>
 - Rubric: committed | untracked | uncommitted changes
+- Release invariant: ok | **main is ahead of develop, next release blocked**
 - Leftovers: <list or none>
 - Skipped checks and why: <list or none>
 - Next: none | <action>

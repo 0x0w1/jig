@@ -60,7 +60,8 @@ Release-Grade: patch
 - Do not force push.
 - Do not bypass git hooks: never pass `--no-verify` to any push.
 - Push `main` only as `git push origin hotfix/<slug>:main`, and only when it fast-forwards. If it is rejected, stop and report; someone else moved `main`.
-- Do not start a hotfix from `develop`. The branch point is `origin/main`, or the fix carries unreleased work with it.
+- **Stop when `git rev-list --count origin/main..origin/develop` is `0`.** With nothing unreleased there is no work to protect, so a hotfix only adds steps. Use `develop-task-flow` and release normally.
+- Do not start a hotfix from `develop`. The branch point is `origin/main`, or the fix carries unreleased work with it. The `pre-push` guard enforces this: a hotfix push must be exactly one commit ahead of `main`, and a branch taken from `develop` is many.
 - Do not include anything beyond the defect. A hotfix that also carries a refactor is an ordinary task.
 - Do not leave `main` ahead of `develop`. The back-merge runs in the same session, before the report.
 - Do not resolve a failed `develop:main` fast-forward by force-pushing; that is the state this skill exists to prevent.
@@ -73,14 +74,15 @@ Release-Grade: patch
 1. Inspect and confirm the three conditions in When This Applies:
    - `git status --short --branch`
    - `git fetch origin --prune --tags`
-   - `git log --oneline origin/main..origin/develop` — unreleased work that must not ship
+   - `git rev-list --count origin/main..origin/develop` — **`0` ends the run.** Report that this is an ordinary task and hand it to `develop-task-flow`
+   - `git log --oneline origin/main..origin/develop` — name the unreleased work that must not ship, so the user can see what the hotfix is protecting
 2. Create the branch from the released state: `git checkout -b hotfix/<slug> origin/main`.
 3. Implement only the fix.
 4. Run the most relevant focused test, then the repository's broader validation when practical. Report any gap.
 5. Reduce the branch to one commit on top of `origin/main`:
    - `git reset --soft origin/main`
    - commit once with a `fix:` subject, user-facing body bullets, and the `Release-Grade` trailer
-6. Land it: `git push origin hotfix/<slug>:main`. This must fast-forward.
+6. Land it: `git push origin hotfix/<slug>:main`. This must fast-forward, and the guard additionally requires it to be exactly one commit ahead of `main`. A rejection there means the branch did not start from `origin/main`; do not work around it.
 7. Tag the commit that is now `main` and publish:
    - `git tag <version> $(git rev-parse hotfix/<slug>)`
    - `git push origin <version>`

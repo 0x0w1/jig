@@ -109,6 +109,49 @@ if (
 fi
 [ -L "$HOOK" ] || fail "blocked install changed the symlink hook"
 
+# A hotfix push lands exactly one squashed commit on main. A branch taken from
+# develop is many commits ahead and would carry unreleased work into the release,
+# so the count is what separates the two; fast-forward alone does not.
+REPOSITORY="$TEST_ROOT/hotfix-count"
+new_repository "$REPOSITORY"
+HOOK=$(hook_path "$REPOSITORY")
+(
+  cd "$REPOSITORY"
+  git config user.email jig@example.com
+  git config user.name jig
+  echo released > file.txt
+  git add file.txt
+  git commit -q -m "released"
+  git branch -f main HEAD
+  git checkout -q -b hotfix/one main
+  echo fix >> file.txt
+  git commit -q -am "fix"
+  git checkout -q -b carries-develop main
+  for extra in a b c; do
+    echo "$extra" >> file.txt
+    git commit -q -am "unreleased $extra"
+  done
+  sh "$MANAGER" install
+)
+MAIN_SHA=$(git -C "$REPOSITORY" rev-parse main)
+ONE_SHA=$(git -C "$REPOSITORY" rev-parse hotfix/one)
+MANY_SHA=$(git -C "$REPOSITORY" rev-parse carries-develop)
+
+if ! printf 'refs/heads/hotfix/one %s refs/heads/main %s\n' "$ONE_SHA" "$MAIN_SHA" \
+  | (cd "$REPOSITORY" && sh "$HOOK"); then
+  fail "hook rejected a one-commit hotfix push"
+fi
+
+if printf 'refs/heads/hotfix/many %s refs/heads/main %s\n' "$MANY_SHA" "$MAIN_SHA" \
+  | (cd "$REPOSITORY" && sh "$HOOK") 2>/dev/null; then
+  fail "hook allowed a hotfix push carrying more than one commit"
+fi
+
+if printf 'refs/heads/topic %s refs/heads/main %s\n' "$ONE_SHA" "$MAIN_SHA" \
+  | (cd "$REPOSITORY" && sh "$HOOK") 2>/dev/null; then
+  fail "hook allowed a non-hotfix branch to push main"
+fi
+
 sh -n "$MANAGER"
 sh -n "$SOURCE"
 echo "pre-push manager tests ok"

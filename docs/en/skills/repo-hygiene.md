@@ -1,6 +1,6 @@
 # Repo Hygiene
 
-<!-- jig:skill-source-digest be0b6c73654bd3d847f7842189394daed78acbde -->
+<!-- jig:skill-source-digest 0f13f5a3e02c019f88c231b174741215c66e9fc7 -->
 
 [한국어](../../ko/skills/repo-hygiene.md) · [Skill index](index.md)
 
@@ -60,6 +60,8 @@ It reads branches, refs, tags, GitHub releases, the rubric path, and the working
 - `.jig/` is never touched, and no command that rewrites history is run.
 
 ## Outputs
+
+One check outranks the rest: when `git merge-base --is-ancestor origin/main origin/develop` fails, a hotfix landed on `main` and never returned to `develop`, so `github-release` cannot promote until `git merge main` runs. That is reported first.
 
 The report groups branches by shipped, unfinished, and retired-flow, then names what was deleted, how many remote-tracking refs were pruned, tag/release mismatches, whether the rubric is committed, remaining leftovers, and any check that was skipped with the reason.
 

@@ -1,6 +1,6 @@
 # Hotfix Flow
 
-<!-- jig:skill-source-digest 9eb89c262cd6cf11913088ee1f0d680d999a8dc4 -->
+<!-- jig:skill-source-digest 7f8d3bb38dc92ed4559388b0b4ce42453e7e31fe -->
 
 [English](../../en/skills/hotfix-flow.md) · [스킬 목록](index.md)
 
@@ -51,7 +51,8 @@ Git ref, status, log, tag, rubric, 수정 대상 코드를 읽습니다. branch 
 
 ## 중단 조건과 안전 규칙
 
-- 세 조건이 성립하지 않거나 `main` push가 non-fast-forward로 거부되면 중단합니다.
+- `git rev-list --count origin/main..origin/develop`가 `0`이면 중단합니다. 지킬 미릴리즈 작업이 없으므로 일반 작업입니다.
+- 세 조건이 성립하지 않거나 `main` push가 거부되면 중단합니다. guard는 fast-forward에 더해 `main`보다 정확히 한 commit 앞설 것을 요구하며, 이것이 `develop`에서 딴 branch가 미릴리즈 작업을 릴리즈에 끌고 들어가는 것을 기계적으로 막습니다.
 - hook bypass, force push, `develop`에서의 hotfix 분기, 결함 외 변경 동반을 하지 않습니다.
 - `main`이 `develop`보다 앞선 상태로 두지 않습니다. `git merge-base --is-ancestor origin/main origin/develop`이 성공해야 작업이 끝난 것입니다.
 - 실패한 `develop:main` fast-forward를 force push로 해결하지 않습니다.

@@ -1,6 +1,6 @@
 # Repo Hygiene
 
-<!-- jig:skill-source-digest be0b6c73654bd3d847f7842189394daed78acbde -->
+<!-- jig:skill-source-digest 0f13f5a3e02c019f88c231b174741215c66e9fc7 -->
 
 [English](../../en/skills/repo-hygiene.md) · [스킬 목록](index.md)
 
@@ -60,6 +60,8 @@ branch, ref, tag, GitHub release, 기준 파일 경로, 작업 트리를 읽습�
 - `.jig/`는 건드리지 않고, 이력을 다시 쓰는 명령은 실행하지 않습니다.
 
 ## 결과물
+
+다른 무엇보다 먼저 보고하는 항목이 하나 있습니다. `git merge-base --is-ancestor origin/main origin/develop`가 실패하면 hotfix가 `main`에 올라간 뒤 `develop`으로 돌아오지 않았다는 뜻이고, `git merge main`을 돌리기 전까지 `github-release`가 승격하지 못합니다.
 
 반영됨·미완·폐기 흐름으로 branch를 묶어 보고하고, 삭제한 것, 정리된 remote-tracking ref 수, tag·release 불일치, 기준 파일의 commit 여부, 남은 잔여물, 건너뛴 점검과 그 이유를 함께 적습니다.
 

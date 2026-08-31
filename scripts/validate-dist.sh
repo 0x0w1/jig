@@ -398,7 +398,7 @@ require_text "dist/claude-code-plugin/jig/hooks/hooks.json" 'CLAUDE_PLUGIN_ROOT'
 require_text "dist/claude-code-plugin/jig/hooks/guard-push.sh" "jig:guard-push v1"
 require_file "dist/claude-code-plugin/jig/skills/github-sync/assets/pre-push"
 require_file "dist/claude-code-plugin/jig/skills/github-sync/scripts/manage-pre-push.sh"
-require_text "dist/claude-code-plugin/jig/skills/github-sync/assets/pre-push" "jig:pre-push v2"
+require_text "dist/claude-code-plugin/jig/skills/github-sync/assets/pre-push" "jig:pre-push v3"
 require_text "dist/claude-code-plugin/jig/skills/github-sync/SKILL.md" "manage-pre-push.sh uninstall"
 require_same "dist/claude-code-plugin/jig/skills/github-sync/SKILL.md" ".claude/skills/github-sync/SKILL.md"
 require_same "dist/claude-code-plugin/jig/skills/github-sync/assets/pre-push" ".claude/skills/github-sync/assets/pre-push"
@@ -420,7 +420,7 @@ fi
 for target in codex antigravity; do
   require_file "dist/$target/.agents/skills/jig-github-sync/assets/pre-push"
   require_file "dist/$target/.agents/skills/jig-github-sync/scripts/manage-pre-push.sh"
-  require_text "dist/$target/.agents/skills/jig-github-sync/assets/pre-push" "jig:pre-push v2"
+  require_text "dist/$target/.agents/skills/jig-github-sync/assets/pre-push" "jig:pre-push v3"
 done
 require_same "dist/codex/.agents/skills/jig-github-sync/SKILL.md" ".agents/skills/jig-github-sync/SKILL.md"
 require_same "dist/codex/.agents/skills/jig-github-sync/assets/pre-push" ".agents/skills/jig-github-sync/assets/pre-push"

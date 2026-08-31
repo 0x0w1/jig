@@ -1,5 +1,5 @@
 #!/bin/sh
-# jig:pre-push v2
+# jig:pre-push v3
 # jig local guard. Blocks force pushes to and deletion of main/develop, and
 # direct pushes to main that come from neither develop nor a hotfix branch.
 # Server-side branch
@@ -20,7 +20,19 @@ while read -r local_ref local_sha remote_ref remote_sha; do
 
   if [ "$remote_ref" = "refs/heads/main" ]; then
     case "$local_ref" in
-      refs/heads/develop|refs/heads/hotfix/?*) ;;
+      refs/heads/develop) ;;
+      refs/heads/hotfix/?*)
+        # A hotfix lands exactly one squashed commit on top of the released main.
+        # More than one means the branch did not start from main -- most often it
+        # started from develop and would carry unreleased work into the release.
+        if [ "$remote_sha" != "$zero" ] && git cat-file -e "$remote_sha" 2>/dev/null; then
+          ahead=$(git rev-list --count "$remote_sha..$local_sha" 2>/dev/null || echo unknown)
+          if [ "$ahead" != "1" ]; then
+            echo "jig pre-push: a hotfix push must be exactly one commit ahead of main, found $ahead. Branch from origin/main and squash with: git reset --soft origin/main" >&2
+            exit 1
+          fi
+        fi
+        ;;
       *)
         echo "jig pre-push: direct push to main is blocked. Release with: git push origin develop:main, or hotfix-flow with: git push origin hotfix/<slug>:main" >&2
         exit 1
