@@ -102,7 +102,6 @@ English guides live under `docs/en/`; matching Korean guides live under `docs/ko
 - [Rubric catalog by project type](skills/version-rubric/rubrics/INDEX.md): 17 rubric drafts and the detection signal table `rubric-scan` uses. In English.
 - [Versioning policy](docs/en/versioning.md): commentary on how jig itself grades releases. The normative source is `.jig/versioning.md`.
 - [GitHub repository settings](docs/en/github-repository-settings.md): what the installer applies, and how optional branch protection is decided.
-- [Roadmap](docs/en/roadmap.md): jig's identity and its trigger-conditional direction candidates.
 
 ## Updating
 

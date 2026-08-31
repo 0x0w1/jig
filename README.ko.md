@@ -102,7 +102,6 @@ jig는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니다
 - [프로젝트 유형별 기준 카탈로그](skills/version-rubric/rubrics/INDEX.md): 기준 초안 17종과 `rubric-scan`이 쓰는 탐지 신호표입니다. 영어로 쓰여 있습니다.
 - [버전 정책](docs/ko/versioning.md): jig 자신의 판정 기준 해설입니다. 규범 원본은 `.jig/versioning.md`입니다.
 - [GitHub Repository Settings](docs/ko/github-repository-settings.md): installer가 적용하는 GitHub 설정과, 선택 기능인 branch protection을 정하는 방식입니다.
-- [Roadmap](docs/ko/roadmap.md): jig의 정체성과 방향 후보(트리거 조건부) 기록입니다.
 
 ## 업데이트
 
