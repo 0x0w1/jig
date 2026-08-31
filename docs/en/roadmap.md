@@ -16,11 +16,13 @@ What separates it from a plain skill marketplace:
 ## What Ships Today
 
 - installer: installs pinned to the latest release tag, `--version` rollback, `--skills` selective install (the `manifest.tsv` catalog; codex and antigravity only)
-- three workflow skills: `develop-task-flow`, `github-release`, `github-sync`
+- four workflow skills: `develop-task-flow` (ordinary work), `hotfix-flow` (a released defect that cannot wait for the `develop` queue), `github-release`, `github-sync`
 - two lifecycle skills: `jig-update`, `jig-doctor`
 - one onboarding skill: `jig-setup` (selects and verifies the per-repository GitHub profile after install)
 - three documentation skills: `readme` (write or update a README), `version-rubric` (settle the version rubric and ship the per-type catalog), `rubric-scan` (scan the repository and recommend one)
-- two layers of local guard: the git `pre-push` hook `github-sync` installs (all CLIs) and the Claude Code plugin's PreToolUse hook (blocks the `--no-verify` bypass)
+- one repository housekeeping skill: `repo-hygiene` (branch, tag, rubric, and leftover audit; deletes only what the user names)
+- two layers of local guard: the git `pre-push` hook `github-sync` installs (all CLIs) and the Claude Code plugin's PreToolUse hook (blocks the `--no-verify` bypass). Both allow exactly two ways onto `main`: `develop:main` and `hotfix/<slug>:main`
+- grading that starts before the release: `develop-task-flow` records a `Release-Grade` trailer on each squash commit, and `github-release` takes the highest one in the range as a floor it never lowers, alongside the advisory floor computed from the rubric's `## Interface Paths` table
 - distribution: the plugin marketplace for Claude Code (`jig@jig`, namespaced by the host as `/jig:<skill>`), `jig-` prefixed skill files for Codex and Antigravity
 
 There is **only one merge flow**: a local `git merge --squash` and a direct push to `develop`, no pull requests. A team flow is deferred as candidate C below.
@@ -29,11 +31,19 @@ There is **only one merge flow**: a local `git merge --squash` and a direct push
 
 | Candidate | What it is | Trigger to start |
 |---|---|---|
-| **A. More procedures** | More procedures in the same domain: `hotfix-flow` (urgent fix on main, reflected back into develop), `issue-triage`, `dependency-update`, `repo-hygiene` (an extended doctor audit) | When real use shows a repeated behavior, one at a time. No building ahead — skills stay minimal |
+| **A. More procedures** | ~~`hotfix-flow`~~ and ~~`repo-hygiene`~~ shipped; see the design record below for the two that were dropped | Closed. A further procedure needs its own candidate and its own trigger |
 | **B. Conformance checking** | Machine verification that the agent actually followed the procedure: an after-the-fact audit that commits, tags, and notes match the rules. Designed as a check script that also runs in CI, it covers the CI-audit part of C | When violations accumulate in real use |
 | **C. A channel for teams** | Onboarding (one one-liner syncs the team's rules), per-member drift watching, CI audits, per-organization flow parameters such as approval counts. Includes restoring the PR-based merge flow (`team-pr`) — see the design record below | When real team users appear. If B runs in CI, half of this is already solved |
 | **D. engine/content split (registry)** | Separate the installer, manifest, and lifecycle (engine) from the skill content, so another organization can distribute its own procedures on the jig engine. The `REPO_RAW_URL` override is already half of it — what remains is removing hardcoded values and scaffolding a procedure repository | When outside demand shows up: forks, issues, requests to distribute procedures |
 | **E. Native hooks for Codex and Antigravity** | Offer the git pre-push guard as those CLIs' native PreToolUse hooks too (Codex `hooks.json` is experimental and off by default; Antigravity requires editing a user-owned settings file) | When those hooks reach GA, and a real case appears that a git hook cannot block |
+
+## Design Record: issue-triage and dependency-update (dropped)
+
+Both were listed under candidate A and are not being built. The reasons are kept so they are not proposed again.
+
+**`issue-triage`** does not converge repository state, which is the line this project draws against a plain skill marketplace. Classifying issues is ordinary agent work that `gh issue list` already serves, and `github-sync` deliberately syncs no labels — a project that decided against labels should not ship a label workflow. At the size of a personal side project the triage itself is a few minutes of reading.
+
+**`dependency-update`** is what the host already provides. Dependabot and Renovate do it for free, with the language-specific knowledge jig does not have and will not acquire; jig is shell and Markdown. The only thing left to add would be routing a bump through `develop-task-flow`, which is a thin wrapper over a skill that already exists. Building it would repeat the mistake recorded directly below.
 
 ## Design Record: Skill Ownership Markers (removed)
 
@@ -63,5 +73,5 @@ A PR-based team flow that was once implemented. With no real team users it was p
 
 ## Next
 
-- Apply it for real on existing side projects: install or re-run the update, converge with `github-sync`, diagnose with `jig-doctor`, and collect the friction
-- The repeated behaviors and violations that surface there are the raw material for A and B
+- Apply it for real on existing side projects: install or re-run the update, converge with `github-sync`, diagnose with `jig-doctor`, clear the debris with `repo-hygiene`, and collect the friction
+- The violations that surface there are the raw material for B. A is closed
