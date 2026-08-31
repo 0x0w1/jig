@@ -6,7 +6,7 @@
 
 ## 개요
 
-`repo-hygiene`은 jig로 오래 작업한 저장소에 쌓이는 잔여물을 점검하고 정리합니다. 작업이 이미 반영된 task branch, 폐기된 흐름이 남긴 branch, 낡은 remote-tracking ref, tag와 release 불일치, 도달하지 못하는 기준 파일, installer 잔여 파일이 대상입니다. 발견한 것은 모두 보고하고, 삭제는 사용자가 지목한 것만 합니다.
+`repo-hygiene`은 jig로 오래 작업한 저장소에 쌓이는 잔여물을 점검하고 정리합니다. 작업이 이미 반영된 task branch, 폐기된 흐름이 남긴 branch, 낡은 remote-tracking ref, tag와 release 불일치, 도달하지 못하는 기준 파일, installer 잔여 파일이 대상입니다. 발견한 것은 모두 보고하고 삭제는 사용자가 지목한 것만 합니다.
 
 ## 사용 시점
 
@@ -20,7 +20,7 @@ jig로 한동안 작업해 branch 목록·tag·잔여 파일이 지저분해졌�
 
 ## 병합된 branch가 미병합으로 보이는 이유
 
-`develop-task-flow`는 `git merge --squash`로 끝나므로 task branch의 tip이 `develop`의 조상이 되지 않습니다. 그래서 `git branch --merged develop`은 거의 아무것도 못 찾고, `--no-merged`는 몇 달 전에 반영된 작업까지 나열합니다.
+`develop-task-flow`는 `git merge --squash`로 끝나므로 task branch의 tip이 `develop`의 조상이 되지 않습니다. 그래서 `git branch --merged develop`은 거의 아무것도 못 찾고 `--no-merged`는 몇 달 전에 반영된 작업까지 나열합니다.
 
 이 스킬은 대신 내용으로 분류합니다.
 
@@ -28,7 +28,7 @@ jig로 한동안 작업해 branch 목록·tag·잔여 파일이 지저분해졌�
 git diff --quiet develop...<branch>
 ```
 
-diff가 비어 있으면 SHA와 무관하게 그 branch의 모든 내용이 `develop`에서 도달 가능하다는 뜻이고, 이것이 안전 신호입니다. diff가 남아 있으면 아직 무언가 들고 있는 branch이므로 미완으로 보고하고 삭제 후보로 올리지 않습니다.
+diff가 비어 있으면 SHA와 무관하게 그 branch의 모든 내용이 `develop`에서 도달 가능하다는 뜻이고 이것이 안전 신호입니다. diff가 남아 있으면 아직 무언가 들고 있는 branch이므로 미완으로 보고하고 삭제 후보로 올리지 않습니다.
 
 ## 작업 흐름
 
@@ -61,7 +61,7 @@ branch, ref, tag, GitHub release, 기준 파일 경로, 작업 트리를 읽습�
 
 ## 결과물
 
-다른 무엇보다 먼저 보고하는 항목이 하나 있습니다. `git merge-base --is-ancestor origin/main origin/develop`가 실패하면 hotfix가 `main`에 올라간 뒤 `develop`으로 돌아오지 않았다는 뜻이고, `git merge main`을 돌리기 전까지 `github-release`가 승격하지 못합니다.
+다른 무엇보다 먼저 보고하는 항목이 하나 있습니다. `git merge-base --is-ancestor origin/main origin/develop`가 실패하면 hotfix가 `main`에 올라간 뒤 `develop`으로 돌아오지 않았다는 뜻이고 `git merge main`을 돌리기 전까지 `github-release`가 승격하지 못합니다.
 
 반영됨·미완·폐기 흐름으로 branch를 묶어 보고하고, 삭제한 것, 정리된 remote-tracking ref 수, tag·release 불일치, 기준 파일의 commit 여부, 남은 잔여물, 건너뛴 점검과 그 이유를 함께 적습니다.
 

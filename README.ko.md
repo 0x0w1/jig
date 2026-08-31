@@ -10,7 +10,7 @@
   <a href="#빠른-시작"><img src="https://img.shields.io/badge/agents-Claude_Code%20%7C%20Codex%20%7C%20Antigravity-009BBF?style=flat-square" alt="지원 에이전트: Claude Code, Codex, Antigravity"></a>
 </p>
 
-**같은 자리에서, 매번 같게** — 지그는 작업물을 잡아 매번 같은 자리에서 잘리게 합니다. 이 지그는 저장소 운영 절차를 잡아, 어느 프로젝트에서 어느 AI 에이전트 CLI를 쓰든 같은 절차가 돌게 합니다.
+**같은 자리에서, 매번 같게** — 지그는 작업물을 잡아 매번 같은 자리에서 잘리게 합니다. 이 지그는 저장소 운영 절차를 잡아 어느 프로젝트에서 어느 AI 에이전트 CLI를 쓰든 같은 절차가 돌게 합니다.
 
 [English](README.md)
 
@@ -18,10 +18,10 @@
 
 ## 프로젝트 소개
 
-사이드 프로젝트마다 AI 에이전트(Claude Code, Codex, Antigravity CLI)를 쓰다 보면, 브랜치 규칙·커밋 규칙·릴리즈 절차를 프로젝트마다·에이전트마다 다시 알려줘야 합니다. jig는 하나의 절차 원본을 어느 에이전트 환경에나 설치하고, 설치된 모든 곳을 최신 상태로 유지하며 진단합니다. 규칙 파일이 부탁만 할 수 있는 것을 jig는 등급으로 판정하고, 강제하고, 버전으로 배포합니다.
+사이드 프로젝트마다 AI 에이전트(Claude Code, Codex, Antigravity CLI)를 쓰다 보면 브랜치 규칙·커밋 규칙·릴리즈 절차를 프로젝트마다·에이전트마다 다시 알려줘야 합니다. jig는 하나의 절차 원본을 어느 에이전트 환경에나 설치하고, 설치된 모든 곳을 최신 상태로 유지하며 진단합니다. 규칙 파일이 부탁만 할 수 있는 것을 jig는 등급으로 판정하고, 강제하고, 버전으로 배포합니다.
 
 - `patch`/`minor`/`major`를 릴리즈마다 다시 정하지 않아도 됩니다
-- force push가 명령 단계에서 실패하고 `main`은 정해진 두 경로로만 움직이니, 규칙을 기억하고 있을 필요가 없습니다
+- force push가 명령 단계에서 실패하고 `main`은 정해진 두 경로로만 움직이니 규칙을 기억하고 있을 필요가 없습니다
 - 명령 한 번으로 어느 저장소가 뒤처졌는지 확인하고 한꺼번에 올릴 수 있습니다
 
 지원 대상: **Claude Code**(권장), **Codex**, **Antigravity CLI**
@@ -61,7 +61,7 @@ curl -fsSL https://raw.githubusercontent.com/0x0w1/jig/main/install.sh \
 3. `github-sync`로 `main`·`develop` 브랜치 수렴, branch protection은 물어보고 적용 (public 저장소는 무료, private은 유료 플랜에서만 가능한 선택 기능)
 4. `jig-doctor`로 설치 상태 점검
 
-`github-sync`는 agent가 hook 코드를 다시 작성하게 하지 않고 배포된 manager로 추적되는 pre-push guard 원본을 설치합니다. 프로젝트에서 jig를 제거하기 전에는 `github-sync` cleanup을 실행해 clone-local jig hook을 제거하고 백업된 사용자 hook이 있으면 복원합니다.
+`github-sync`는 agent가 hook 코드를 다시 작성하게 하지 않고 배포된 manager가 추적하는 pre-push guard 원본을 설치합니다. 프로젝트에서 jig를 제거하기 전에는 `github-sync` cleanup을 실행해 clone-local jig hook을 제거하고 백업된 사용자 hook이 있으면 복원합니다.
 
 ### 3. 확인
 
@@ -71,7 +71,7 @@ curl -fsSL https://raw.githubusercontent.com/0x0w1/jig/main/install.sh \
 
 ## 스킬
 
-jig는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니다. 브랜치 모델·branch protection·릴리즈 규율이라는 *저장소 상태*를 함께 수렴하고, 설치 이후를 `jig-update`와 `jig-doctor`로 관리합니다. 하나의 절차 원본(`skills/`)을 각 CLI의 네이티브 형식으로 렌더링합니다 — Claude Code는 플러그인, Codex와 Antigravity는 `jig-` prefix 파일입니다.
+jig는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니다. 브랜치 모델·branch protection·릴리즈 규율이라는 *저장소 상태*를 함께 수렴하고 설치 이후를 `jig-update`와 `jig-doctor`로 관리합니다. 하나의 절차 원본(`skills/`)을 각 CLI의 네이티브 형식으로 렌더링합니다 — Claude Code는 플러그인, Codex와 Antigravity는 `jig-` prefix 파일입니다.
 
 | 스킬 | 역할 |
 |---|---|
@@ -103,11 +103,11 @@ jig는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니다
 - [버전 판정 기준](docs/ko/version-rubric.md): 설치된 프로젝트가 자기 기준으로 `patch`/`minor`/`major`를 가르는 방법과 `.jig/versioning.md` 파일 계약입니다.
 - [프로젝트 유형별 기준 카탈로그](skills/version-rubric/rubrics/INDEX.md): 기준 초안 17종과 `rubric-scan`이 쓰는 탐지 신호표입니다. 영어로 쓰여 있습니다.
 - [버전 정책](docs/ko/versioning.md): jig 자신의 판정 기준 해설입니다. 규범 원본은 `.jig/versioning.md`입니다.
-- [GitHub Repository Settings](docs/ko/github-repository-settings.md): installer가 적용하는 GitHub 설정과, 선택 기능인 branch protection을 정하는 방식입니다.
+- [GitHub Repository Settings](docs/ko/github-repository-settings.md): installer가 적용하는 GitHub 설정과 선택 기능인 branch protection을 정하는 방식입니다.
 
 ## 업데이트
 
-`jig-update` 스킬을 실행합니다. 현재 프로젝트와 사용자 범위에서 Claude Code, Codex, Antigravity용 jig 설치를 모두 찾고, 어느 에이전트에서 실행했는지와 관계없이 발견된 설치본을 함께 갱신합니다. Claude Code는 플러그인 scope뿐 아니라 `.claude/skills`와 `~/.claude/skills`에 이미 존재하는 standalone 설치도 포함합니다. 각 target의 선택 스킬 구성을 보존하고 사이 릴리즈 노트를 요약한 뒤 `github-sync`로 저장소 설정까지 수렴합니다.
+`jig-update` 스킬을 실행합니다. 현재 프로젝트와 사용자 범위에서 Claude Code, Codex, Antigravity용 jig 설치를 모두 찾고 어느 에이전트에서 실행했는지와 관계없이 발견된 설치본을 함께 갱신합니다. Claude Code는 플러그인 scope뿐 아니라 `.claude/skills`와 `~/.claude/skills`에 이미 존재하는 standalone 설치도 포함합니다. 각 target의 선택 스킬 구성을 보존하고 사이 릴리즈 노트를 요약한 뒤 `github-sync`로 저장소 설정까지 수렴합니다.
 
 ```text
 /jig:jig-update
@@ -122,7 +122,7 @@ jig는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니다
 
 Codex와 Antigravity는 설치 명령을 그대로 다시 실행합니다. installer는 멱등이라 바뀐 파일만 갱신하고 `.bak`으로 백업합니다.
 
-기존 Claude Code standalone jig 스킬은 `jig-update`로만 갱신합니다. `.claude/skills`를 수정하기 전에 스킬별 jig provenance를 확인하고, 소유한 스킬 디렉터리 밖으로 나가는 payload 경로나 symlink를 거부하며, 이미 설치된 디렉터리 구성과 버전을 `.jig-installation`에 기록합니다. 전체 payload를 먼저 내려받고 바뀌는 파일을 `.bak`으로 백업하며, 적용 중 하나라도 실패하면 설치본을 이전 상태로 되돌립니다.
+기존 Claude Code standalone jig 스킬은 `jig-update`로만 갱신합니다. `.claude/skills`를 수정하기 전에 스킬별 jig provenance를 확인하고 소유한 스킬 디렉터리 밖으로 나가는 payload 경로나 symlink를 거부하며 이미 설치된 디렉터리 구성과 버전을 `.jig-installation`에 기록합니다. 전체 payload를 먼저 내려받고 바뀌는 파일을 `.bak`으로 백업하며, 적용 중 하나라도 실패하면 설치본을 이전 상태로 되돌립니다.
 
 ## License
 
