@@ -5,6 +5,7 @@ hotfix-flow	solo-cli	yes
 jig-setup	solo-cli	yes
 jig-update	solo-cli	yes
 jig-doctor	solo-cli	yes
+repo-hygiene	solo-cli	yes
 readme	solo-cli	yes
 version-rubric	solo-cli	yes
 rubric-scan	solo-cli	yes

@@ -10,6 +10,7 @@ Use these repo-scoped Codex skills:
 - jig project installation and GitHub profile setup: `jig-setup` from `.agents/skills/jig-setup/SKILL.md`.
 - jig installation updates: `jig-update` from `.agents/skills/jig-update/SKILL.md`.
 - jig installation diagnostics: `jig-doctor` from `.agents/skills/jig-doctor/SKILL.md`.
+- Repository branch and file cleanup: `jig-repo-hygiene` from `.agents/skills/jig-repo-hygiene/SKILL.md`.
 - Version grading rubric: `jig-version-rubric` from `.agents/skills/jig-version-rubric/SKILL.md`.
 - Project type scan and rubric recommendation: `jig-rubric-scan` from `.agents/skills/jig-rubric-scan/SKILL.md`.
 

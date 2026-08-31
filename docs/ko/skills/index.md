@@ -33,6 +33,7 @@ flowchart LR
 | 초기 설정 마무리 | [`jig-setup`](jig-setup.md) | `/jig:jig-setup` | `jig-setup` |
 | GitHub 수렴 | [`github-sync`](github-sync.md) | `/jig:github-sync` | `jig-github-sync` |
 | jig 진단 | [`jig-doctor`](jig-doctor.md) | `/jig:jig-doctor` | `jig-doctor` |
+| 저장소 정리 | [`repo-hygiene`](repo-hygiene.md) | `/jig:repo-hygiene` | `jig-repo-hygiene` |
 | jig 업데이트 | [`jig-update`](jig-update.md) | `/jig:jig-update` | `jig-update` |
 | 일반 개발 | [`develop-task-flow`](develop-task-flow.md) | `/jig:develop-task-flow` | `jig-develop-task-flow` |
 | 긴급 수정 | [`hotfix-flow`](hotfix-flow.md) | `/jig:hotfix-flow` | `jig-hotfix-flow` |

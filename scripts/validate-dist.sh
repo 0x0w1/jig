@@ -31,6 +31,7 @@ skill_title() {
     jig-setup) printf '%s\n' "# jig Setup" ;;
     jig-update) printf '%s\n' "# jig Update" ;;
     jig-doctor) printf '%s\n' "# jig Doctor" ;;
+    repo-hygiene) printf '%s\n' "# Repo Hygiene" ;;
     readme) printf '%s\n' "# README" ;;
     version-rubric) printf '%s\n' "# Version Rubric" ;;
     rubric-scan) printf '%s\n' "# Rubric Scan" ;;

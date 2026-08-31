@@ -33,6 +33,7 @@ Setup binds the repository to the right GitHub identity, normal work lands on `d
 | Finish setup | [`jig-setup`](jig-setup.md) | `/jig:jig-setup` | `jig-setup` |
 | Converge GitHub | [`github-sync`](github-sync.md) | `/jig:github-sync` | `jig-github-sync` |
 | Diagnose jig | [`jig-doctor`](jig-doctor.md) | `/jig:jig-doctor` | `jig-doctor` |
+| Clean the repository | [`repo-hygiene`](repo-hygiene.md) | `/jig:repo-hygiene` | `jig-repo-hygiene` |
 | Update jig | [`jig-update`](jig-update.md) | `/jig:jig-update` | `jig-update` |
 | Implement work | [`develop-task-flow`](develop-task-flow.md) | `/jig:develop-task-flow` | `jig-develop-task-flow` |
 | Ship an urgent fix | [`hotfix-flow`](hotfix-flow.md) | `/jig:hotfix-flow` | `jig-hotfix-flow` |
