@@ -1,12 +1,12 @@
 # README 스킬
 
-<!-- jig:skill-source-digest 2e2c12306ce0a0fbb2299af91be5de4a543886f4 -->
+<!-- jig:skill-source-digest 146d9e857d0230dd6db022b80f8b28db1a654e90 -->
 
 [English](../../en/skills/readme.md) · [스킬 index](index.md)
 
 ## 개요
 
-`readme`는 README가 없으면 생성하고, 있으면 저장소 증거와 대조해 검증된 drift만 수정합니다. 먼저 project type을 분류해 구조를 선택하고, 두 곳 이상에 적힌 사실을 상세 문서로 옮겨 결과물을 짧게 유지하며, 저장소가 이미 쓰는 언어를 보존합니다.
+`readme`는 README가 없으면 생성하고, 있으면 저장소 증거와 대조해 검증된 drift만 수정합니다. 먼저 project type을 분류하고, `.jig/readme.md`에 저장소 고유의 README 규약이 있으면 그것을 읽으며, 두 곳 이상에 적힌 사실을 상세 문서로 옮겨 결과물을 짧게 유지하고, 저장소가 이미 쓰는 언어를 보존합니다.
 
 ## 사용 시점
 
@@ -22,7 +22,14 @@
 ```mermaid
 flowchart TD
     Scan[manifest·entrypoint·script·config·docs scan] --> Type[CLI·library·service/app·other 분류]
-    Type --> Exists{README 존재?}
+    Type --> Profile{규약 해석됨?}
+    Profile -- Yes --> Follow[일반 기본값 대신 .jig/readme.md를 따름]
+    Profile -- No --> Offer[규약 초안을 만들어 제안]
+    Offer --> Written{사용자 수락?}
+    Written -- Yes --> Follow
+    Written -- No --> Defaults[일반 기본값으로 진행하고 보고에 명시]
+    Follow --> Exists{README 존재?}
+    Defaults --> Exists
     Exists -- No --> Create[project type에 맞는 필수 구조 생성]
     Exists -- Yes --> Audit[command·option·path·link·feature 검증]
     Audit --> Drift{검증된 drift?}
@@ -44,6 +51,23 @@ flowchart TD
 ```
 
 CLI project는 command·option, library는 API summary·example, service/app은 dev·prod 실행과 필수 environment variable를 추가합니다.
+
+## README 규약
+
+project type이 같아도 저장소마다 README를 다르게 씁니다. 어떤 곳은 번역 미러를 두고, 어떤 곳은 설치를 가이드 문서로 빼고, 어떤 곳은 기여자들이 이미 따르는 표 관습이 있습니다. 이건 스캔으로 알아낼 수 있는 사실이 아니라 결정이므로, 한 번 기록해 두고 이후 실행마다 읽습니다.
+
+해석 순서는 `JIG_README_PROFILE` → `git config --local --get jig.readmeProfile` → `.jig/readme.md`입니다. 해석된 규약은 **일반 section layout과 언어 규칙을 대체**하고, 규약이 말하지 않은 것만 기본값으로 돌아갑니다.
+
+파일은 네 section이고 결정만 담습니다. 기준치도 검사 목록도 두지 않습니다 — README 품질은 스킬이 저장소를 앞에 두고 내리는 판정이기 때문입니다.
+
+| Section | 정하는 것 |
+|---|---|
+| `## Languages` | 정본 파일, 미러 파일, 둘을 맞추는 방식 |
+| `## Sections` | 이 저장소가 쓰는 section 순서 |
+| `## Detail Docs` | README에서 빠지는 것과 받는 문서 |
+| `## Conventions` | 표 스타일, 주장 규율, 에셋 경로 |
+
+규약이 없으면 스캔 결과로 초안을 만들어 제안하고, 사용자가 수락한 뒤에만 `.jig/readme.md`를 씁니다. 거절도 정상 결과입니다 — 일반 기본값으로 진행하고 보고에 그렇게 적습니다. 기존 규약은 확인 없이 덮어쓰지 않고, `.jig/` 아래 다른 것은 건드리지 않습니다. `.jig/versioning.md`는 `version-rubric`의 소유입니다.
 
 ## 압축
 
@@ -70,17 +94,19 @@ manifest, lock file, entrypoint, CLI definition, script, service config, docs, e
 - badge, integration, option, feature를 지어내지 않습니다.
 - identifier table의 설명은 이름이 wrap되지 않게 짧게 유지하고 설명이 길면 list를 사용합니다.
 - 공개된 README를 묻지 않고 재구조화하지 않습니다. update 경로의 압축은 제안이고 사용자가 수락한 뒤에만 적용합니다.
+- `.jig/readme.md`는 수락한 뒤에만 쓰고, 일반 README 갱신의 부수 효과로 쓰지 않으며, 기존 규약은 확인 없이 덮지 않습니다.
 - 기존 언어를 보존하고 새 README는 repository 언어, 기본은 English를 사용합니다.
 - `develop-task-flow`가 있으면 `develop`의 `docs:` squash commit으로 병합합니다.
 
 ## 결과물
 
-project type, create·update path, 발견한 drift와 fix, 반복된 사실과 옮겨 갈 위치를 담은 압축 제안과 사용자 수락 여부, 검증할 수 없어 제외한 claim을 보고합니다.
+project type, README 규약과 해석 출처(또는 제안했으나 거절됨), create·update path, 발견한 drift와 fix, 반복된 사실과 옮겨 갈 위치를 담은 압축 제안과 사용자 수락 여부, 검증할 수 없어 제외한 claim을 보고합니다.
 
 ## 관련 스킬
 
 - [`develop-task-flow`](develop-task-flow.md): README 변경의 branch·merge workflow 소유
 - [`jig-doctor`](jig-doctor.md): README usage가 정확히 설명해야 할 설치 사실 진단
+- [`version-rubric`](version-rubric.md): `.jig/` 아래 다른 project-owned 파일의 소유자. 둘은 서로의 파일을 쓰지 않습니다
 
 ## 원본
 

@@ -1,12 +1,12 @@
 # README Skill
 
-<!-- jig:skill-source-digest 2e2c12306ce0a0fbb2299af91be5de4a543886f4 -->
+<!-- jig:skill-source-digest 146d9e857d0230dd6db022b80f8b28db1a654e90 -->
 
 [한국어](../../ko/skills/readme.md) · [Skill index](index.md)
 
 ## Overview
 
-`readme` creates a missing README or checks an existing README against repository evidence and fixes only verified drift. It classifies the project before choosing a layout, keeps the result short by moving facts stated in more than one place into the detail docs, and preserves the repository's existing language.
+`readme` creates a missing README or checks an existing README against repository evidence and fixes only verified drift. It classifies the project, reads the repository's own README profile at `.jig/readme.md` when one exists, keeps the result short by moving facts stated in more than one place into the detail docs, and preserves the repository's existing language.
 
 ## When to use
 
@@ -22,7 +22,14 @@ Use it when starting documentation, after commands/options/paths changed, when R
 ```mermaid
 flowchart TD
     Scan[Scan manifests, entrypoints, scripts, configs, docs] --> Type[Classify CLI, library, service/app, or other]
-    Type --> Exists{README exists?}
+    Type --> Profile{Profile resolves?}
+    Profile -- Yes --> Follow[Follow .jig/readme.md over the generic defaults]
+    Profile -- No --> Offer[Draft a profile and propose it]
+    Offer --> Written{User accepts?}
+    Written -- Yes --> Follow
+    Written -- No --> Defaults[Continue on the generic defaults, say so]
+    Follow --> Exists{README exists?}
+    Defaults --> Exists
     Exists -- No --> Create[Create required structure for project type]
     Exists -- Yes --> Audit[Verify commands, options, paths, links, features]
     Audit --> Drift{Verified drift?}
@@ -44,6 +51,23 @@ flowchart TD
 ```
 
 CLI projects add commands/options, libraries add an API summary and example, and services/apps add development/production startup and required environment variables.
+
+## The README profile
+
+Two repositories of the same project type still write their READMEs differently: one keeps a translated mirror, another moves installation into a guide, a third has a table convention its contributors already follow. None of that can be scanned for — they are decisions — so they are recorded once and read on every later run.
+
+Resolution order: `JIG_README_PROFILE`, then `git config --local --get jig.readmeProfile`, then `.jig/readme.md`. A resolved profile **overrides the generic section layout and language rules**; anything it does not mention falls back to them.
+
+The file has four sections and records decisions only — no thresholds and no check list, because README quality stays a judgment the skill makes with the repository in front of it:
+
+| Section | What it settles |
+|---|---|
+| `## Languages` | canonical file, mirror file, how they stay paired |
+| `## Sections` | the section order this repository uses |
+| `## Detail Docs` | what leaves the README and which doc receives it |
+| `## Conventions` | table style, claim discipline, asset paths |
+
+When no profile resolves, the skill drafts one from the scan and proposes it; `.jig/readme.md` is written only after the user accepts. Declining is a normal outcome — the run continues on the generic defaults and the report says so. An existing profile is never overwritten without confirmation, and nothing else under `.jig/` is touched: `version-rubric` owns `.jig/versioning.md`.
 
 ## Compression
 
@@ -70,17 +94,19 @@ It reads manifests, lock files, entrypoints, CLI definitions, scripts, service c
 - Do not invent badges, integrations, options, or features.
 - Keep identifier-table descriptions short enough that names do not wrap; use lists when explanations are long.
 - Never restructure a published README without asking: the compression pass proposes moves on the update path and applies them only after the user accepts.
+- Write `.jig/readme.md` only on acceptance, never as a side effect of an ordinary README update, and never over an existing profile without confirmation.
 - Preserve existing language. A new README follows repository language, defaulting to English.
 - When `develop-task-flow` exists, merge through a `docs:` squash commit on `develop`.
 
 ## Outputs
 
-The report states project type, create/update path, detected drift and fixes, the compression proposal with each repeated fact and its destination, whether the user accepted it, and claims left out because they could not be verified.
+The report states project type, the README profile and where it resolved from (or that it was proposed and declined), create/update path, detected drift and fixes, the compression proposal with each repeated fact and its destination, whether the user accepted it, and claims left out because they could not be verified.
 
 ## Related skills
 
 - [`develop-task-flow`](develop-task-flow.md) owns the branch/merge path for README changes.
 - [`jig-doctor`](jig-doctor.md) can reveal installation facts that README usage should describe accurately.
+- [`version-rubric`](version-rubric.md) owns the other project-owned file under `.jig/`; the two never write each other's.
 
 ## Source
 

@@ -49,7 +49,8 @@ Use these repo-scoped Claude Code skills:
 - Do not delete branches without explicit user confirmation.
 - Do not overwrite user-modified files without explicit user confirmation.
 - Do not create unrequested AI skill directories beyond `.agents/skills` and `.claude/skills`.
-- `.jig/` is project-owned: only `version-rubric` writes `.jig/versioning.md`, and the installer and `jig-update` never touch it.
+- `.jig/` is project-owned: only `version-rubric` writes `.jig/versioning.md` and only `readme` writes `.jig/readme.md`, each after the user accepts it. The installer and `jig-update` never touch either.
+- `.jig/readme.md` is this repository's README profile: the language and mirror pair, the section order, what belongs in the detail docs, and the table and claim conventions. `readme` reads it before writing either README.
 - The project-type rubric catalog lives at `skills/version-rubric/rubrics` and ships as payload; `rubric-scan` reads it and never writes. `rubrics/INDEX.md` is the only list of types, so a new rubric file must be added to that table in the same task.
 - Do not push ordinary work directly to `main`; `main` only updates through the release fast-forward push.
 - Keep all documentation and skill examples generic: use placeholders such as `your-account`, `your@email.com`, and `/absolute/path/to/<name>`. Never include local machine paths, personal identifiers, or examples taken from local or other projects.
