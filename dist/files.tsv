@@ -11,6 +11,8 @@ jig-update	scripts/update-claude-standalone.sh
 jig-doctor	SKILL.md
 jig-doctor	scripts/inspect-claude-standalone.sh
 repo-hygiene	SKILL.md
+conformance-audit	SKILL.md
+conformance-audit	scripts/audit-history.sh
 readme	SKILL.md
 version-rubric	SKILL.md
 version-rubric	rubrics/INDEX.md

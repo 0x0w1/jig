@@ -83,6 +83,7 @@ Unlike a plain collection of skills, jig converges *repository state* — the br
 | `jig-update` | Update an installation to the latest release |
 | `jig-doctor` | Read-only health check of the installation |
 | `repo-hygiene` | Audit and clear branch, tag, and file debris |
+| `conformance-audit` | Check the history against the procedure; CI-gateable |
 | `readme` | Draft a README, or fix its drift against the code |
 | `version-rubric` | Settle `patch`/`minor`/`major` in `.jig/versioning.md` |
 | `rubric-scan` | Classify the project type, recommend a rubric |

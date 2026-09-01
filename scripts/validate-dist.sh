@@ -32,6 +32,7 @@ skill_title() {
     jig-update) printf '%s\n' "# jig Update" ;;
     jig-doctor) printf '%s\n' "# jig Doctor" ;;
     repo-hygiene) printf '%s\n' "# Repo Hygiene" ;;
+    conformance-audit) printf '%s\n' "# Conformance Audit" ;;
     readme) printf '%s\n' "# README" ;;
     version-rubric) printf '%s\n' "# Version Rubric" ;;
     rubric-scan) printf '%s\n' "# Rubric Scan" ;;
@@ -67,10 +68,27 @@ require_text "dist/claude-code-plugin/jig/skills/jig-update/scripts/update-claud
 require_text "dist/claude-code-plugin/jig/skills/jig-update/scripts/update-claude-standalone.sh" 'unsafe payload path'
 require_text "dist/claude-code-plugin/jig/skills/jig-update/scripts/update-claude-standalone.sh" 'unsafe symlink payload path'
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" '~/.claude/skills'
+
+# conformance-audit is a check script first and a skill body second: its exit codes are
+# the CI contract, so the payload must carry the script, not only the procedure text.
+for audit_payload in \
+  "dist/claude-code-plugin/jig/skills/conformance-audit" \
+  "dist/codex/.agents/skills/jig-conformance-audit" \
+  "dist/antigravity/.agents/skills/jig-conformance-audit"; do
+  require_file "$audit_payload/scripts/audit-history.sh"
+  require_text "$audit_payload/scripts/audit-history.sh" "Release-Grade"
+  require_text "$audit_payload/scripts/audit-history.sh" "cannot determine a baseline"
+  if ! sh -n "$audit_payload/scripts/audit-history.sh"; then
+    fail "$audit_payload/scripts/audit-history.sh has invalid shell syntax"
+  fi
+done
+require_text "dist/claude-code-plugin/jig/skills/conformance-audit/SKILL.md" "Never rewrite history"
+require_text "dist/claude-code-plugin/jig/skills/conformance-audit/SKILL.md" "Why a Baseline"
 sh scripts/test-update-claude-standalone.sh
 sh scripts/test-doctor-installation-inventory.sh
 sh scripts/test-install-skill-aliases.sh
 sh scripts/test-pre-push-manager.sh
+sh scripts/test-conformance-audit.sh
 sh scripts/test-docs-structure.sh
 # The product name is jig everywhere the user types it.
 require_text .claude-plugin/marketplace.json '"name": "jig"'

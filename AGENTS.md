@@ -11,6 +11,7 @@ Use these repo-scoped Codex skills:
 - jig installation updates: `jig-update` from `.agents/skills/jig-update/SKILL.md`.
 - jig installation diagnostics: `jig-doctor` from `.agents/skills/jig-doctor/SKILL.md`.
 - Repository branch and file cleanup: `jig-repo-hygiene` from `.agents/skills/jig-repo-hygiene/SKILL.md`.
+- Procedure conformance audit of the history: `jig-conformance-audit` from `.agents/skills/jig-conformance-audit/SKILL.md`.
 - Version grading rubric: `jig-version-rubric` from `.agents/skills/jig-version-rubric/SKILL.md`.
 - Project type scan and rubric recommendation: `jig-rubric-scan` from `.agents/skills/jig-rubric-scan/SKILL.md`.
 

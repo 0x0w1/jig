@@ -83,6 +83,7 @@ jig는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니다
 | `jig-update` | 설치본을 최신 릴리즈로 갱신 |
 | `jig-doctor` | 설치 상태 read-only 진단 |
 | `repo-hygiene` | 브랜치·태그·잔여 파일 점검과 정리 |
+| `conformance-audit` | 이력이 절차를 따랐는지 검사, CI 게이트 가능 |
 | `readme` | README 생성, 기존 README는 코드와 대조해 수정 |
 | `version-rubric` | `patch`/`minor`/`major` 기준을 `.jig/versioning.md`에 확정 |
 | `rubric-scan` | 프로젝트 유형 판정 후 맞는 기준 추천 |

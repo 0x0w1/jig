@@ -21,6 +21,7 @@ jig 초기 버전은 **개인 사이드 프로젝트의 CLI 에이전트 하네�
 - 온보딩 스킬 1종: `jig-setup` (설치 후 저장소별 GitHub 프로필 선택·검증)
 - 문서 스킬 3종: `readme`(README 생성·갱신), `version-rubric`(버전 판정 기준 확정, 유형별 카탈로그 배포), `rubric-scan`(저장소 스캔 후 기준 추천)
 - 저장소 정리 스킬 1종: `repo-hygiene`(브랜치·태그·기준 파일·잔여물 점검, 사용자가 지목한 것만 삭제)
+- 준수 검증 스킬 1종: `conformance-audit`(도입 기준선부터 이력을 절차와 대조, 읽기 전용, 위반 시 0이 아닌 종료 코드, CI 실행 가능)
 - 로컬 가드 2층: `github-sync`가 설치하는 git `pre-push` hook(전 CLI 공통) + Claude Code 플러그인 PreToolUse hook(`--no-verify` 우회 차단). 두 겹 모두 `main`으로 가는 길을 `develop:main`과 `hotfix/<slug>:main` 둘로만 허용
 - 릴리즈 이전에 시작하는 판정: `develop-task-flow`가 squash 커밋마다 `Release-Grade` trailer를 기록하고, `github-release`가 범위 내 최고값을 내리지 않는 하한으로 삼는다. 기준 파일의 `## Interface Paths` 표에서 계산한 참고용 바닥이 함께 쓰인다
 - 배포 방식: Claude Code는 플러그인 마켓플레이스(`jig@jig`, 호스트가 `/jig:<skill>`로 네임스페이스), Codex/Antigravity는 `jig-` prefix 스킬 파일
@@ -32,7 +33,7 @@ jig 초기 버전은 **개인 사이드 프로젝트의 CLI 에이전트 하네�
 | 후보 | 내용 | 착수 트리거 |
 |---|---|---|
 | **A. 절차 확장** | ~~`hotfix-flow`~~·~~`repo-hygiene`~~ 제공 완료. 폐기한 둘의 사유는 아래 설계 기록 참조 | 종료. 절차를 더 추가하려면 별도 후보와 별도 트리거가 필요 |
-| **B. 절차 준수 검증 (conformance)** | 에이전트가 절차를 실제로 따랐는지 기계 검증. 릴리즈 후 커밋·태그·노트가 규칙대로인지 사후 감사. CI에서도 실행 가능한 검사 스크립트 형태로 설계하면 C의 CI 감사 요소를 겸함 | 절차 위반 사례가 실사용에서 축적될 때 |
+| **B. 절차 준수 검증 (conformance)** | ~~`conformance-audit`으로 제공 완료~~: 도입 기준선부터 커밋 subject, `Release-Grade` 적용률, 태그 형식·위치, `main`/`develop` 불변식을 판정하는 읽기 전용 검사 스크립트와 스킬. 종료 코드가 CI 계약이므로 C의 CI 감사 요소를 겸한다 | 착수·완료. 남은 일은 검사 항목이 실제 위반과 맞는지 관찰하고, 감사가 놓친 위반이 나올 때만 항목을 늘리는 것 |
 | **C. 팀 도입 채널** | 온보딩(원라이너 1회 = 팀 규칙 동기화), 팀원별 드리프트 감시, CI 감사, 조직별 flow 파라미터(승인 수 등). PR 기반 병합 흐름(`team-pr`) 복원 포함 — 설계는 아래 기록 참조 | 실제 팀 사용자가 등장할 때. B가 CI 실행형이면 절반은 해결됨 |
 | **D. engine/content 분리 (registry)** | installer·manifest·수명주기(engine)와 스킬 내용(content)을 분리해 타 조직이 자기 절차를 jig 엔진으로 배포. `REPO_RAW_URL` 오버라이드가 이미 절반 — 남은 건 하드코딩 제거와 절차 저장소 스캐폴드 | 외부 수요 신호(fork, 이슈, 절차 배포 요청)가 보일 때 |
 | **E. Codex/Antigravity 네이티브 hook** | git pre-push 가드를 두 CLI의 네이티브 PreToolUse hook으로도 제공 (Codex `hooks.json`은 experimental·기본 비활성, Antigravity는 사용자 소유 설정 파일 편집 필요) | 해당 CLI hook의 GA/안정화 + git hook으로 못 막는 실사례 발생 |
@@ -74,4 +75,5 @@ v0.2.0 이전에는 배포 payload에 `<!-- jig:owned skill=<name> -->` 마커�
 ## 다음 단계
 
 - 기존 사이드 프로젝트들에 실전 적용: 설치/업데이트 재실행 → `github-sync` 수렴 → `jig-doctor` 진단 → `repo-hygiene` 정리 → 마찰 수집
-- 여기서 나온 위반 사례가 B의 착수 재료가 된다. A는 종료됐다
+- 각 저장소에 `conformance-audit`을 돌리고 그 발견이 실제 상태와 맞는지 대조한다. 정상 저장소에서 울리는 검사는 저장소가 아니라 감사의 결함이다
+- A와 B는 종료됐다. C·D·E는 트리거 조건부로 남는다

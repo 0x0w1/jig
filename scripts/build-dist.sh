@@ -24,6 +24,7 @@ skill_summary() {
     readme) printf '%s' "write or update the project README from the repository state; drafts one when missing, fixes drift when present." ;;
     version-rubric) printf '%s' "decide and maintain how this project grades patch, minor, and major in .jig/versioning.md; ships the project-type rubric catalog." ;;
     rubric-scan) printf '%s' "scan the repository to classify its project type and recommend a version rubric from the catalog; read-only." ;;
+    conformance-audit) printf '%s' "audit the history against the procedure: commit subjects, release grades, tags, and the main/develop invariant; read-only." ;;
     *) printf '%s' "jig procedure." ;;
   esac
 }

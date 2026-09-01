@@ -21,6 +21,7 @@ What separates it from a plain skill marketplace:
 - one onboarding skill: `jig-setup` (selects and verifies the per-repository GitHub profile after install)
 - three documentation skills: `readme` (write or update a README), `version-rubric` (settle the version rubric and ship the per-type catalog), `rubric-scan` (scan the repository and recommend one)
 - one repository housekeeping skill: `repo-hygiene` (branch, tag, rubric, and leftover audit; deletes only what the user names)
+- one conformance skill: `conformance-audit` (judges the history against the procedure from an adoption baseline; read-only, exits non-zero, runs in CI)
 - two layers of local guard: the git `pre-push` hook `github-sync` installs (all CLIs) and the Claude Code plugin's PreToolUse hook (blocks the `--no-verify` bypass). Both allow exactly two ways onto `main`: `develop:main` and `hotfix/<slug>:main`
 - grading that starts before the release: `develop-task-flow` records a `Release-Grade` trailer on each squash commit, and `github-release` takes the highest one in the range as a floor it never lowers, alongside the advisory floor computed from the rubric's `## Interface Paths` table
 - distribution: the plugin marketplace for Claude Code (`jig@jig`, namespaced by the host as `/jig:<skill>`), `jig-` prefixed skill files for Codex and Antigravity
@@ -32,7 +33,7 @@ There is **only one merge flow**: a local `git merge --squash` and a direct push
 | Candidate | What it is | Trigger to start |
 |---|---|---|
 | **A. More procedures** | ~~`hotfix-flow`~~ and ~~`repo-hygiene`~~ shipped; see the design record below for the two that were dropped | Closed. A further procedure needs its own candidate and its own trigger |
-| **B. Conformance checking** | Machine verification that the agent actually followed the procedure: an after-the-fact audit that commits, tags, and notes match the rules. Designed as a check script that also runs in CI, it covers the CI-audit part of C | When violations accumulate in real use |
+| **B. Conformance checking** | ~~Shipped as `conformance-audit`~~: a read-only check script plus skill that judges commit subjects, `Release-Grade` coverage, tag format and placement, and the `main`/`develop` invariant from an adoption baseline. Exit codes are the CI contract, which covers the CI-audit part of C | Started and shipped. What remains is watching whether the checks match real violations, and adding one only when a violation the audit missed appears |
 | **C. A channel for teams** | Onboarding (one one-liner syncs the team's rules), per-member drift watching, CI audits, per-organization flow parameters such as approval counts. Includes restoring the PR-based merge flow (`team-pr`) — see the design record below | When real team users appear. If B runs in CI, half of this is already solved |
 | **D. engine/content split (registry)** | Separate the installer, manifest, and lifecycle (engine) from the skill content, so another organization can distribute its own procedures on the jig engine. The `REPO_RAW_URL` override is already half of it — what remains is removing hardcoded values and scaffolding a procedure repository | When outside demand shows up: forks, issues, requests to distribute procedures |
 | **E. Native hooks for Codex and Antigravity** | Offer the git pre-push guard as those CLIs' native PreToolUse hooks too (Codex `hooks.json` is experimental and off by default; Antigravity requires editing a user-owned settings file) | When those hooks reach GA, and a real case appears that a git hook cannot block |
@@ -74,4 +75,5 @@ A PR-based team flow that was once implemented. With no real team users it was p
 ## Next
 
 - Apply it for real on existing side projects: install or re-run the update, converge with `github-sync`, diagnose with `jig-doctor`, clear the debris with `repo-hygiene`, and collect the friction
-- The violations that surface there are the raw material for B. A is closed
+- Run `conformance-audit` on each of them and check its findings against what the repository is really doing: a check that fires on a repository behaving correctly is a defect in the audit, not in the repository
+- A and B are closed. C, D, and E stay trigger-conditional

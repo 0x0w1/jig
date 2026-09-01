@@ -11,6 +11,7 @@ Use these repo-scoped Claude Code skills:
 - jig installation updates: `jig-update` from `.claude/skills/jig-update/SKILL.md`.
 - jig installation diagnostics: `jig-doctor` from `.claude/skills/jig-doctor/SKILL.md`.
 - Repository branch and file cleanup: `repo-hygiene` from `.claude/skills/repo-hygiene/SKILL.md`.
+- Procedure conformance audit of the history: `conformance-audit` from `.claude/skills/conformance-audit/SKILL.md`.
 - Version grading rubric: `version-rubric` from `.claude/skills/version-rubric/SKILL.md`.
 - Project type scan and rubric recommendation: `rubric-scan` from `.claude/skills/rubric-scan/SKILL.md`.
 
