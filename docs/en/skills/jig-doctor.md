@@ -1,6 +1,6 @@
 # jig Doctor
 
-<!-- jig:skill-source-digest ae287a8ab98b33e3cf3c45ee4022a8ae812b2f48 -->
+<!-- jig:skill-source-digest e83c9c4e5df46b3f7be0893d690cad1047cc0137 -->
 
 [한국어](../../ko/skills/jig-doctor.md) · [Skill index](index.md)
 
@@ -10,7 +10,7 @@
 
 ## When to use
 
-Use it after setup or update, when versions or skill selections look inconsistent, before a release, or when protection, the local guard, profile, rubric, migration, or legacy state is uncertain. It never repairs findings; each finding names the owning skill.
+Use it after setup or update, when versions or skill selections look inconsistent, before a release, or when protection, the local guard, profile, rubric, README profile, migration, or legacy state is uncertain. It never repairs findings; each finding names the owning skill.
 
 ## Invocation
 
@@ -32,9 +32,9 @@ flowchart TD
     Instances -- Yes --> PerInstance[Check version, selection, drift, provenance, migrations per instance]
     PerInstance --> Project{Project-scoped instance belongs to current worktree?}
     Project -- No --> Report[Compose read-only report]
-    Project -- Yes --> Repo[Check protection, branch state, legacy files, guard, profile, rubric]
+    Project -- Yes --> Repo[Check protection, branch state, legacy files, guard, profile, rubric, README profile]
     Repo --> Classify[Classify each finding]
-    Classify --> Delegate[Name jig-update, github-sync, jig-setup, or version-rubric]
+    Classify --> Delegate[Name jig-update, github-sync, jig-setup, version-rubric, or readme]
     Delegate --> Report
 ```
 
@@ -54,7 +54,9 @@ The skill reads plugin settings, standalone ledgers/provenance, managed blocks a
 
 ## Outputs and fix ownership
 
-The report covers inventory, per-instance version/selection/drift/provenance, pending migrations, optional protection, branch divergence, legacy leftovers, local guard, profile, rubric, and recommended actions. Payload/version/provenance findings belong to `jig-update`; protection/guard to `github-sync`; profile to `jig-setup`; rubric to `version-rubric`. Branch divergence requires manual reconciliation and never a force push.
+The report covers inventory, per-instance version/selection/drift/provenance, pending migrations, optional protection, branch divergence, legacy leftovers, local guard, profile, rubric, README profile, and recommended actions. Payload/version/provenance findings belong to `jig-update`; protection/guard to `github-sync`; profile to `jig-setup`; rubric to `version-rubric`; README profile to `readme`.
+
+Both project-owned files under `.jig/` are read the same way: resolve the path, report the source, name which sections are present, and check that the file is committed — an uncommitted one applies on one machine and nowhere else. Neither is compared against any payload, and an absent file is a normal state rather than a defect. A missing rubric still matters because `github-release` stops without one; a missing README profile only means the `readme` skill falls back to its generic defaults. Branch divergence requires manual reconciliation and never a force push.
 
 ## Related skills
 
@@ -62,6 +64,7 @@ The report covers inventory, per-instance version/selection/drift/provenance, pe
 - [`github-sync`](github-sync.md) fixes branch protection and the local guard.
 - [`jig-setup`](jig-setup.md) repairs profile or incomplete setup.
 - [`version-rubric`](version-rubric.md) owns rubric creation and repair.
+- [`readme`](readme.md) owns the README profile this skill reports.
 
 ## Source
 

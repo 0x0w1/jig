@@ -1,6 +1,6 @@
 ---
 name: jig-doctor
-description: "Use when diagnosing every detected jig installation for Claude Code, Codex, and Antigravity across current project and user scopes, plus repository profile, migration, protection, guard, rubric, and legacy state. Read-only; fixes are delegated to jig-setup, jig-update, github-sync, and version-rubric."
+description: "Use when diagnosing every detected jig installation for Claude Code, Codex, and Antigravity across current project and user scopes, plus repository profile, migration, protection, guard, rubric, README profile, and legacy state. Read-only; fixes are delegated to jig-setup, jig-update, github-sync, version-rubric, and readme."
 ---
 
 # jig Doctor
@@ -104,6 +104,13 @@ Checks 5–10 diagnose repository state, not global installation state. Run them
    - A missing file is information, not a defect. Fix owner is `version-rubric`.
    - Never compare the rubric with any payload: it is user-owned content, never drift.
 
+11. **README profile**: resolve the path from `JIG_README_PROFILE`, then local `jig.readmeProfile`, then `.jig/readme.md`.
+   - Report the source. A path from the environment variable is session-only; say so.
+   - Report which of the four sections are present: `## Languages`, `## Sections`, `## Detail Docs`, `## Conventions`. A profile that omits one is not broken — the omitted section falls back to the skill's generic defaults — so report the gap as a fallback, never as a contract break.
+   - Check that the file is committed. An uncommitted profile applies on one machine and nowhere else.
+   - A missing file is the normal state for a repository that never settled one. Fix owner is `readme`, and only when the user wants a profile.
+   - Never compare the profile with any payload, and never judge its prose. It is user-owned content, never drift.
+
 ## Safety Rules
 
 - Read-only: do not modify files, settings, branches, or labels.
@@ -117,7 +124,7 @@ Checks 5–10 diagnose repository state, not global installation state. Run them
 
 1. Run the complete installation inventory first. Invoke the standalone inspector for both roots, inspect all plugin sources, and read all four Codex/Antigravity rules files. Record absent and non-owned rows separately from detected instances.
 2. Resolve available tools and repository context: `command -v claude`, `gh auth status`, and, only for project-scoped instances, `git rev-parse --is-inside-work-tree` plus `gh repo view`. If a tool is unavailable, run checks that do not need it and list the skipped checks.
-3. Run checks 2–4 independently for every detected instance. Run checks 5–10 once for the current repository only when the repository-state applicability rule is satisfied.
+3. Run checks 2–4 independently for every detected instance. Run checks 5–11 once for the current repository only when the repository-state applicability rule is satisfied.
 4. Compose the report. For every finding, name the fix owner:
    - version behind, drifted or partial files, invalid standalone ledger/provenance, a disabled or partial plugin at an already detected scope, or pending `migration-auto` items → `jig-update`
    - pending `migration-manual` items → `jig-update`, but only after the user decides each item
@@ -126,6 +133,7 @@ Checks 5–10 diagnose repository state, not global installation state. Run them
    - local guard missing, outdated, or modified → `github-sync`
    - GitHub profile missing, ambiguous, or invalid → `jig-setup`
    - version rubric missing, contract-broken, or uncommitted → `version-rubric`
+   - README profile uncommitted → `readme`. A profile that is simply absent needs no fix; name it only if the user asks for one
    - branch state divergence → stop releases and reconcile manually; never force-push.
 
 ## Final Report
@@ -168,6 +176,9 @@ Write the report in the language the repository already uses for its own documen
 
 ### Version rubric
 - <path> (source: environment variable | local config | convention) · adopted default | project-specific · titles English | Korean (legacy) · required sections OK | missing · committed | uncommitted | file absent
+
+### README profile
+- <path> (source: environment variable | local config | convention) · sections present: <list> | falling back for: <list> · committed | uncommitted | file absent (generic defaults apply)
 
 ### Recommended actions
 - <fix owner>: <command or skill>

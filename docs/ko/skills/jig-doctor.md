@@ -1,6 +1,6 @@
 # jig Doctor
 
-<!-- jig:skill-source-digest ae287a8ab98b33e3cf3c45ee4022a8ae812b2f48 -->
+<!-- jig:skill-source-digest e83c9c4e5df46b3f7be0893d690cad1047cc0137 -->
 
 [English](../../en/skills/jig-doctor.md) · [스킬 index](index.md)
 
@@ -10,7 +10,7 @@
 
 ## 사용 시점
 
-setup·update 후, version·skill 선택이 다르게 보일 때, release 전, protection·local guard·profile·rubric·migration·legacy 상태가 불분명할 때 사용합니다. 진단 결과를 직접 고치지 않고 각 finding의 수리 소유 스킬을 알려 줍니다.
+setup·update 후, version·skill 선택이 다르게 보일 때, release 전, protection·local guard·profile·rubric·README 규약·migration·legacy 상태가 불분명할 때 사용합니다. 진단 결과를 직접 고치지 않고 각 finding의 수리 소유 스킬을 알려 줍니다.
 
 ## 실행 방법
 
@@ -32,9 +32,9 @@ flowchart TD
     Instances -- Yes --> PerInstance[instance별 version·selection·drift·provenance·migration 점검]
     PerInstance --> Project{project scope가 현재 worktree에 속함?}
     Project -- No --> Report[read-only 보고서 작성]
-    Project -- Yes --> Repo[protection·branch·legacy·guard·profile·rubric 점검]
+    Project -- Yes --> Repo[protection·branch·legacy·guard·profile·rubric·README 규약 점검]
     Repo --> Classify[finding 분류]
-    Classify --> Delegate[jig-update·github-sync·jig-setup·version-rubric 지정]
+    Classify --> Delegate[jig-update·github-sync·jig-setup·version-rubric·readme 지정]
     Delegate --> Report
 ```
 
@@ -54,7 +54,9 @@ plugin settings, standalone ledger·provenance, managed block·version stamp, re
 
 ## 결과와 수리 소유권
 
-inventory, instance별 version·selection·drift·provenance, pending migration, 선택적 protection, branch divergence, legacy leftover, local guard, profile, rubric, recommended action을 보고합니다. payload·version·provenance는 `jig-update`, protection·guard는 `github-sync`, profile은 `jig-setup`, rubric은 `version-rubric`가 수리합니다. branch divergence는 사람이 조정해야 하며 force push하지 않습니다.
+inventory, instance별 version·selection·drift·provenance, pending migration, 선택적 protection, branch divergence, legacy leftover, local guard, profile, rubric, README 규약, recommended action을 보고합니다. payload·version·provenance는 `jig-update`, protection·guard는 `github-sync`, profile은 `jig-setup`, rubric은 `version-rubric`, README 규약은 `readme`가 수리합니다.
+
+`.jig/` 아래 project-owned 파일 둘은 같은 방식으로 읽습니다. 경로를 해석하고, 출처를 보고하고, 어떤 section이 있는지 밝히고, 커밋되어 있는지 확인합니다 — 커밋되지 않은 파일은 한 기계에서만 적용되고 다른 곳에는 닿지 않습니다. 둘 다 payload와 대조하지 않고, 파일이 없는 것은 결함이 아니라 정상 상태입니다. rubric이 없으면 `github-release`가 멈추므로 여전히 중요하지만, README 규약이 없으면 `readme` 스킬이 일반 기본값으로 돌아갈 뿐입니다. branch divergence는 사람이 조정해야 하며 force push하지 않습니다.
 
 ## 관련 스킬
 
@@ -62,6 +64,7 @@ inventory, instance별 version·selection·drift·provenance, pending migration,
 - [`github-sync`](github-sync.md): protection·local guard 복구
 - [`jig-setup`](jig-setup.md): profile·불완전 setup 복구
 - [`version-rubric`](version-rubric.md): rubric 생성·복구
+- [`readme`](readme.md): 이 스킬이 보고하는 README 규약의 소유자
 
 ## 원본
 
