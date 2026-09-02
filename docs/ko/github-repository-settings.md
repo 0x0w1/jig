@@ -133,6 +133,6 @@ sh install.sh --target codex --scope project --github-profile your-account
 - `main`/`develop` 원격 삭제 차단
 - `develop:main` fast-forward(릴리즈) 이외의 `main` 직접 push 차단
 
-`--no-verify`로 우회할 수 있는 것이 git hook의 한계입니다. jig 스킬은 우회를 금지합니다. Claude Code에서는 `jig` 플러그인의 PreToolUse hook이 `--no-verify`를 포함한 위반 push 명령을 실행 전에 차단합니다. 저장소가 보호를 걸 수 있으면 서버측 branch protection이 최종 방어선이고, 걸 수 없으면 이 로컬 가드가 유일한 방어선입니다. 진단은 `jig-doctor`, 재설치·갱신은 `github-sync`가 담당합니다.
+`--no-verify`로 우회할 수 있는 것이 git hook의 한계입니다. jig 스킬은 우회를 금지하고, 두 번째 겹이 이를 강제합니다 — push 명령을 실행 전에 검사해 `--no-verify`를 포함한 위반 명령을 거부하는 `PreToolUse` hook입니다. Claude Code에서는 이 hook이 `jig` 플러그인 안에 들어 있습니다. Codex와 Antigravity에서는 `github-sync`가 네이티브로 설치합니다 — 배포된 `github-sync/assets/guard-push.sh`를 실행하는 항목 하나를 `.codex/hooks.json` 또는 `.agents/hooks.json`에 넣으며, `github-sync/scripts/manage-native-hooks.sh`가 자기 항목만 추가·갱신·제거하고 사용자 항목은 보존합니다. Codex는 사용자가 `/hooks`에서 한 번 검토한 뒤에만 프로젝트 hook을 실행하며 sync 보고서가 이를 알립니다. 저장소가 보호를 걸 수 있으면 서버측 branch protection이 최종 방어선이고, 걸 수 없으면 이 가드들이 유일한 방어선입니다. 두 겹 모두 진단은 `jig-doctor`, 설치·갱신은 `github-sync`가 담당합니다.
 
-프로젝트에서 `github-sync`나 jig를 제거하기 전에는 스킬의 guard cleanup을 실행합니다. manager는 jig marker가 있는 hook만 제거합니다. 기존 사용자 hook 교체를 명시적으로 허용했던 경우 uninstall이 `.jig-user-backup`을 복원합니다. plugin 또는 global scope 제거는 clone별 `.git` 디렉터리를 열거할 수 없으므로 영향받은 checkout마다 한 번씩 정리해야 합니다.
+프로젝트에서 `github-sync`나 jig를 제거하기 전에는 스킬의 guard cleanup을 실행합니다. 네이티브 hook manager는 자기 항목만 제거하고 다른 항목이 없던 파일만 삭제합니다. pre-push manager는 jig marker가 있는 hook만 제거합니다. 기존 사용자 hook 교체를 명시적으로 허용했던 경우 uninstall이 `.jig-user-backup`을 복원합니다. plugin 또는 global scope 제거는 clone별 `.git` 디렉터리를 열거할 수 없으므로 영향받은 checkout마다 한 번씩 정리해야 합니다.

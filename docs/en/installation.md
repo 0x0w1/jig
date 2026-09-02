@@ -139,7 +139,7 @@ The `jig-update` skill reads that stamp to reinstall the same selection at the l
 
 ### Removing it
 
-Before deleting the skill directories, run `jig-github-sync` and ask it to uninstall the current repository's local pre-push guard. The cleanup removes only a jig-marked hook and restores a user hook that jig backed up. Then remove the skill files yourself.
+Before deleting the skill directories, run `jig-github-sync` and ask it to uninstall the current repository's local guards: the native hook entry in `.codex/hooks.json` or `.agents/hooks.json`, then the pre-push hook. The cleanup removes only jig's own entry and jig-marked hook, keeps every user entry, and restores a user hook that jig backed up. Then remove the skill files yourself.
 
 ```bash
 rm -rf .agents/skills/jig-github-sync .agents/skills/jig-github-release \

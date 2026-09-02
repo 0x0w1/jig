@@ -93,6 +93,7 @@ Checks 5–10 diagnose repository state, not global installation state. Run them
    - A marked file that matches the source but is not executable is broken.
    - `.git/hooks/pre-push.jig-user-backup` is an intentional backup only while the jig hook is installed; `github-sync` restores it during uninstall.
    - Fix owner is `github-sync`; report, never modify.
+   - **Native push hook** (second guard layer, project scope): run `scripts/manage-native-hooks.sh status` from the `github-sync` skill of the same installation. It is read-only and prints one line per host — `installed | not installed | entry drift | user entry | guard missing | leftover | host not detected | invalid json | symlink | jq missing`. `not installed`, `entry drift`, `guard missing`, and `leftover` (an entry whose host stamp is gone) go to `github-sync`; `installed`, `user entry`, and `host not detected` need nothing. When `installed`, the guard payload `.agents/skills/jig-github-sync/assets/guard-push.sh` is compared with the release payload like any other selected file, and a mismatch is drift → `jig-update`. Codex runs a hook only after the user trusted it in `/hooks`, and that state is not visible from outside: report `installed (trust: confirm in /hooks)` and never claim the Codex hook is active. Claude Code's copy ships inside the plugin and has no repository state to check.
 9. **GitHub profile**: report whether the profile came from `JIG_GITHUB_PROFILE`, local `jig.githubProfile`, or the globally active fallback. When a profile is configured, verify its stored credential and `gh api user` identity without printing the token. A missing credential, identity mismatch, or missing local profile for a multi-account host is a `jig-setup` finding.
 
 10. **Version rubric**: resolve the path from `JIG_VERSION_RUBRIC`, then local `jig.versionRubric`, then `.jig/versioning.md`.
@@ -114,7 +115,7 @@ Checks 5–10 diagnose repository state, not global installation state. Run them
 ## Safety Rules
 
 - Read-only: do not modify files, settings, branches, or labels.
-- Do not run the installer or any `claude plugin` command that changes state; recommend `jig-update` instead.
+- Do not run the installer or any `claude plugin` command that changes state; recommend `jig-update` instead. The only shipped scripts this skill runs are its own inspector and `manage-native-hooks.sh status`, both read-only.
 - Report the exact command for each recommended fix, but do not execute it.
 - Never report a skill the user wrote as a jig problem. A standalone `non-owned` root is informational, not an installation or defect; jig owns only ledger/provenance-verified standalone mappings, the `jig` plugin, and `jig-` prefixed directories tied to a managed block.
 - Never report the contents of `.jig/` as drift or as a jig defect. That directory is owned by the project.
@@ -130,7 +131,7 @@ Checks 5–10 diagnose repository state, not global installation state. Run them
    - pending `migration-manual` items → `jig-update`, but only after the user decides each item
    - protection mismatch, or protection available but never set up → `github-sync` (deletions only with explicit confirmation)
    - protection unavailable on this plan, or skipped by choice → no action; do not recommend a fix for something the repository cannot have or the user declined
-   - local guard missing, outdated, or modified → `github-sync`
+   - local guard (the `pre-push` hook or a native hook entry) missing, outdated, modified, or left behind → `github-sync`
    - GitHub profile missing, ambiguous, or invalid → `jig-setup`
    - version rubric missing, contract-broken, or uncommitted → `version-rubric`
    - README profile uncommitted → `readme`. A profile that is simply absent needs no fix; name it only if the user asks for one
@@ -170,6 +171,9 @@ Write the report in the language the repository already uses for its own documen
 ### Local guard
 - pre-push: OK vN | not installed | source drift | not executable | user's own hook | blocked by core.hooksPath
 - user-hook backup: none | held for uninstall restoration | orphaned
+- native hook, codex: installed (trust: confirm in /hooks) | not installed | entry drift | user entry | guard missing | leftover | host not detected | invalid json | jq missing
+- native hook, antigravity: same states, without the trust note
+- native hook, Claude Code: shipped in the plugin, nothing to check here
 
 ### GitHub profile
 - <source>: <profile>@<host> → OK | credential missing | identity mismatch | globally active fallback

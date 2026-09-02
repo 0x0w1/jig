@@ -1,12 +1,12 @@
 # GitHub Sync
 
-<!-- jig:skill-source-digest 97cb04a6e2c20b47fcae5fefcd2923ff7d75a22c -->
+<!-- jig:skill-source-digest e0f6735d916529e9259a0248c183a3b60e858012 -->
 
 [한국어](../../ko/skills/github-sync.md) · [Skill index](index.md) · [Repository settings](../github-repository-settings.md)
 
 ## Overview
 
-`github-sync` converges a repository on jig's CLI release model: `main` and `develop`, optional server-side protection, and a local `pre-push` guard. It is idempotent and deliberately excludes releases, tags, pull-request templates, labels, and Release Drafter automation.
+`github-sync` converges a repository on jig's CLI release model: `main` and `develop`, optional server-side protection, and two layers of local guard — the git `pre-push` hook, and a `PreToolUse` push hook installed natively for Codex and Antigravity (Claude Code ships the same hook inside the plugin). It is idempotent and deliberately excludes releases, tags, pull-request templates, labels, and Release Drafter automation.
 
 ## When to use
 
@@ -38,7 +38,10 @@ flowchart TD
     Ask -- No --> Record[Record skipped locally]
     Apply --> Guard
     Record --> Guard
-    Guard --> Legacy[Report legacy release files]
+    Guard --> Hosts{Codex or Antigravity stamp?}
+    Hosts -- Yes --> Native[Add or refresh the native hook entry]
+    Hosts -- No --> Legacy
+    Native --> Legacy[Report legacy release files]
 ```
 
 Protection blocks force pushes and deletion on both branches while allowing direct pushes and requiring neither PR reviews nor status checks. A private repository on a plan without protection normally returns `403`; that is informational, not a defect.
@@ -51,20 +54,24 @@ The local guard blocks deletion and non-fast-forward pushes to `main`/`develop`,
 
 The helper installs atomically, repairs a jig-owned drifted copy, and refuses a configured `core.hooksPath`. It never replaces an unmarked user hook without explicit confirmation. If replacement is approved, it preserves that hook as `.git/hooks/pre-push.jig-user-backup`.
 
+The second layer is `scripts/manage-native-hooks.sh`. For each host whose rules file carries the jig stamp it adds one hook entry — `.codex/hooks.json` for Codex, `.agents/hooks.json` for Antigravity — that runs the shipped `assets/guard-push.sh` before any shell command; a push that the git hook would refuse, or that carries `--no-verify`, is refused before it runs. The entry holds only the guard's repository-relative path, so `jig-update` refreshes the guard without changing the entry. Other entries in either file are preserved; merging needs `jq`, and without it the manager writes only a fresh file. Codex runs a hook only after the user reviews it once in `/hooks`; the report says so every time. Project scope only.
+
 ## Decision points and safety
 
 - Ask once before enabling available protection unless the checkout already records `enabled` or `skipped`.
 - Never overwrite an unmarked user-authored `pre-push` hook without explicit confirmation and a `.jig-user-backup` copy.
+- Never rewrite a user's entry in `.codex/hooks.json` or `.agents/hooks.json`; only the jig-marked entry is added, updated, or removed, and an unparseable file or a symlink is refused.
+- Never grant Codex hook trust for the user; report the `/hooks` step instead.
 - Never force push, delete branches, create tags/releases, configure `core.hooksPath`, rename the default branch, or silently remove legacy files.
-- When protection is unavailable or skipped, report that the local guard is the only barrier on this machine.
+- When protection is unavailable or skipped, report that the local guards are the only barrier on this machine.
 
 ## Uninstall cleanup
 
-Run the helper's `uninstall` mode before removing the skill or plugin from the current project. It removes only a hook with the jig ownership marker and restores the confirmed user-hook backup when present. Removing a user/global installation cannot discover every clone, so each project checkout must be cleaned explicitly.
+Run both helpers' `uninstall` modes before removing the skill or plugin from the current project — the native hook manager first, while the guard payload still exists. The native manager removes only its own entry and deletes the file (and an emptied `.codex/`) only when nothing else was in it; the pre-push manager removes only a hook with the jig ownership marker and restores the confirmed user-hook backup when present. Removing a user/global installation cannot discover every clone, so each project checkout must be cleaned explicitly.
 
 ## Outputs
 
-The report lists branch creation/current state, protection as applied/skipped/unavailable/not permitted, local guard state, legacy files found, blocked commands, and next actions.
+The report lists branch creation/current state, protection as applied/skipped/unavailable/not permitted, local pre-push guard state, the native hook state per detected host (with the Codex `/hooks` trust reminder), legacy files found, blocked commands, and next actions.
 
 ## Related skills
 
@@ -76,4 +83,5 @@ The report lists branch creation/current state, protection as applied/skipped/un
 ## Source
 
 - [`skills/github-sync/SKILL.md`](../../../skills/github-sync/SKILL.md)
+- [`guard-push.sh`](../../../skills/github-sync/assets/guard-push.sh), the one guard source for every host
 - [GitHub repository settings](../github-repository-settings.md)

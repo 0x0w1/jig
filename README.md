@@ -34,7 +34,7 @@ You need a git repository, plus `curl` or `wget` for Codex and Antigravity. A `g
 
 ### 1. Install — pick the one CLI you use
 
-**Claude Code** (recommended) — run inside a session. The plugin host manages install, update, and removal, and the `PreToolUse` guard hook that inspects push commands before they run ships only here.
+**Claude Code** (recommended) — run inside a session. The plugin host manages install, update, and removal, and the `PreToolUse` guard hook that inspects push commands before they run ships inside the plugin.
 
 ```text
 /plugin marketplace add 0x0w1/jig
@@ -61,7 +61,7 @@ One run settles four things.
 3. Converges the `main` and `develop` branches through `github-sync`, and asks before setting up branch protection — optional, since GitHub allows it on public repositories and on private ones only with a paid plan
 4. Checks the installation with `jig-doctor`
 
-`github-sync` installs the tracked pre-push guard source through its shipped manager instead of asking the agent to rewrite hook code. Before uninstalling jig from a project, run `github-sync` cleanup so the clone-local jig hook is removed and any backed-up user hook is restored.
+`github-sync` installs the tracked pre-push guard source through its shipped manager instead of asking the agent to rewrite hook code. On Codex and Antigravity it also adds the same `PreToolUse` push guard as a native hook entry (`.codex/hooks.json`, `.agents/hooks.json`); Codex runs it after you trust it once in `/hooks`. Before uninstalling jig from a project, run `github-sync` cleanup so the clone-local jig hooks are removed and any backed-up user hook is restored.
 
 ### 3. Verify
 
@@ -90,7 +90,7 @@ Unlike a plain collection of skills, jig converges *repository state* — the br
 
 There is a **single merge flow, solo-cli**: a work branch is squash-merged into `develop` locally and pushed directly. No pull requests.
 
-`main` moves only two ways: the release fast-forward `develop:main`, and `hotfix/<slug>:main` when a released defect has to ship ahead of the `develop` queue. Both guards allow those two and refuse everything else.
+`main` moves only two ways: the release fast-forward `develop:main`, and `hotfix/<slug>:main` when a released defect has to ship ahead of the `develop` queue. Both guard layers — the git `pre-push` hook and the `PreToolUse` hook on each CLI — allow those two and refuse everything else.
 
 Skill bodies and the rubric catalog are written in English. What a skill **produces** — reports, commit bodies, release notes, a README — follows the language that repository already uses.
 

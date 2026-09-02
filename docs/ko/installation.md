@@ -139,7 +139,7 @@ global scope:
 
 ### 제거
 
-스킬 디렉터리를 지우기 전에 `jig-github-sync`를 실행해 현재 저장소의 local pre-push guard 제거를 요청합니다. cleanup은 jig marker가 있는 hook만 제거하고 jig가 백업한 사용자 hook이 있으면 복원합니다. 그 다음 스킬 파일을 직접 지웁니다.
+스킬 디렉터리를 지우기 전에 `jig-github-sync`를 실행해 현재 저장소의 local guard 제거를 요청합니다 — `.codex/hooks.json` 또는 `.agents/hooks.json`의 네이티브 hook 항목, 그다음 pre-push hook. cleanup은 jig 자신의 항목과 jig marker가 있는 hook만 제거하고 사용자 항목은 모두 보존하며 jig가 백업한 사용자 hook이 있으면 복원합니다. 그 다음 스킬 파일을 직접 지웁니다.
 
 ```bash
 rm -rf .agents/skills/jig-github-sync .agents/skills/jig-github-release \

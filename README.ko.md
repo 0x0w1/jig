@@ -34,7 +34,7 @@
 
 ### 1. 설치 — 쓰는 CLI 하나만
 
-**Claude Code**(권장) — 세션 안에서 실행합니다. 플러그인 호스트가 설치·업데이트·삭제를 관리하고, push 명령을 실행 전에 검사하는 `PreToolUse` 가드 hook은 여기에만 들어 있습니다.
+**Claude Code**(권장) — 세션 안에서 실행합니다. 플러그인 호스트가 설치·업데이트·삭제를 관리하고, push 명령을 실행 전에 검사하는 `PreToolUse` 가드 hook이 플러그인 안에 들어 있습니다.
 
 ```text
 /plugin marketplace add 0x0w1/jig
@@ -61,7 +61,7 @@ curl -fsSL https://raw.githubusercontent.com/0x0w1/jig/main/install.sh \
 3. `github-sync`로 `main`·`develop` 브랜치 수렴, branch protection은 물어보고 적용 (public 저장소는 무료, private은 유료 플랜에서만 가능한 선택 기능)
 4. `jig-doctor`로 설치 상태 점검
 
-`github-sync`는 agent가 hook 코드를 다시 작성하게 하지 않고 배포된 manager가 추적하는 pre-push guard 원본을 설치합니다. 프로젝트에서 jig를 제거하기 전에는 `github-sync` cleanup을 실행해 clone-local jig hook을 제거하고 백업된 사용자 hook이 있으면 복원합니다.
+`github-sync`는 agent가 hook 코드를 다시 작성하게 하지 않고 배포된 manager가 추적하는 pre-push guard 원본을 설치합니다. Codex와 Antigravity에서는 같은 `PreToolUse` push 가드를 네이티브 hook 항목(`.codex/hooks.json`, `.agents/hooks.json`)으로도 추가합니다. Codex는 `/hooks`에서 한 번 신뢰하면 실행됩니다. 프로젝트에서 jig를 제거하기 전에는 `github-sync` cleanup을 실행해 clone-local jig hook들을 제거하고 백업된 사용자 hook이 있으면 복원합니다.
 
 ### 3. 확인
 
@@ -90,7 +90,7 @@ jig는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니다
 
 작업 병합 방식은 **solo-cli 하나**입니다. 작업 브랜치를 로컬에서 squash merge로 `develop`에 합치고 직접 push하며 Pull Request를 쓰지 않습니다.
 
-`main`은 두 경로로만 움직입니다 — 릴리즈의 `develop:main` fast-forward, 그리고 릴리즈된 결함을 `develop` 대기열보다 먼저 내보낼 때의 `hotfix/<slug>:main`입니다. 두 가드 모두 이 둘만 허용하고 나머지는 거부합니다.
+`main`은 두 경로로만 움직입니다 — 릴리즈의 `develop:main` fast-forward, 그리고 릴리즈된 결함을 `develop` 대기열보다 먼저 내보낼 때의 `hotfix/<slug>:main`입니다. 두 겹의 가드 — git `pre-push` hook과 각 CLI의 `PreToolUse` hook — 모두 이 둘만 허용하고 나머지는 거부합니다.
 
 스킬 본문과 기준 카탈로그는 영어로 씁니다. 반대로 스킬이 **만들어 내는 것**(보고서, 커밋 본문, 릴리즈 노트, README)은 그 저장소가 이미 쓰는 언어를 따릅니다.
 

@@ -1,6 +1,6 @@
 # jig Doctor
 
-<!-- jig:skill-source-digest e83c9c4e5df46b3f7be0893d690cad1047cc0137 -->
+<!-- jig:skill-source-digest b4cd0ba7d98fc6450702be67bc43399a2565d17f -->
 
 [English](../../en/skills/jig-doctor.md) · [스킬 index](index.md)
 
@@ -42,7 +42,7 @@ plugin payload는 host가 관리하므로 file payload tag와 비교하지 않�
 
 ## 읽기 범위와 외부 점검
 
-plugin settings, standalone ledger·provenance, managed block·version stamp, release metadata, payload catalog, Git branch 관계, protection·ruleset, `.git/hooks/pre-push`, local Git config, `.jig/versioning.md`, legacy release 파일, label, `.bak` leftover를 읽습니다. `gh`, `git`, 배포된 standalone inspector를 호출할 수 있지만 모두 read-only입니다.
+plugin settings, standalone ledger·provenance, managed block·version stamp, release metadata, payload catalog, Git branch 관계, protection·ruleset, `.git/hooks/pre-push`, `.codex/hooks.json`·`.agents/hooks.json`의 네이티브 hook 항목, local Git config, `.jig/versioning.md`, legacy release 파일, label, `.bak` leftover를 읽습니다. `gh`, `git`, 배포된 standalone inspector, `github-sync`의 `manage-native-hooks.sh status`를 호출할 수 있지만 모두 read-only입니다.
 
 ## 안전·실패 처리
 
@@ -55,6 +55,8 @@ plugin settings, standalone ledger·provenance, managed block·version stamp, re
 ## 결과와 수리 소유권
 
 inventory, instance별 version·selection·drift·provenance, pending migration, 선택적 protection, branch divergence, legacy leftover, local guard, profile, rubric, README 규약, recommended action을 보고합니다. payload·version·provenance는 `jig-update`, protection·guard는 `github-sync`, profile은 `jig-setup`, rubric은 `version-rubric`, README 규약은 `readme`가 수리합니다.
+
+local guard 줄은 두 겹을 모두 다룹니다. `pre-push` hook은 소유권 marker와 배포 원본과의 byte 비교로 판정합니다. 네이티브 hook 항목은 호스트마다 `github-sync`의 status helper로 판정하고 — `installed`, `not installed`, `entry drift`, `user entry`, `guard missing`, `leftover`, `host not detected`, `invalid json`, `jq missing` — 항목이 가리키는 guard payload는 다른 선택 파일과 같은 방식으로 비교합니다. Codex는 사용자가 `/hooks`에서 검토한 뒤에만 hook을 신뢰하고 그 상태는 밖에서 보이지 않으므로, 설치된 Codex 항목은 그 안내와 함께 보고하고 활성 상태라고 단정하지 않습니다.
 
 `.jig/` 아래 project-owned 파일 둘은 같은 방식으로 읽습니다. 경로를 해석하고, 출처를 보고하고, 어떤 section이 있는지 밝히고, 커밋되어 있는지 확인합니다 — 커밋되지 않은 파일은 한 기계에서만 적용되고 다른 곳에는 닿지 않습니다. 둘 다 payload와 대조하지 않고, 파일이 없는 것은 결함이 아니라 정상 상태입니다. rubric이 없으면 `github-release`가 멈추므로 여전히 중요하지만, README 규약이 없으면 `readme` 스킬이 일반 기본값으로 돌아갈 뿐입니다. branch divergence는 사람이 조정해야 하며 force push하지 않습니다.
 

@@ -125,9 +125,11 @@ build_claude_plugin() {
   "license": "MIT"
 }
 EOF
+  # The plugin declares its hook in hooks/hooks.json, but the guard itself is the
+  # github-sync payload file: one source for Claude Code, Codex, and Antigravity.
   mkdir -p "$plugin_root/hooks"
   cp hooks/hooks.json "$plugin_root/hooks/hooks.json"
-  cp hooks/guard-push.sh "$plugin_root/hooks/guard-push.sh"
+  cp skills/github-sync/assets/guard-push.sh "$plugin_root/hooks/guard-push.sh"
   chmod +x "$plugin_root/hooks/guard-push.sh"
   for skill in $SKILLS; do
     for skill_file in $(skill_files "$skill"); do

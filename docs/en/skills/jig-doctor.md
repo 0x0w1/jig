@@ -1,6 +1,6 @@
 # jig Doctor
 
-<!-- jig:skill-source-digest e83c9c4e5df46b3f7be0893d690cad1047cc0137 -->
+<!-- jig:skill-source-digest b4cd0ba7d98fc6450702be67bc43399a2565d17f -->
 
 [한국어](../../ko/skills/jig-doctor.md) · [Skill index](index.md)
 
@@ -42,7 +42,7 @@ Plugin payloads are host-managed and are not compared with file payload tags. Ve
 
 ## Reads and external checks
 
-The skill reads plugin settings, standalone ledgers/provenance, managed blocks and version stamps, release metadata, payload catalogs, Git branch relations, protection/rulesets, `.git/hooks/pre-push`, local Git config, `.jig/versioning.md`, legacy release files, labels, and `.bak` leftovers. It may call `gh`, `git`, and the shipped standalone inspector, all read-only.
+The skill reads plugin settings, standalone ledgers/provenance, managed blocks and version stamps, release metadata, payload catalogs, Git branch relations, protection/rulesets, `.git/hooks/pre-push`, the native hook entries in `.codex/hooks.json` and `.agents/hooks.json`, local Git config, `.jig/versioning.md`, legacy release files, labels, and `.bak` leftovers. It may call `gh`, `git`, the shipped standalone inspector, and `manage-native-hooks.sh status` from `github-sync`, all read-only.
 
 ## Safety and failure behavior
 
@@ -55,6 +55,8 @@ The skill reads plugin settings, standalone ledgers/provenance, managed blocks a
 ## Outputs and fix ownership
 
 The report covers inventory, per-instance version/selection/drift/provenance, pending migrations, optional protection, branch divergence, legacy leftovers, local guard, profile, rubric, README profile, and recommended actions. Payload/version/provenance findings belong to `jig-update`; protection/guard to `github-sync`; profile to `jig-setup`; rubric to `version-rubric`; README profile to `readme`.
+
+The local guard line covers both layers. The `pre-push` hook is judged by its ownership marker and a byte comparison with the shipped source. The native hook entry is judged per host by the `github-sync` status helper — `installed`, `not installed`, `entry drift`, `user entry`, `guard missing`, `leftover`, `host not detected`, `invalid json`, `jq missing` — and the guard payload it points at is compared like any other selected file. Codex trusts a hook only after the user reviews it in `/hooks`, which is invisible from outside, so an installed Codex entry is reported with that reminder and never as active.
 
 Both project-owned files under `.jig/` are read the same way: resolve the path, report the source, name which sections are present, and check that the file is committed — an uncommitted one applies on one machine and nowhere else. Neither is compared against any payload, and an absent file is a normal state rather than a defect. A missing rubric still matters because `github-release` stops without one; a missing README profile only means the `readme` skill falls back to its generic defaults. Branch divergence requires manual reconciliation and never a force push.
 

@@ -88,6 +88,8 @@ sh scripts/test-update-claude-standalone.sh
 sh scripts/test-doctor-installation-inventory.sh
 sh scripts/test-install-skill-aliases.sh
 sh scripts/test-pre-push-manager.sh
+sh scripts/test-guard-push.sh
+sh scripts/test-native-hook-manager.sh
 sh scripts/test-conformance-audit.sh
 sh scripts/test-docs-structure.sh
 # The product name is jig everywhere the user types it.
@@ -428,14 +430,30 @@ require_file "dist/claude-code-plugin/jig/hooks/hooks.json"
 require_file "dist/claude-code-plugin/jig/hooks/guard-push.sh"
 require_text "dist/claude-code-plugin/jig/hooks/hooks.json" '"PreToolUse"'
 require_text "dist/claude-code-plugin/jig/hooks/hooks.json" 'CLAUDE_PLUGIN_ROOT'
-require_text "dist/claude-code-plugin/jig/hooks/guard-push.sh" "jig:guard-push v1"
+# One guard source for every host: the plugin hook is a build copy of the github-sync
+# payload file, and the retired root-level source must not come back.
+if [ -e hooks/guard-push.sh ]; then
+  fail "hooks/guard-push.sh moved to skills/github-sync/assets/guard-push.sh; the plugin copy is built from there"
+fi
+require_text "skills/github-sync/assets/guard-push.sh" "jig:guard-push v2"
+require_text "skills/github-sync/assets/guard-push.sh" '"decision":"deny"'
+require_same "dist/claude-code-plugin/jig/hooks/guard-push.sh" "skills/github-sync/assets/guard-push.sh"
+require_same "dist/claude-code-plugin/jig/skills/github-sync/assets/guard-push.sh" "skills/github-sync/assets/guard-push.sh"
+require_text dist/files.tsv "github-sync	assets/guard-push.sh"
+require_text dist/files.tsv "github-sync	scripts/manage-native-hooks.sh"
 require_file "dist/claude-code-plugin/jig/skills/github-sync/assets/pre-push"
 require_file "dist/claude-code-plugin/jig/skills/github-sync/scripts/manage-pre-push.sh"
+require_file "dist/claude-code-plugin/jig/skills/github-sync/scripts/manage-native-hooks.sh"
 require_text "dist/claude-code-plugin/jig/skills/github-sync/assets/pre-push" "jig:pre-push v3"
 require_text "dist/claude-code-plugin/jig/skills/github-sync/SKILL.md" "manage-pre-push.sh uninstall"
+require_text "dist/claude-code-plugin/jig/skills/github-sync/SKILL.md" "manage-native-hooks.sh uninstall"
+require_text "dist/claude-code-plugin/jig/skills/github-sync/SKILL.md" "/hooks"
+require_text "dist/claude-code-plugin/jig/skills/jig-doctor/SKILL.md" "manage-native-hooks.sh status"
 require_same "dist/claude-code-plugin/jig/skills/github-sync/SKILL.md" ".claude/skills/github-sync/SKILL.md"
 require_same "dist/claude-code-plugin/jig/skills/github-sync/assets/pre-push" ".claude/skills/github-sync/assets/pre-push"
+require_same "dist/claude-code-plugin/jig/skills/github-sync/assets/guard-push.sh" ".claude/skills/github-sync/assets/guard-push.sh"
 require_same "dist/claude-code-plugin/jig/skills/github-sync/scripts/manage-pre-push.sh" ".claude/skills/github-sync/scripts/manage-pre-push.sh"
+require_same "dist/claude-code-plugin/jig/skills/github-sync/scripts/manage-native-hooks.sh" ".claude/skills/github-sync/scripts/manage-native-hooks.sh"
 require_same "dist/claude-code-plugin/jig/skills/jig-doctor/SKILL.md" ".claude/skills/jig-doctor/SKILL.md"
 
 # Branch protection is optional and plan-gated. Both the applying skill and the diagnosing
@@ -454,10 +472,17 @@ for target in codex antigravity; do
   require_file "dist/$target/.agents/skills/jig-github-sync/assets/pre-push"
   require_file "dist/$target/.agents/skills/jig-github-sync/scripts/manage-pre-push.sh"
   require_text "dist/$target/.agents/skills/jig-github-sync/assets/pre-push" "jig:pre-push v3"
+  # The native hook entry these hosts install points at this exact payload path.
+  require_file "dist/$target/.agents/skills/jig-github-sync/assets/guard-push.sh"
+  require_file "dist/$target/.agents/skills/jig-github-sync/scripts/manage-native-hooks.sh"
+  require_text "dist/$target/.agents/skills/jig-github-sync/assets/guard-push.sh" "jig:guard-push v2"
+  require_text "dist/$target/.agents/skills/jig-github-sync/scripts/manage-native-hooks.sh" ".agents/skills/jig-github-sync/assets/guard-push.sh"
 done
 require_same "dist/codex/.agents/skills/jig-github-sync/SKILL.md" ".agents/skills/jig-github-sync/SKILL.md"
 require_same "dist/codex/.agents/skills/jig-github-sync/assets/pre-push" ".agents/skills/jig-github-sync/assets/pre-push"
+require_same "dist/codex/.agents/skills/jig-github-sync/assets/guard-push.sh" ".agents/skills/jig-github-sync/assets/guard-push.sh"
 require_same "dist/codex/.agents/skills/jig-github-sync/scripts/manage-pre-push.sh" ".agents/skills/jig-github-sync/scripts/manage-pre-push.sh"
+require_same "dist/codex/.agents/skills/jig-github-sync/scripts/manage-native-hooks.sh" ".agents/skills/jig-github-sync/scripts/manage-native-hooks.sh"
 require_same "dist/codex/.agents/skills/jig-doctor/SKILL.md" ".agents/skills/jig-doctor/SKILL.md"
 require_text "dist/claude-code-plugin/jig/skills/jig-setup/SKILL.md" "jig.githubProfile"
 require_text "dist/claude-code-plugin/jig/skills/jig-setup/SKILL.md" "Use after installing jig"
