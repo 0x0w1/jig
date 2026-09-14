@@ -15,7 +15,8 @@ code, config, docs, generated distribution, installer, workflow 변경에 사용
 ## 실행 방법과 branch 모델
 
 - Claude Code: `/jig:develop-task-flow`
-- Codex·Antigravity: `jig-develop-task-flow`
+- Codex: `jig:develop-task-flow`
+- Antigravity: `jig-develop-task-flow`
 - `feature/<slug>`: 사용자 기능
 - `fix/<slug>`: bug, regression, security 수정
 - `chore/<slug>`: tooling, docs, refactor, config, automation

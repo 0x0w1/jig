@@ -15,7 +15,8 @@ Use it when a repository has been worked through jig for a while and the branch 
 ## Invocation and inputs
 
 - Claude Code: `/jig:repo-hygiene`
-- Codex and Antigravity: `jig-repo-hygiene`
+- Codex: `jig:repo-hygiene`
+- Antigravity: `jig-repo-hygiene`
 - Inputs: the local clone, `origin`, the resolved rubric path, and an authenticated GitHub profile for the tag/release comparison
 
 ## Why merged branches look unmerged

@@ -1,6 +1,6 @@
 # jig Doctor
 
-<!-- jig:skill-source-digest b4cd0ba7d98fc6450702be67bc43399a2565d17f -->
+<!-- jig:skill-source-digest b3e52616e0627f5031293d2cc5cecc24037ecc21 -->
 
 [English](../../en/skills/jig-doctor.md) · [스킬 index](index.md)
 
@@ -15,11 +15,12 @@ setup·update 후, version·skill 선택이 다르게 보일 때, release 전, p
 ## 실행 방법
 
 - Claude Code: `/jig:jig-doctor`
-- Codex·Antigravity: `jig-doctor`
+- Codex: `jig:jig-doctor`
+- Antigravity: `jig-doctor`
 
 ## Inventory 모델
 
-Claude Code plugin project·local·user·managed, Claude standalone project·user, Codex project·global, Antigravity project·global의 10개 row를 독립적으로 점검합니다. rules 파일은 jig managed block이 있을 때만 설치 증거입니다. standalone root는 ledger·provenance 또는 보수적 legacy identity가 소유권을 증명해야 합니다.
+Claude Code plugin project·local·user·managed, Claude standalone project·user, user-global Codex plugin, Codex legacy files project·global, Antigravity project·global의 11개 row를 독립적으로 점검합니다. rules 파일은 jig managed block이 있을 때만 설치 증거이고, Codex plugin은 저장소가 아니라 Codex 자체 설정으로 판정합니다. standalone root는 ledger·provenance 또는 보수적 legacy identity가 소유권을 증명해야 합니다.
 
 standalone 상태는 `verified`, `legacy-unledgered`, `ledger-invalid`, `partial`, `provenance-conflict`, `non-owned`, `source-mirror`, `absent`로 구분합니다. 사용자가 작성한 `non-owned` root는 jig defect가 아닙니다.
 
@@ -27,7 +28,7 @@ standalone 상태는 `verified`, `legacy-unledgered`, `ledger-invalid`, `partial
 
 ```mermaid
 flowchart TD
-    Inventory[10개 target·scope row inventory] --> Instances{jig 설치본 감지?}
+    Inventory[11개 target·scope row inventory] --> Instances{jig 설치본 감지?}
     Instances -- No --> ReportAbsent[미설치와 skip된 증거 보고]
     Instances -- Yes --> PerInstance[instance별 version·selection·drift·provenance·migration 점검]
     PerInstance --> Project{project scope가 현재 worktree에 속함?}
@@ -38,7 +39,7 @@ flowchart TD
     Delegate --> Report
 ```
 
-plugin payload는 host가 관리하므로 file payload tag와 비교하지 않습니다. version이 있는 file installation은 해당 release의 `dist/files.tsv`와 비교하고 missing, drift, leftover를 따로 보고합니다.
+두 plugin payload 모두 host가 관리하므로 file payload tag와 비교하지 않습니다. Codex도 이제 Claude Code와 같은 플러그인을 설치하며, `.agents/skills/jig-*` Codex 설치본은 legacy로 보고 플러그인 마이그레이션을 함께 알립니다. version이 있는 file installation은 해당 release의 `dist/files.tsv`와 비교하고 missing, drift, leftover를 따로 보고합니다.
 
 ## 읽기 범위와 외부 점검
 
@@ -56,7 +57,7 @@ plugin settings, standalone ledger·provenance, managed block·version stamp, re
 
 inventory, instance별 version·selection·drift·provenance, pending migration, 선택적 protection, branch divergence, legacy leftover, local guard, profile, rubric, README 규약, recommended action을 보고합니다. payload·version·provenance는 `jig-update`, protection·guard는 `github-sync`, profile은 `jig-setup`, rubric은 `version-rubric`, README 규약은 `readme`가 수리합니다.
 
-local guard 줄은 두 겹을 모두 다룹니다. `pre-push` hook은 소유권 marker와 배포 원본과의 byte 비교로 판정합니다. 네이티브 hook 항목은 호스트마다 `github-sync`의 status helper로 판정하고 — `installed`, `not installed`, `entry drift`, `user entry`, `guard missing`, `leftover`, `host not detected`, `invalid json`, `jq missing` — 항목이 가리키는 guard payload는 다른 선택 파일과 같은 방식으로 비교합니다. Codex는 사용자가 `/hooks`에서 검토한 뒤에만 hook을 신뢰하고 그 상태는 밖에서 보이지 않으므로, 설치된 Codex 항목은 그 안내와 함께 보고하고 활성 상태라고 단정하지 않습니다.
+local guard 줄은 두 겹을 모두 다룹니다. `pre-push` hook은 소유권 marker와 배포 원본과의 byte 비교로 판정합니다. 네이티브 hook 항목은 호스트마다 `github-sync`의 status helper로 판정합니다 — `installed`, `not installed`, `entry drift`, `user entry`, `guard missing`, `guard drift`, `leftover`, `host not detected`, `invalid json`, `symlink`, `jq missing`. `guard missing`과 `guard drift`는 항목이 실행하는 clone-local guard 복사본을 가리키며 `github-sync`가 복구합니다. Codex는 사용자가 `/hooks`에서 검토한 뒤에만 hook을 신뢰하고 그 상태는 밖에서 보이지 않으므로, 설치된 Codex 항목은 그 안내와 함께 보고하고 활성 상태라고 단정하지 않습니다.
 
 `.jig/` 아래 project-owned 파일 둘은 같은 방식으로 읽습니다. 경로를 해석하고, 출처를 보고하고, 어떤 section이 있는지 밝히고, 커밋되어 있는지 확인합니다 — 커밋되지 않은 파일은 한 기계에서만 적용되고 다른 곳에는 닿지 않습니다. 둘 다 payload와 대조하지 않고, 파일이 없는 것은 결함이 아니라 정상 상태입니다. rubric이 없으면 `github-release`가 멈추므로 여전히 중요하지만, README 규약이 없으면 `readme` 스킬이 일반 기본값으로 돌아갈 뿐입니다. branch divergence는 사람이 조정해야 하며 force push하지 않습니다.
 

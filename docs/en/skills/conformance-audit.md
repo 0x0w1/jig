@@ -15,7 +15,8 @@ Use it when adopting jig in an existing repository, before a release, or on a sc
 ## Invocation and inputs
 
 - Claude Code: `/jig:conformance-audit`
-- Codex and Antigravity: `jig-conformance-audit`
+- Codex: `jig:conformance-audit`
+- Antigravity: `jig-conformance-audit`
 - Inputs: the local clone, `origin`, the tag list, and the resolved rubric path
 - Optional: `--since <ref>` to set the baseline explicitly
 

@@ -15,7 +15,7 @@ What separates it from a plain skill marketplace:
 
 ## What Ships Today
 
-- installer: installs pinned to the latest release tag, `--version` rollback, `--skills` selective install (the `manifest.tsv` catalog; codex and antigravity only)
+- installer: installs pinned to the latest release tag, `--version` rollback, `--skills` selective install (the `manifest.tsv` catalog; antigravity only, the one target left)
 - four workflow skills: `develop-task-flow` (ordinary work), `hotfix-flow` (a released defect that cannot wait for the `develop` queue), `github-release`, `github-sync`
 - two lifecycle skills: `jig-update`, `jig-doctor`
 - one onboarding skill: `jig-setup` (selects and verifies the per-repository GitHub profile after install)
@@ -24,7 +24,7 @@ What separates it from a plain skill marketplace:
 - one conformance skill: `conformance-audit` (judges the history against the procedure from an adoption baseline; read-only, exits non-zero, runs in CI)
 - two layers of local guard on every CLI: the git `pre-push` hook `github-sync` installs, and a PreToolUse hook that inspects the push command before it runs (blocks the `--no-verify` bypass) — shipped inside the Claude Code plugin, and installed by `github-sync` as a native hook entry for Codex (`.codex/hooks.json`) and Antigravity (`.agents/hooks.json`), all three running the one `guard-push.sh` source. Both layers allow exactly two ways onto `main`: `develop:main` and `hotfix/<slug>:main`
 - grading that starts before the release: `develop-task-flow` records a `Release-Grade` trailer on each squash commit, and `github-release` takes the highest one in the range as a floor it never lowers, alongside the advisory floor computed from the rubric's `## Interface Paths` table
-- distribution: the plugin marketplace for Claude Code (`jig@jig`, namespaced by the host as `/jig:<skill>`), `jig-` prefixed skill files for Codex and Antigravity
+- distribution: one plugin marketplace entry serving both plugin hosts (`jig@jig`, namespaced `/jig:<skill>` on Claude Code and `jig:<skill>` on Codex), `jig-` prefixed skill files for Antigravity, which has no plugin system
 
 There is **only one merge flow**: a local `git merge --squash` and a direct push to `develop`, no pull requests. A team flow is deferred as candidate C below.
 
@@ -46,11 +46,23 @@ Both were listed under candidate A and are not being built. The reasons are kept
 
 **`dependency-update`** is what the host already provides. Dependabot and Renovate do it for free, with the language-specific knowledge jig does not have and will not acquire; jig is shell and Markdown. The only thing left to add would be routing a bump through `develop-task-flow`, which is a thin wrapper over a skill that already exists. Building it would repeat the mistake recorded directly below.
 
+## Design Record: Codex Became a Plugin Host
+
+Codex shipped a plugin system, so jig stopped copying skill files there. The decisions, kept so they are not re-argued.
+
+- **One payload, two plugin hosts.** Codex reads jig's existing `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` through its compatibility lookup and namespaces the bundled skills as `jig:<skill>`, the same names Claude Code shows. Nothing new had to be built; `dist/codex/` was deleted instead.
+- **The installer lost its Codex target.** Keeping a second install model for one CLI would have doubled the inventory work in `jig-doctor` and `jig-update` forever. `install.sh --target codex` now fails with the two plugin commands in the message, and the principle is the same one that removed the ownership markers: do not reimplement what the host provides.
+- **The retired file installation is a manual migration.** Installing a plugin changes the user's Codex configuration, and `.agents/skills/jig-*` may still belong to Antigravity, which shares that directory. Both are human decisions, so `jig-update` reports the migration instead of running it.
+- **`.claude-plugin/marketplace.json` stays the single marketplace file.** Codex documents `.agents/plugins/marketplace.json` as its own location and the `.claude-plugin` path as a compatibility fallback, which is what jig uses today. Adding a second file would mean keeping two in sync; move to the Codex-native path only when that fallback is announced as going away.
+- **Plugin hooks are not available on Codex.** `codex features list` reports `plugin_hooks` as `removed`, and a live `codex exec` run confirmed the plugin's `hooks/hooks.json` never fires. The push guard therefore still reaches Codex through `github-sync`, which is why the native hook entry below was not replaced by the plugin.
+- **Verification.** Installed from both a local and a git marketplace with `codex plugin marketplace add` plus `codex plugin add jig@jig`, then confirmed the skill list shows `jig:github-sync` and the rest, on Codex 0.150.1.
+
 ## Design Record: Native Push Hooks (shipped with E)
 
 The decisions that shaped `manage-native-hooks.sh`, kept so they are not re-argued.
 
 - **One guard source.** `skills/github-sync/assets/guard-push.sh` is the only push guard; the Claude Code plugin's `hooks/guard-push.sh` is a build copy of it. The script reads both payload shapes (`tool_input.command` for Claude Code and Codex, `toolCall.args.CommandLine` for Antigravity) and answers in the contract each host reads.
+- **The hook entry runs a clone-local copy.** `manage-native-hooks.sh` copies the guard to `<git common dir>/jig/guard-push.sh` and points the entry there. A plugin-installed Codex has no `.agents/skills/jig-github-sync/` to point at, and a plugin cache path would change on every upgrade; the clone-local copy is stable, is never committed, and is removed by uninstall like the `pre-push` hook.
 - **Project scope only.** A user-scope `~/.codex/hooks.json` or `~/.gemini/config/hooks.json` entry would guard every repository on the machine, including the ones jig is not installed in. That is behavior outside the jig-managed project, so it is not offered.
 - **The entry carries only a path.** Codex asks the user to trust a hook definition again whenever it changes. The guard logic therefore lives in the payload file `jig-update` refreshes, and the hooks.json entry never changes between releases.
 - **Codex trust is the user's step.** Codex runs a non-managed hook only after the user reviews it in `/hooks`. jig reports that step every time and never performs it. `jig-doctor` cannot see the trust state and says so instead of claiming the hook is active.

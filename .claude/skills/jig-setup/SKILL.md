@@ -37,10 +37,11 @@ Resolve the host from `JIG_GITHUB_HOST`, then `git config --local --get jig.gith
    - otherwise write the repository-local `jig.githubProfile` and `jig.githubHost` values
 4. Verify the installed target and repair only when incomplete:
    - Claude Code: confirm `jig@jig` is enabled; when missing, run `claude plugin marketplace add 0x0w1/jig --scope <project|user>` and `claude plugin install jig@jig --scope <project|user>`
-   - Codex or Antigravity: confirm the jig version stamp and `jig-setup`; when incomplete, rerun `install.sh` for the detected target and preserve the stamped skill selection
+   - Codex: confirm `jig@jig` in `codex plugin list --json`; when it is missing, give the user `codex plugin marketplace add 0x0w1/jig` and `codex plugin add jig@jig`. A legacy `.agents/skills/jig-*` Codex installation still works but is no longer installed or refreshed by `install.sh`; name the plugin migration and leave it to the user
+   - Antigravity: confirm the jig version stamp and `jig-setup`; when incomplete, rerun `install.sh --target antigravity` and preserve the stamped skill selection
 5. Verify:
    - Claude Code: `claude plugin list` shows `jig@jig` enabled
-   - Codex: `AGENTS.md` has the jig version stamp and `.agents/skills/jig-setup/SKILL.md` exists
+   - Codex: `codex plugin list --json` reports `jig@jig` as installed and enabled
    - Antigravity: `GEMINI.md` has the stamp and the same skill file exists
    - the configured profile resolves to the expected login without changing the globally active `gh` account
 6. Settle the version rubric:

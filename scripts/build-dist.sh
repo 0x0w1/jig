@@ -3,9 +3,9 @@ set -eu
 
 SKILLS=$(awk -F '\t' '!/^#/ && NF >= 3 { printf "%s ", $1 }' manifest.tsv)
 
-# Codex and Antigravity have no plugin system, so their skill directories carry a
-# jig- prefix to stay out of the way of skills the user wrote. Claude Code needs no
-# prefix: plugin skills are namespaced by the host as /jig:<skill>.
+# Antigravity has no plugin system, so its skill directories carry a jig- prefix to
+# stay out of the way of skills the user wrote. Claude Code and Codex need no prefix:
+# both host the same plugin payload and namespace its skills as jig:<skill>.
 prefixed_skill_name() {
   case "$1" in
     jig-*) printf '%s' "$1" ;;
@@ -56,7 +56,7 @@ append_skill_list() {
   done
 }
 
-# Only codex and antigravity get a managed block. Claude Code loads the plugin's skills
+# Only antigravity gets a managed block. Claude Code and Codex load the plugin's skills
 # natively, so a rules-file skill list there would only duplicate the plugin metadata.
 append_managed_block() {
   block_intro="$1"
@@ -72,15 +72,9 @@ append_managed_block() {
 
 rm -rf dist
 
-mkdir -p \
-  dist/codex/.agents/skills \
-  dist/antigravity/.agents/skills
+mkdir -p dist/antigravity/.agents/skills
 
 cp manifest.tsv dist/manifest.tsv
-
-append_managed_block \
-  "jig installs these repository workflow skills under .agents/skills. Every jig skill name carries the jig- prefix so it stays out of the way of skills you wrote yourself." \
-  > dist/codex/AGENTS.md
 
 append_managed_block \
   "jig installs these repository workflow skills under .agents/skills. Every jig skill name carries the jig- prefix so it stays out of the way of skills you wrote yourself." \
@@ -99,20 +93,21 @@ append_managed_block \
 
 for skill in $SKILLS; do
   prefixed=$(prefixed_skill_name "$skill")
-  for target_dir in dist/codex/.agents/skills dist/antigravity/.agents/skills; do
-    for skill_file in $(skill_files "$skill"); do
-      destination="$target_dir/$prefixed/$skill_file"
-      mkdir -p "$(dirname "$destination")"
-      if [ "$skill_file" = "SKILL.md" ]; then
-        copy_prefixed_skill "$skill" "$destination"
-      else
-        cp "skills/$skill/$skill_file" "$destination"
-      fi
-    done
+  for skill_file in $(skill_files "$skill"); do
+    destination="dist/antigravity/.agents/skills/$prefixed/$skill_file"
+    mkdir -p "$(dirname "$destination")"
+    if [ "$skill_file" = "SKILL.md" ]; then
+      copy_prefixed_skill "$skill" "$destination"
+    else
+      cp "skills/$skill/$skill_file" "$destination"
+    fi
   done
 done
 
-build_claude_plugin() {
+# One plugin payload serves both plugin hosts. Claude Code reads .claude-plugin/plugin.json
+# and Codex accepts the same directory through its compatibility manifest lookup, so the
+# directory name is kept for the download paths older installations already reference.
+build_plugin() {
   plugin_name="$1"
   plugin_root="dist/claude-code-plugin/$plugin_name"
   mkdir -p "$plugin_root/.claude-plugin"
@@ -126,7 +121,8 @@ build_claude_plugin() {
 }
 EOF
   # The plugin declares its hook in hooks/hooks.json, but the guard itself is the
-  # github-sync payload file: one source for Claude Code, Codex, and Antigravity.
+  # github-sync payload file: one source for every host. Only Claude Code runs a
+  # plugin's own hooks; Codex and Antigravity get the same guard from github-sync.
   mkdir -p "$plugin_root/hooks"
   cp hooks/hooks.json "$plugin_root/hooks/hooks.json"
   cp skills/github-sync/assets/guard-push.sh "$plugin_root/hooks/guard-push.sh"
@@ -140,7 +136,7 @@ EOF
   done
 }
 
-build_claude_plugin jig
+build_plugin jig
 
 echo "Generated dist files:"
 find dist -type f | sort

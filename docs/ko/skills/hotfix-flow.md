@@ -15,7 +15,8 @@
 ## 실행 방법과 입력
 
 - Claude Code: `/jig:hotfix-flow`
-- Codex·Antigravity: `jig-hotfix-flow`
+- Codex: `jig:hotfix-flow`
+- Antigravity: `jig-hotfix-flow`
 - 입력: `origin/main`에서 도달 가능한 결함, `main`에서 도달 가능한 최신 tag, project rubric, 인증된 GitHub profile
 
 ## 작업 흐름

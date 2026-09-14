@@ -15,7 +15,8 @@
 ## 실행 방법
 
 - Claude Code: `/jig:readme`
-- Codex·Antigravity: `jig-readme`
+- Codex: `jig:readme`
+- Antigravity: `jig-readme`
 
 ## 작업 흐름
 

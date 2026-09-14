@@ -1,6 +1,6 @@
 # jig Update
 
-<!-- jig:skill-source-digest 5107b2656d36f84ad70f69c00b391cc553d31db2 -->
+<!-- jig:skill-source-digest 0099586a275e3595f364702245221947d1cf1317 -->
 
 [English](../../en/skills/jig-update.md) · [스킬 index](index.md)
 
@@ -10,16 +10,17 @@
 
 ## 사용 시점
 
-설치된 Claude Code plugin, 기존 Claude standalone, Codex, Antigravity를 최신 GitHub release로 옮길 때 사용합니다. 중간 release migration을 수집하고, 적용 가능한 project 저장소를 수렴한 뒤 `jig-doctor`로 끝냅니다.
+설치된 Claude Code·Codex plugin, 기존 Claude standalone, Antigravity를 최신 GitHub release로 옮길 때 사용합니다. 중간 release migration을 수집하고, 적용 가능한 project 저장소를 수렴한 뒤 `jig-doctor`로 끝냅니다.
 
 ## 실행 방법
 
 - Claude Code: `/jig:jig-update`
-- Codex·Antigravity: `jig-update`
+- Codex: `jig:jig-update`
+- Antigravity: `jig-update`
 
 ## 설치·소유권 모델
 
-Claude plugin scope는 host가 관리합니다. 기존 standalone root는 `.jig-installation`과 skill별 `.jig-provenance`를 사용하며, ledger가 없는 legacy root는 보수적 identity 검증을 통과해야 합니다. Codex와 Antigravity는 감지된 target·scope별로 해당 instance의 stamped selection을 넘겨 `install.sh`를 다시 실행합니다.
+Claude plugin scope는 host가 관리합니다. 기존 standalone root는 `.jig-installation`과 skill별 `.jig-provenance`를 사용하며, ledger가 없는 legacy root는 보수적 identity 검증을 통과해야 합니다. Codex plugin은 `codex plugin marketplace upgrade jig`와 `codex plugin add jig@jig`로 host가 갱신합니다. Antigravity는 감지된 scope별로 해당 instance의 stamped selection을 넘겨 `install.sh`를 다시 실행합니다. legacy `.agents/skills/jig-*` Codex 설치본은 더 이상 제자리에서 갱신하지 않고 플러그인으로의 수동 마이그레이션으로 보고하며, 한 target을 위해 다른 target이 아직 쓰는 공유 파일을 지우지 않습니다.
 
 `dist/files.tsv`는 신뢰하지 않는 입력으로 취급합니다. standalone path는 물리적이고 symlink가 아닌 skill root 안에 남아야 합니다. 이름 일치만으로는 소유권을 증명할 수 없습니다.
 
@@ -52,7 +53,7 @@ release note에서 줄 전체가 marker인 `migration-auto`와 `migration-manual
 
 ## 읽기·변경 범위
 
-모든 설치 증거, stamp, selection, ledger, provenance, release note, payload catalog을 읽습니다. plugin scope는 host, standalone root는 transactional helper, Codex·Antigravity는 pin된 installer로 갱신합니다. 변경된 file installation에는 `.bak`을 남깁니다. project 소유 `.jig/versioning.md`는 건드리지 않습니다.
+모든 설치 증거, stamp, selection, ledger, provenance, release note, payload catalog을 읽습니다. plugin scope는 각자의 host, standalone root는 transactional helper, Antigravity는 pin된 installer로 갱신합니다. 변경된 file installation에는 `.bak`을 남깁니다. project 소유 `.jig/versioning.md`는 건드리지 않습니다.
 
 ## 안전·실패 처리
 

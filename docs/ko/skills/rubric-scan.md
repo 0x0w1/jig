@@ -15,7 +15,8 @@ project type이 불분명한 상태에서 rubric을 처음 만들기 전, 또는
 ## 실행 방법과 catalog
 
 - Claude Code: `/jig:rubric-scan`
-- Codex·Antigravity: `jig-rubric-scan`
+- Codex: `jig:rubric-scan`
+- Antigravity: `jig-rubric-scan`
 - catalog 우선순위: `JIG_RUBRIC_CATALOG`, Claude plugin, project install, jig source repository, user install
 
 type, detection signal, scoring, merge rule은 먼저 `rubrics/INDEX.md`에서 읽습니다. 모든 rubric file이 아니라 candidate body만 읽습니다. catalog가 없으면 type을 지어내지 않고 `version-rubric`의 default를 추천합니다.

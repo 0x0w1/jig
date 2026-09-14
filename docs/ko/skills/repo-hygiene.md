@@ -15,7 +15,8 @@ jig로 한동안 작업해 branch 목록·tag·잔여 파일이 지저분해졌�
 ## 실행 방법과 입력
 
 - Claude Code: `/jig:repo-hygiene`
-- Codex·Antigravity: `jig-repo-hygiene`
+- Codex: `jig:repo-hygiene`
+- Antigravity: `jig-repo-hygiene`
 - 입력: 로컬 clone, `origin`, 해석된 기준 파일 경로, tag·release 대조용 인증된 GitHub profile
 
 ## 병합된 branch가 미병합으로 보이는 이유

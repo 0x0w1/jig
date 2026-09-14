@@ -15,7 +15,8 @@ Use it for code, configuration, documentation, generated distribution, installer
 ## Invocation and branch model
 
 - Claude Code: `/jig:develop-task-flow`
-- Codex and Antigravity: `jig-develop-task-flow`
+- Codex: `jig:develop-task-flow`
+- Antigravity: `jig-develop-task-flow`
 - `feature/<slug>`: user-visible capability
 - `fix/<slug>`: bug, regression, or security correction
 - `chore/<slug>`: tooling, docs, refactor, config, or automation

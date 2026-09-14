@@ -15,7 +15,8 @@ Use it when the rubric is missing, when reviewing how the project grades `patch`
 ## Invocation and file contract
 
 - Claude Code: `/jig:version-rubric`
-- Codex and Antigravity: `jig-version-rubric`
+- Codex: `jig:version-rubric`
+- Antigravity: `jig-version-rubric`
 - Required sections: `## Decision Order`, `## Grade Definitions`
 - Optional: `## Hard Rules`, `## Interface Paths`, `## Hotfix Triggers`, `## Release Notes`, `## Version Format`, `## Pre-Release Checks`
 

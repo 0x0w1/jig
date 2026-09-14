@@ -37,11 +37,14 @@ print_help() {
   cat <<'EOF'
 jig - repository procedures for AI agent CLIs: same cut, every project
 
-This installer covers the CLIs that have no plugin system. Claude Code is not a target:
-it installs the jig plugin from the Claude Code marketplace instead.
+This installer covers Antigravity, the one supported CLI with no plugin system.
+Claude Code and Codex install the jig plugin from their own marketplaces instead.
 
-  /plugin marketplace add 0x0w1/jig
-  /plugin install jig@jig
+  Claude Code:  /plugin marketplace add 0x0w1/jig
+                /plugin install jig@jig
+
+  Codex:        codex plugin marketplace add 0x0w1/jig
+                codex plugin add jig@jig
 
 Usage:
   sh install.sh --target <target> [--scope <scope>] [--github-profile <profile>] [--version vX.Y.Z] [--skills a,b,c] [--configure-git-user] [--dry-run] [--force]
@@ -54,10 +57,9 @@ Skills:
   Use --skills a,b,c (or JIG_SKILLS) to install a subset; names must exist in the manifest.
 
 Targets:
-  codex
   antigravity
 
-  --target is required and takes exactly one target. Install one CLI per run.
+  --target is required. antigravity is the only target; Claude Code and Codex use plugins.
 
 Scopes:
   project
@@ -68,18 +70,18 @@ Defaults:
 
 Examples:
   wget -qO- https://raw.githubusercontent.com/0x0w1/jig/main/install.sh \
-    | sh -s -- --target codex --scope project
+    | sh -s -- --target antigravity --scope project
 
   curl -fsSL https://raw.githubusercontent.com/0x0w1/jig/main/install.sh \
     | sh -s -- --target antigravity --scope project
 
 Environment:
-  JIG_GITHUB_PROFILE=your-account sh install.sh --target codex --scope project
-  REPO_RAW_URL=https://raw.githubusercontent.com/my-org/jig/main JIG_GITHUB_PROFILE=your-account sh install.sh --target codex
-  JIG_VERSION=v0.1.0 JIG_GITHUB_PROFILE=your-account sh install.sh --target codex --scope project
-  JIG_SKILLS=github-release,develop-task-flow JIG_GITHUB_PROFILE=your-account sh install.sh --target codex --scope project
-  JIG_GITHUB_HOST=github.example.com JIG_GITHUB_PROFILE=your-account sh install.sh --target codex --scope project
-  JIG_GIT_USER_NAME="Your Name" JIG_GIT_USER_EMAIL=your@email.com sh install.sh --target codex --scope project --github-profile your-account
+  JIG_GITHUB_PROFILE=your-account sh install.sh --target antigravity --scope project
+  REPO_RAW_URL=https://raw.githubusercontent.com/my-org/jig/main JIG_GITHUB_PROFILE=your-account sh install.sh --target antigravity
+  JIG_VERSION=v0.1.0 JIG_GITHUB_PROFILE=your-account sh install.sh --target antigravity --scope project
+  JIG_SKILLS=github-release,develop-task-flow JIG_GITHUB_PROFILE=your-account sh install.sh --target antigravity --scope project
+  JIG_GITHUB_HOST=github.example.com JIG_GITHUB_PROFILE=your-account sh install.sh --target antigravity --scope project
+  JIG_GIT_USER_NAME="Your Name" JIG_GIT_USER_EMAIL=your@email.com sh install.sh --target antigravity --scope project --github-profile your-account
 
 Version:
   By default the installer resolves the latest GitHub release tag and installs the payload
@@ -89,7 +91,7 @@ Version:
   An explicit REPO_RAW_URL overrides version resolution entirely.
   The installed version and skill selection are stamped as
   <!-- jig:version vX.Y.Z skills=<a,b,c> --> inside the jig managed block of
-  AGENTS.md / GEMINI.md; the jig-update and jig-doctor skills read this stamp.
+  GEMINI.md; the jig-update and jig-doctor skills read this stamp.
 
 GitHub profile:
   GitHub profile is optional during installation. Configure it afterward with the installed jig-setup skill.
@@ -106,7 +108,7 @@ Managed files:
   Use --force to replace an existing managed file entirely when it does not already contain jig markers.
 
 Skill ownership:
-  codex and antigravity have no plugin system, so their skill directories carry a jig- prefix
+  antigravity has no plugin system, so its skill directories carry a jig- prefix
   (.agents/skills/jig-github-sync, ...) to stay clear of your own skill names.
 
 Project scope also syncs GitHub repository settings when gh is available:
@@ -114,7 +116,6 @@ Project scope also syncs GitHub repository settings when gh is available:
   branches: develop creation from main when missing
 
 Target-specific project installs:
-  codex: AGENTS.md plus .agents/skills/jig-*
   antigravity: GEMINI.md plus .agents/skills/jig-*
 EOF
 }
@@ -840,23 +841,6 @@ print_guide() {
   printf '%s\n' '      Either way it installs the local pre-push guard, which is the barrier when protection is unavailable.'
 }
 
-install_codex() {
-  if [ "$SCOPE" = "project" ]; then
-    destination="./AGENTS.md"
-    skill_base="./.agents/skills"
-  else
-    destination="$HOME/.codex/AGENTS.md"
-    skill_base="$HOME/.agents/skills"
-  fi
-  for skill in $SELECTED_SKILLS; do
-    prefixed=$(prefixed_skill_name "$skill")
-    for skill_file in $(manifest_skill_files "$skill"); do
-      copy_file_with_backup "$REPO_RAW_URL/dist/codex/.agents/skills/$prefixed/$skill_file" "$skill_base/$prefixed/$skill_file"
-    done
-  done
-  install_managed_block "$REPO_RAW_URL/dist/codex/AGENTS.md" "$destination" "<!-- jig:start github-release-setup -->" "<!-- jig:end github-release-setup -->"
-}
-
 install_antigravity() {
   if [ "$SCOPE" = "project" ]; then
     destination="./GEMINI.md"
@@ -876,7 +860,6 @@ install_antigravity() {
 
 install_target() {
   case "$1" in
-    codex) install_codex ;;
     antigravity) install_antigravity ;;
     *) error "unsupported target: $1" ;;
   esac
@@ -950,9 +933,10 @@ main() {
   done
 
   case "$TARGET" in
-    codex|antigravity) ;;
-    "") error "--target is required. Supported targets: codex, antigravity. Claude Code installs the jig plugin instead: /plugin marketplace add 0x0w1/jig then /plugin install jig@jig." ;;
-    claude-code|all) error "unsupported target: $TARGET. Install one of codex or antigravity per run. Claude Code installs the jig plugin instead: /plugin marketplace add 0x0w1/jig then /plugin install jig@jig." ;;
+    antigravity) ;;
+    "") error "--target is required. The only installer target is antigravity. Claude Code installs the jig plugin with: /plugin marketplace add 0x0w1/jig then /plugin install jig@jig. Codex installs it with: codex plugin marketplace add 0x0w1/jig then codex plugin add jig@jig." ;;
+    codex) error "codex is no longer an installer target: Codex has a plugin system now. Install with: codex plugin marketplace add 0x0w1/jig then codex plugin add jig@jig. An existing .agents/skills/jig-* file installation keeps working until you remove it; jig-doctor reports the migration." ;;
+    claude-code|all) error "unsupported target: $TARGET. The only installer target is antigravity. Claude Code installs the jig plugin with: /plugin marketplace add 0x0w1/jig then /plugin install jig@jig. Codex installs it with: codex plugin marketplace add 0x0w1/jig then codex plugin add jig@jig." ;;
     *) error "unsupported target: $TARGET" ;;
   esac
 

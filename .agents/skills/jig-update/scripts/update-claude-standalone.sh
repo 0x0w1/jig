@@ -409,6 +409,12 @@ write_expected_files() {
   done < "$expected_destination"
 }
 
+# An unprefixed standalone directory takes the plugin payload; a jig- prefixed one takes
+# the prefixed payload, which now ships only under dist/antigravity. Codex stopped being an
+# installer target when it gained a plugin system, and dist/codex went with it; the file
+# content was identical, so a prefixed mapping resolves the same payload as before.
+PREFIXED_PAYLOAD_ROOT="dist/antigravity/.agents/skills"
+
 source_url() {
   source_skill="$1"
   source_directory="$2"
@@ -416,11 +422,11 @@ source_url() {
   if [ "$source_skill" = jig-setup ] && [ "$source_directory" = project-setup ]; then
     printf '%s/dist/claude-code-plugin/jig/skills/jig-setup/%s\n' "$RELEASE_ROOT" "$source_relative"
   elif [ "$source_skill" = jig-setup ] && [ "$source_directory" = jig-project-setup ]; then
-    printf '%s/dist/codex/.agents/skills/jig-setup/%s\n' "$RELEASE_ROOT" "$source_relative"
+    printf '%s/%s/jig-setup/%s\n' "$RELEASE_ROOT" "$PREFIXED_PAYLOAD_ROOT" "$source_relative"
   elif [ "$source_directory" = "$source_skill" ]; then
     printf '%s/dist/claude-code-plugin/jig/skills/%s/%s\n' "$RELEASE_ROOT" "$source_skill" "$source_relative"
   else
-    printf '%s/dist/codex/.agents/skills/%s/%s\n' "$RELEASE_ROOT" "$source_directory" "$source_relative"
+    printf '%s/%s/%s/%s\n' "$RELEASE_ROOT" "$PREFIXED_PAYLOAD_ROOT" "$source_directory" "$source_relative"
   fi
 }
 

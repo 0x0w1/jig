@@ -30,29 +30,36 @@ Supported: **Claude Code** (recommended), **Codex**, **Antigravity CLI**
 
 ![jig quick start: install into one CLI, run jig-setup for profile, rubric, branch convergence and a check, verify with jig-doctor, then work through develop-task-flow and github-release](resources/readme/quick-start.svg)
 
-You need a git repository, plus `curl` or `wget` for Codex and Antigravity. A `gh` login is required to converge GitHub settings, but not to install the skills.
+You need a git repository, plus `curl` or `wget` for Antigravity. A `gh` login is required to converge GitHub settings, but not to install the skills.
 
 ### 1. Install — pick the one CLI you use
 
-**Claude Code** (recommended) — run inside a session. The plugin host manages install, update, and removal, and the `PreToolUse` guard hook that inspects push commands before they run ships inside the plugin.
+**Claude Code** — run inside a session. The plugin host manages install, update, and removal.
 
 ```text
 /plugin marketplace add 0x0w1/jig
 /plugin install jig@jig
 ```
 
-**Codex** and **Antigravity CLI** — run from the repository root.
+**Codex** — run in a terminal. It installs the same plugin, user-global.
+
+```bash
+codex plugin marketplace add 0x0w1/jig
+codex plugin add jig@jig
+```
+
+**Antigravity CLI** — no plugin system, so run the installer from the repository root.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/0x0w1/jig/main/install.sh \
-  | sh -s -- --target codex --scope project        # or --target antigravity
+  | sh -s -- --target antigravity --scope project
 ```
 
 Options, install layout, skill namespacing, and removal: [installation guide](docs/en/installation.md).
 
 ### 2. Bind the repository
 
-Run `jig-setup` in an agent session: `/jig:jig-setup` on Claude Code, `jig-setup` on Codex and Antigravity.
+Run `jig-setup` in an agent session: `/jig:jig-setup` on Claude Code, `jig:jig-setup` on Codex, `jig-setup` on Antigravity.
 
 One run settles four things.
 
@@ -61,17 +68,17 @@ One run settles four things.
 3. Converges the `main` and `develop` branches through `github-sync`, and asks before setting up branch protection — optional, since GitHub allows it on public repositories and on private ones only with a paid plan
 4. Checks the installation with `jig-doctor`
 
-`github-sync` installs the tracked pre-push guard source through its shipped manager instead of asking the agent to rewrite hook code. On Codex and Antigravity it also adds the same `PreToolUse` push guard as a native hook entry (`.codex/hooks.json`, `.agents/hooks.json`); Codex runs it after you trust it once in `/hooks`. Before uninstalling jig from a project, run `github-sync` cleanup so the clone-local jig hooks are removed and any backed-up user hook is restored.
+`github-sync` installs the tracked pre-push guard source through its shipped manager instead of asking the agent to rewrite hook code. Codex does not run a plugin's own hooks, so on Codex and Antigravity it also adds the same `PreToolUse` push guard as a native hook entry (`.codex/hooks.json`, `.agents/hooks.json`); Codex runs it after you trust it once in `/hooks`. Before uninstalling jig from a project, run `github-sync` cleanup so the clone-local jig hooks are removed and any backed-up user hook is restored.
 
 ### 3. Verify
 
-Run `/jig:jig-doctor` (`jig-doctor` on Codex and Antigravity) for a read-only inventory of every detected Claude Code, Codex, and Antigravity installation across project and user scopes, including each version, selection, drift, and standalone provenance state. Project-scoped reports also cover branch protection, the GitHub profile, and the rubric file. Anything that needs fixing is reported along with the skill that fixes it.
+Run `/jig:jig-doctor` (`jig:jig-doctor` on Codex, `jig-doctor` on Antigravity) for a read-only inventory of every detected Claude Code, Codex, and Antigravity installation across project and user scopes, including each version, selection, drift, and standalone provenance state. Project-scoped reports also cover branch protection, the GitHub profile, and the rubric file. Anything that needs fixing is reported along with the skill that fixes it.
 
 From there, call a skill by name or just say what you want; the agent picks it.
 
 ## Skills
 
-Unlike a plain collection of skills, jig converges *repository state* — the branch model, branch protection, release discipline — and not only session procedures, then manages the install afterwards with `jig-update` and `jig-doctor`. One procedure source (`skills/`) is rendered into each CLI's native format: a plugin for Claude Code, `jig-` prefixed files for Codex and Antigravity.
+Unlike a plain collection of skills, jig converges *repository state* — the branch model, branch protection, release discipline — and not only session procedures, then manages the install afterwards with `jig-update` and `jig-doctor`. One procedure source (`skills/`) is rendered into each CLI's native format: one plugin for Claude Code and Codex, `jig-` prefixed files for Antigravity.
 
 | Skill | Role |
 |---|---|
@@ -123,7 +130,14 @@ To do it by hand instead, use what each CLI provides. On Claude Code the plugin 
 /reload-plugins
 ```
 
-On Codex and Antigravity, run the install command again. The installer is idempotent and backs up changed files as `.bak`.
+On Codex the plugin host owns it too:
+
+```bash
+codex plugin marketplace upgrade jig
+codex plugin add jig@jig
+```
+
+On Antigravity, run the install command again. The installer is idempotent and backs up changed files as `.bak`.
 
 Existing Claude Code standalone jig skills are updated only through `jig-update`: it verifies per-skill jig provenance before touching `.claude/skills`, rejects payload paths or symlinks that escape an owned skill directory, preserves the directories already installed, and records their version and selection in `.jig-installation`. It downloads the complete payload before applying it, backs up changed files as `.bak`, and rolls the installation back if any apply step fails.
 

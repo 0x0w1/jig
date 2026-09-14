@@ -15,7 +15,8 @@ rubric이 없을 때, project의 `patch`·`minor`·`major` 판정 방식을 revi
 ## 실행 방법과 file 계약
 
 - Claude Code: `/jig:version-rubric`
-- Codex·Antigravity: `jig-version-rubric`
+- Codex: `jig:version-rubric`
+- Antigravity: `jig-version-rubric`
 - 필수 section: `## Decision Order`, `## Grade Definitions`
 - 선택 section: `## Hard Rules`, `## Interface Paths`, `## Hotfix Triggers`, `## Release Notes`, `## Version Format`, `## Pre-Release Checks`
 

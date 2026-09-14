@@ -52,7 +52,6 @@ if ! sh -n scripts/update-skill-doc-digests.sh; then
 fi
 require_text "dist/claude-code-plugin/jig/skills/jig-doctor/SKILL.md" "installation-inventory"
 require_file "dist/claude-code-plugin/jig/skills/jig-doctor/scripts/inspect-claude-standalone.sh"
-require_file "dist/codex/.agents/skills/jig-doctor/scripts/inspect-claude-standalone.sh"
 require_file "dist/antigravity/.agents/skills/jig-doctor/scripts/inspect-claude-standalone.sh"
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" "Installation Inventory"
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" 'claude plugin update jig@jig --scope <scope>'
@@ -60,7 +59,6 @@ require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" '~/.codex/
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" '~/.gemini/GEMINI.md'
 require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" "one current target never hides another"
 require_file "dist/claude-code-plugin/jig/skills/jig-update/scripts/update-claude-standalone.sh"
-require_file "dist/codex/.agents/skills/jig-update/scripts/update-claude-standalone.sh"
 require_file "dist/antigravity/.agents/skills/jig-update/scripts/update-claude-standalone.sh"
 require_text "dist/claude-code-plugin/jig/skills/jig-update/scripts/update-claude-standalone.sh" '.jig-provenance'
 require_text "dist/claude-code-plugin/jig/skills/jig-update/scripts/update-claude-standalone.sh" '.jig-installation'
@@ -73,7 +71,6 @@ require_text "dist/claude-code-plugin/jig/skills/jig-update/SKILL.md" '~/.claude
 # the CI contract, so the payload must carry the script, not only the procedure text.
 for audit_payload in \
   "dist/claude-code-plugin/jig/skills/conformance-audit" \
-  "dist/codex/.agents/skills/jig-conformance-audit" \
   "dist/antigravity/.agents/skills/jig-conformance-audit"; do
   require_file "$audit_payload/scripts/audit-history.sh"
   require_text "$audit_payload/scripts/audit-history.sh" "Release-Grade"
@@ -117,10 +114,16 @@ if grep -F 'project scope requires --github-profile' install.sh >/dev/null 2>&1;
   fail "project installation must finish before GitHub profile setup"
 fi
 
-require_file dist/codex/AGENTS.md
-require_text dist/codex/AGENTS.md "jig:start github-release-setup"
-require_text dist/codex/AGENTS.md "jig:end github-release-setup"
-require_text dist/codex/AGENTS.md "<!-- jig:version dev -->"
+# Codex has a plugin system now, so it installs the same payload as Claude Code and the
+# retired dist/codex file tree must not come back.
+if [ -e dist/codex ]; then
+  fail "dist/codex was retired: Codex installs the plugin payload under dist/claude-code-plugin"
+fi
+if grep -F 'install_codex' install.sh >/dev/null 2>&1; then
+  fail "install.sh must not install Codex by file copy; Codex uses codex plugin add jig@jig"
+fi
+require_text install.sh 'codex plugin marketplace add 0x0w1/jig'
+require_text install.sh 'codex plugin add jig@jig'
 
 require_file dist/antigravity/GEMINI.md
 require_text dist/antigravity/GEMINI.md "jig:start github-release-setup"
@@ -142,33 +145,27 @@ for skill in $SKILLS; do
   title=$(skill_title "$skill")
   prefixed=$(prefixed_skill_name "$skill")
 
-  require_file "dist/codex/.agents/skills/$prefixed/SKILL.md"
   require_file "dist/antigravity/.agents/skills/$prefixed/SKILL.md"
-  require_text "dist/codex/.agents/skills/$prefixed/SKILL.md" "$title"
   require_text "dist/antigravity/.agents/skills/$prefixed/SKILL.md" "$title"
-  require_text "dist/codex/.agents/skills/$prefixed/SKILL.md" "name: $prefixed"
   require_text "dist/antigravity/.agents/skills/$prefixed/SKILL.md" "name: $prefixed"
 
-  require_text dist/codex/AGENTS.md "\`$prefixed\`"
   require_text dist/antigravity/GEMINI.md "\`$prefixed\`"
 
   require_file "dist/claude-code-plugin/jig/skills/$skill/SKILL.md"
   require_text "dist/claude-code-plugin/jig/skills/$skill/SKILL.md" "$title"
 done
 
-require_text "dist/codex/.agents/skills/jig-develop-task-flow/SKILL.md" "Documentation Rules"
 require_text "dist/antigravity/.agents/skills/jig-develop-task-flow/SKILL.md" "Documentation Rules"
-require_text "dist/codex/.agents/skills/jig-develop-task-flow/SKILL.md" 'git merge --squash'
 require_text "dist/antigravity/.agents/skills/jig-develop-task-flow/SKILL.md" 'git merge --squash'
-require_text "dist/codex/.agents/skills/jig-github-release/SKILL.md" "Develop-First Gate"
-require_text "dist/codex/.agents/skills/jig-github-release/SKILL.md" 'git push origin develop:main'
+require_text "dist/antigravity/.agents/skills/jig-github-release/SKILL.md" "Develop-First Gate"
 require_text "dist/antigravity/.agents/skills/jig-github-release/SKILL.md" 'gh release create'
+require_text "dist/claude-code-plugin/jig/skills/github-release/SKILL.md" 'git push origin develop:main'
 
 # The version rubric is a contract between four skills: version-rubric owns the file,
 # github-release reads it, jig-setup delegates to it, jig-doctor reports it.
 for rubric_skill in github-release jig-setup jig-doctor version-rubric develop-task-flow; do
   require_text "dist/claude-code-plugin/jig/skills/$rubric_skill/SKILL.md" ".jig/versioning.md"
-  require_text "dist/codex/.agents/skills/$(prefixed_skill_name "$rubric_skill")/SKILL.md" ".jig/versioning.md"
+  require_text "dist/antigravity/.agents/skills/$(prefixed_skill_name "$rubric_skill")/SKILL.md" ".jig/versioning.md"
 done
 
 for rubric_skill in github-release jig-doctor version-rubric; do
@@ -205,7 +202,7 @@ for triggers_skill in hotfix-flow version-rubric; do
   require_text "dist/claude-code-plugin/jig/skills/$triggers_skill/SKILL.md" \
     "Does harm keep occurring and accumulating for as long as the released state stands?"
 done
-require_text "dist/codex/.agents/skills/jig-hotfix-flow/SKILL.md" "Hotfix-Trigger:"
+require_text "dist/antigravity/.agents/skills/jig-hotfix-flow/SKILL.md" "Hotfix-Trigger:"
 
 require_text "dist/claude-code-plugin/jig/skills/version-rubric/SKILL.md" "> 기준:"
 require_text "dist/claude-code-plugin/jig/skills/version-rubric/SKILL.md" "> Basis:"
@@ -221,7 +218,7 @@ require_text "dist/claude-code-plugin/jig/skills/version-rubric/SKILL.md" "## Ve
 # writes, or a project grades differently depending on which skills happen to be installed.
 require_text "dist/claude-code-plugin/jig/skills/github-release/SKILL.md" "must a human step in to keep using it"
 require_text "dist/claude-code-plugin/jig/skills/github-release/SKILL.md" "changes when the agent speaks is at least"
-require_text "dist/codex/.agents/skills/jig-version-rubric/SKILL.md" "JIG_VERSION_RUBRIC"
+require_text "dist/antigravity/.agents/skills/jig-version-rubric/SKILL.md" "JIG_VERSION_RUBRIC"
 require_text "dist/antigravity/.agents/skills/jig-version-rubric/SKILL.md" "jig.versionRubric"
 
 if grep -F 'must a human step in to keep using it' dist/claude-code-plugin/jig/skills/jig-setup/SKILL.md >/dev/null 2>&1; then
@@ -334,7 +331,6 @@ for catalog_file in \
   rubrics/dataset.md; do
   require_text dist/files.tsv "version-rubric	$catalog_file"
   require_file "dist/claude-code-plugin/jig/skills/version-rubric/$catalog_file"
-  require_file "dist/codex/.agents/skills/jig-version-rubric/$catalog_file"
   require_file "dist/antigravity/.agents/skills/jig-version-rubric/$catalog_file"
 done
 
@@ -409,13 +405,12 @@ done
 require_text dist/claude-code-plugin/jig/skills/rubric-scan/SKILL.md "rubrics/INDEX.md"
 require_text dist/claude-code-plugin/jig/skills/rubric-scan/SKILL.md "JIG_RUBRIC_CATALOG"
 require_text dist/claude-code-plugin/jig/skills/rubric-scan/SKILL.md "Read-only"
-require_text dist/codex/.agents/skills/jig-rubric-scan/SKILL.md ".agents/skills/jig-version-rubric/rubrics"
+require_text dist/antigravity/.agents/skills/jig-rubric-scan/SKILL.md ".agents/skills/jig-version-rubric/rubrics"
 if grep -F 'Write the file' dist/claude-code-plugin/jig/skills/rubric-scan/SKILL.md >/dev/null 2>&1; then
   fail "rubric-scan must not write the rubric file; version-rubric owns it"
 fi
 require_text dist/claude-code-plugin/jig/skills/version-rubric/SKILL.md "## Type Catalog"
 
-require_text dist/codex/AGENTS.md "jig - repository procedures for AI agent CLIs"
 require_text dist/antigravity/GEMINI.md "jig - repository procedures for AI agent CLIs"
 
 require_file .claude-plugin/marketplace.json
@@ -462,31 +457,39 @@ require_same "dist/claude-code-plugin/jig/skills/jig-doctor/SKILL.md" ".claude/s
 for protection_skill in github-sync jig-doctor; do
   require_text "dist/claude-code-plugin/jig/skills/$protection_skill/SKILL.md" "jig.branchProtection"
   require_text "dist/claude-code-plugin/jig/skills/$protection_skill/SKILL.md" "403"
-  require_text "dist/codex/.agents/skills/$(prefixed_skill_name "$protection_skill")/SKILL.md" "jig.branchProtection"
+  require_text "dist/antigravity/.agents/skills/$(prefixed_skill_name "$protection_skill")/SKILL.md" "jig.branchProtection"
 done
 require_text "dist/claude-code-plugin/jig/skills/jig-doctor/SKILL.md" "rulesets"
 if ! grep -F "Optional: protect" install.sh >/dev/null 2>&1; then
   fail "install.sh must present branch protection as optional"
 fi
-for target in codex antigravity; do
-  require_file "dist/$target/.agents/skills/jig-github-sync/assets/pre-push"
-  require_file "dist/$target/.agents/skills/jig-github-sync/scripts/manage-pre-push.sh"
-  require_text "dist/$target/.agents/skills/jig-github-sync/assets/pre-push" "jig:pre-push v3"
-  # The native hook entry these hosts install points at this exact payload path.
-  require_file "dist/$target/.agents/skills/jig-github-sync/assets/guard-push.sh"
-  require_file "dist/$target/.agents/skills/jig-github-sync/scripts/manage-native-hooks.sh"
-  require_text "dist/$target/.agents/skills/jig-github-sync/assets/guard-push.sh" "jig:guard-push v2"
-  require_text "dist/$target/.agents/skills/jig-github-sync/scripts/manage-native-hooks.sh" ".agents/skills/jig-github-sync/assets/guard-push.sh"
+for guard_payload in \
+  "dist/antigravity/.agents/skills/jig-github-sync" \
+  "dist/claude-code-plugin/jig/skills/github-sync"; do
+  require_file "$guard_payload/assets/pre-push"
+  require_file "$guard_payload/scripts/manage-pre-push.sh"
+  require_text "$guard_payload/assets/pre-push" "jig:pre-push v3"
+  require_file "$guard_payload/assets/guard-push.sh"
+  require_file "$guard_payload/scripts/manage-native-hooks.sh"
+  require_text "$guard_payload/assets/guard-push.sh" "jig:guard-push v2"
+  # The hook entry must resolve the guard clone-local, so it survives a plugin upgrade
+  # and works the same whether jig arrived as a plugin or as skill files.
+  require_text "$guard_payload/scripts/manage-native-hooks.sh" '/jig/guard-push.sh'
+  require_text "$guard_payload/scripts/manage-native-hooks.sh" 'git-common-dir'
+  require_text "$guard_payload/scripts/manage-native-hooks.sh" 'plugins\."jig@jig"'
+  if grep -F '.agents/skills/jig-github-sync/assets/guard-push.sh' "$guard_payload/scripts/manage-native-hooks.sh" >/dev/null 2>&1; then
+    fail "$guard_payload/scripts/manage-native-hooks.sh still points the hook entry at a skill-directory path"
+  fi
 done
-require_same "dist/codex/.agents/skills/jig-github-sync/SKILL.md" ".agents/skills/jig-github-sync/SKILL.md"
-require_same "dist/codex/.agents/skills/jig-github-sync/assets/pre-push" ".agents/skills/jig-github-sync/assets/pre-push"
-require_same "dist/codex/.agents/skills/jig-github-sync/assets/guard-push.sh" ".agents/skills/jig-github-sync/assets/guard-push.sh"
-require_same "dist/codex/.agents/skills/jig-github-sync/scripts/manage-pre-push.sh" ".agents/skills/jig-github-sync/scripts/manage-pre-push.sh"
-require_same "dist/codex/.agents/skills/jig-github-sync/scripts/manage-native-hooks.sh" ".agents/skills/jig-github-sync/scripts/manage-native-hooks.sh"
-require_same "dist/codex/.agents/skills/jig-doctor/SKILL.md" ".agents/skills/jig-doctor/SKILL.md"
+require_same "dist/antigravity/.agents/skills/jig-github-sync/SKILL.md" ".agents/skills/jig-github-sync/SKILL.md"
+require_same "dist/antigravity/.agents/skills/jig-github-sync/assets/pre-push" ".agents/skills/jig-github-sync/assets/pre-push"
+require_same "dist/antigravity/.agents/skills/jig-github-sync/assets/guard-push.sh" ".agents/skills/jig-github-sync/assets/guard-push.sh"
+require_same "dist/antigravity/.agents/skills/jig-github-sync/scripts/manage-pre-push.sh" ".agents/skills/jig-github-sync/scripts/manage-pre-push.sh"
+require_same "dist/antigravity/.agents/skills/jig-github-sync/scripts/manage-native-hooks.sh" ".agents/skills/jig-github-sync/scripts/manage-native-hooks.sh"
+require_same "dist/antigravity/.agents/skills/jig-doctor/SKILL.md" ".agents/skills/jig-doctor/SKILL.md"
 require_text "dist/claude-code-plugin/jig/skills/jig-setup/SKILL.md" "jig.githubProfile"
 require_text "dist/claude-code-plugin/jig/skills/jig-setup/SKILL.md" "Use after installing jig"
-require_text "dist/codex/.agents/skills/jig-setup/SKILL.md" "JIG_GITHUB_PROFILE"
+require_text "dist/antigravity/.agents/skills/jig-setup/SKILL.md" "JIG_GITHUB_PROFILE"
 require_text "dist/antigravity/.agents/skills/jig-setup/SKILL.md" "Do not use \`gh auth switch\`"
 
 # The migration block grammar is a contract between three skills: github-release writes it,

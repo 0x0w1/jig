@@ -49,11 +49,12 @@ Use these repo-scoped Codex skills:
 - Do not delete branches without explicit user confirmation.
 - Do not overwrite user-modified files without explicit user confirmation.
 - Keep repository skill copies under `.agents/skills` and `.claude/skills`, synced from `skills/`.
-- Do not create `.codex` or unrequested AI skill directories beyond those two inside this repository.
+- Do not create unrequested AI skill directories beyond those two inside this repository. `.codex/hooks.json` is written only by `jig-github-sync`'s native hook manager.
 - `.jig/` is project-owned: only `jig-version-rubric` writes `.jig/versioning.md` and only `jig-readme` writes `.jig/readme.md`, each after the user accepts it. The installer and `jig-update` never touch either.
 - The push guard has one source, `skills/github-sync/assets/guard-push.sh`; the plugin's `hooks/guard-push.sh` is built from it. In a jig-managed project, `.codex/hooks.json` and `.agents/hooks.json` are written only by `jig-github-sync`'s `manage-native-hooks.sh`, which touches only its own entry; the installer and `jig-update` never write them, and jig never grants Codex hook trust for the user.
 - `.jig/readme.md` is this repository's README profile: the language and mirror pair, the section order, what belongs in the detail docs, and the table and claim conventions. `jig-readme` reads it before writing either README.
 - The project-type rubric catalog lives at `skills/version-rubric/rubrics` and ships as payload; `jig-rubric-scan` reads it and never writes. `rubrics/INDEX.md` is the only list of types, so a new rubric file must be added to that table in the same task.
+- Codex installs the `jig` plugin (`codex plugin marketplace add 0x0w1/jig`, `codex plugin add jig@jig`) from the same payload as Claude Code; `install.sh` targets only Antigravity, and `dist/codex/` no longer exists. A `.agents/skills/jig-*` Codex installation is legacy and migrates to the plugin by hand.
 - Do not push ordinary work directly to `main`; `main` only updates through the release fast-forward push.
 - Keep all documentation and skill examples generic: use placeholders such as `your-account`, `your@email.com`, and `/absolute/path/to/<name>`. Never include local machine paths, personal identifiers, or examples taken from local or other projects.
 - If a release request includes unfinished code, config, documentation, generated `dist`, or workflow changes, stop release execution and complete those changes first through `develop-task-flow`.

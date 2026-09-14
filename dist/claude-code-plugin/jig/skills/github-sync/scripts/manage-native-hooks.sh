@@ -1,13 +1,18 @@
 #!/usr/bin/env sh
 set -eu
 
-# Installs the jig push guard as a native PreToolUse hook for the CLIs that have no
-# plugin system. Codex reads .codex/hooks.json and Antigravity reads .agents/hooks.json
-# in the workspace; both files may hold the user's own hooks, so this manager touches
-# only the entry it owns and never rewrites anything else. The guard itself is the
-# github-sync payload file assets/guard-push.sh, which jig-update refreshes; the hook
-# entry carries only its path so a payload update never changes the entry Codex asked
-# the user to trust.
+# Installs the jig push guard as a native PreToolUse hook for the CLIs whose hook
+# runtime does not load a plugin's own hooks. Codex reads .codex/hooks.json and
+# Antigravity reads .agents/hooks.json in the workspace; both files may hold the
+# user's own hooks, so this manager touches only the entry it owns and never
+# rewrites anything else.
+#
+# The guard itself is copied clone-local to <git common dir>/jig/guard-push.sh.
+# That path is stable for every install model: the Codex plugin cache, the
+# Antigravity skill directory, and a Claude Code plugin all ship the same
+# assets/guard-push.sh next to this script, and none of them is a path the hook
+# entry can depend on. Clone-local also means the copy is never committed and is
+# removed by uninstall, exactly like the pre-push hook.
 
 usage() {
   cat >&2 <<'EOF'
@@ -27,9 +32,9 @@ say() {
   printf 'jig native hook manager: %s\n' "$*"
 }
 
-GUARD_RELATIVE=".agents/skills/jig-github-sync/assets/guard-push.sh"
-GUARD_COMMAND='sh "$(git rev-parse --show-toplevel)/.agents/skills/jig-github-sync/assets/guard-push.sh"'
-GUARD_PATH_FRAGMENT="jig-github-sync/assets/guard-push.sh"
+# Resolves the clone-local guard at run time and passes when it is not there, so a
+# repository that never ran github-sync is never blocked by a stale entry.
+GUARD_COMMAND='sh -c '\''guard=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)/jig/guard-push.sh; [ -f "$guard" ] || exit 0; exec sh "$guard"'\'''
 CODEX_MARKER="jig guard-push"
 ANTIGRAVITY_KEY="jig-guard-push"
 MANAGED_BLOCK_START="<!-- jig:start github-release-setup -->"
@@ -62,7 +67,14 @@ esac
 
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "the current directory is not inside a Git worktree"
 ROOT=$(git rev-parse --show-toplevel)
-GUARD_FILE="$ROOT/$GUARD_RELATIVE"
+GIT_COMMON_DIRECTORY=$(git rev-parse --path-format=absolute --git-common-dir)
+GUARD_INSTALLED="$GIT_COMMON_DIRECTORY/jig/guard-push.sh"
+
+SCRIPT_DIRECTORY=$(CDPATH= cd "$(dirname "$0")" && pwd)
+GUARD_SOURCE="$SCRIPT_DIRECTORY/../assets/guard-push.sh"
+
+# The same command string, escaped for embedding in JSON without jq.
+GUARD_COMMAND_JSON=$(printf '%s' "$GUARD_COMMAND" | sed 's/\\/\\\\/g; s/"/\\"/g')
 
 have_jq() {
   command -v jq >/dev/null 2>&1
@@ -82,55 +94,76 @@ hooks_file() {
   esac
 }
 
-host_detected() {
-  detected_rules=$(rules_file "$1")
-  [ -f "$detected_rules" ] && grep -Fq "$MANAGED_BLOCK_START" "$detected_rules"
+stamped_rules_file() {
+  stamped=$(rules_file "$1")
+  [ -f "$stamped" ] && grep -Fq "$MANAGED_BLOCK_START" "$stamped"
 }
 
-# The templates below are what a fresh file looks like. They are also the shape the
-# merge produces, so a file jig created alone and a file jig merged into read the same.
+# The Codex jig plugin installs user-global, so its evidence is the Codex config
+# rather than anything in this repository. The config check comes first because it
+# needs no subprocess and works when the codex binary is absent.
+codex_plugin_installed() {
+  codex_config="${CODEX_HOME:-$HOME/.codex}/config.toml"
+  if [ -f "$codex_config" ] && grep -q '^\[plugins\."jig@jig"\]' "$codex_config" 2>/dev/null; then
+    return 0
+  fi
+  if command -v codex >/dev/null 2>&1 \
+    && codex plugin list --json 2>/dev/null | grep -q '"pluginId"[[:space:]]*:[[:space:]]*"jig@jig"'; then
+    return 0
+  fi
+  return 1
+}
+
+host_detected() {
+  case "$1" in
+    codex)
+      codex_plugin_installed && return 0
+      stamped_rules_file codex
+      ;;
+    antigravity) stamped_rules_file antigravity ;;
+  esac
+}
+
 write_template() {
   template_host="$1"
   template_destination="$2"
   case "$template_host" in
     codex)
-      cat <<'EOF'
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/jig-github-sync/assets/guard-push.sh\"",
-            "statusMessage": "jig guard-push"
-          }
-        ]
-      }
-    ]
-  }
-}
-EOF
+      printf '%s\n' \
+        '{' \
+        '  "hooks": {' \
+        '    "PreToolUse": [' \
+        '      {' \
+        '        "matcher": "Bash",' \
+        '        "hooks": [' \
+        '          {' \
+        '            "type": "command",' \
+        "            \"command\": \"$GUARD_COMMAND_JSON\"," \
+        "            \"statusMessage\": \"$CODEX_MARKER\"" \
+        '          }' \
+        '        ]' \
+        '      }' \
+        '    ]' \
+        '  }' \
+        '}'
       ;;
     antigravity)
-      cat <<'EOF'
-{
-  "jig-guard-push": {
-    "PreToolUse": [
-      {
-        "matcher": "run_command",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/jig-github-sync/assets/guard-push.sh\""
-          }
-        ]
-      }
-    ]
-  }
-}
-EOF
+      printf '%s\n' \
+        '{' \
+        "  \"$ANTIGRAVITY_KEY\": {" \
+        '    "PreToolUse": [' \
+        '      {' \
+        '        "matcher": "run_command",' \
+        '        "hooks": [' \
+        '          {' \
+        '            "type": "command",' \
+        "            \"command\": \"$GUARD_COMMAND_JSON\"" \
+        '          }' \
+        '        ]' \
+        '      }' \
+        '    ]' \
+        '  }' \
+        '}'
       ;;
   esac > "$template_destination"
 }
@@ -144,7 +177,7 @@ valid_object() {
 entry_state() {
   case "$1" in
     codex)
-      jq -r --arg cmd "$GUARD_COMMAND" --arg marker "$CODEX_MARKER" --arg fragment "$GUARD_PATH_FRAGMENT" '
+      jq -r --arg cmd "$GUARD_COMMAND" --arg marker "$CODEX_MARKER" --arg fragment "guard-push.sh" '
         [ (.hooks.PreToolUse // [])[] | objects | . as $entry | (.hooks // [])[] | objects | {matcher: $entry.matcher, hook: .} ] as $all
         | ($all | map(select(.hook.statusMessage == $marker))) as $mine
         | ($all | map(select(.hook.statusMessage != $marker and ((.hook.command // "") | contains($fragment))))) as $user
@@ -154,7 +187,7 @@ entry_state() {
       ' "$2"
       ;;
     antigravity)
-      jq -r --arg cmd "$GUARD_COMMAND" --arg key "$ANTIGRAVITY_KEY" --arg fragment "$GUARD_PATH_FRAGMENT" '
+      jq -r --arg cmd "$GUARD_COMMAND" --arg key "$ANTIGRAVITY_KEY" --arg fragment "guard-push.sh" '
         if has($key) | not then
           ( [ to_entries[] | select(.key != $key) | .value | objects | (.PreToolUse // [])[]? | objects | (.hooks // [])[]? | objects | (.command // "") | select(contains($fragment)) ]
             | if length > 0 then "user entry" else "not installed" end )
@@ -225,6 +258,48 @@ remove_file_and_empty_directory() {
   rmdir "$(dirname "$1")" 2>/dev/null || true
 }
 
+guard_state() {
+  if [ ! -f "$GUARD_INSTALLED" ]; then
+    printf 'guard missing'
+  elif [ -f "$GUARD_SOURCE" ] && ! cmp -s "$GUARD_SOURCE" "$GUARD_INSTALLED"; then
+    printf 'guard drift'
+  else
+    printf 'ok'
+  fi
+}
+
+install_guard() {
+  [ -f "$GUARD_SOURCE" ] || fail "guard payload missing at $GUARD_SOURCE; install or update jig first"
+  [ ! -L "$GUARD_INSTALLED" ] || fail "refusing to manage symlink $GUARD_INSTALLED"
+  sh -n "$GUARD_SOURCE" || fail "guard payload has invalid shell syntax"
+  if [ -f "$GUARD_INSTALLED" ] && cmp -s "$GUARD_SOURCE" "$GUARD_INSTALLED" && [ -x "$GUARD_INSTALLED" ]; then
+    return 0
+  fi
+  guard_directory=$(dirname "$GUARD_INSTALLED")
+  mkdir -p "$guard_directory"
+  guard_tmp=$(mktemp "$guard_directory/.jig-guard.XXXXXX") || fail "could not stage $GUARD_INSTALLED"
+  if ! cp "$GUARD_SOURCE" "$guard_tmp" || ! chmod +x "$guard_tmp" || ! mv "$guard_tmp" "$GUARD_INSTALLED"; then
+    rm -f "$guard_tmp"
+    fail "could not install $GUARD_INSTALLED"
+  fi
+  say "guard installed at $GUARD_INSTALLED"
+}
+
+remove_guard() {
+  [ -e "$GUARD_INSTALLED" ] || return 0
+  for remaining_host in codex antigravity; do
+    remaining_file=$(hooks_file "$remaining_host")
+    [ -f "$remaining_file" ] || continue
+    have_jq || return 0
+    valid_object "$remaining_file" || return 0
+    case "$(entry_state "$remaining_host" "$remaining_file")" in
+      installed|"entry drift"|"user entry") return 0 ;;
+    esac
+  done
+  remove_file_and_empty_directory "$GUARD_INSTALLED" || fail "could not remove $GUARD_INSTALLED"
+  say "guard removed from $GUARD_INSTALLED"
+}
+
 status_line() {
   status_host="$1"
   status_file=$(hooks_file "$status_host")
@@ -249,8 +324,8 @@ status_line() {
     installed|"entry drift")
       if ! host_detected "$status_host"; then
         printf 'leftover'
-      elif [ ! -f "$GUARD_FILE" ]; then
-        printf 'guard missing'
+      elif [ "$status_state" = installed ] && [ "$(guard_state)" != ok ]; then
+        guard_state
       else
         printf '%s' "$status_state"
       fi
@@ -269,8 +344,7 @@ install_host() {
     return 0
   fi
   [ ! -L "$install_file" ] || fail "$install_target: refusing to manage symlink $install_file"
-  [ -f "$GUARD_FILE" ] || fail "$install_target: guard payload missing at $GUARD_FILE; install or update jig first"
-  sh -n "$GUARD_FILE" || fail "$install_target: guard payload has invalid shell syntax"
+  install_guard
 
   if [ ! -e "$install_file" ]; then
     install_directory=$(dirname "$install_file")
@@ -342,3 +416,7 @@ for host in $HOSTS; do
     status) printf '%s: %s\n' "$host" "$(status_line "$host")" ;;
   esac
 done
+
+if [ "$MODE" = uninstall ]; then
+  remove_guard
+fi

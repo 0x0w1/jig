@@ -15,7 +15,8 @@
 ## 실행 방법과 입력
 
 - Claude Code: `/jig:conformance-audit`
-- Codex·Antigravity: `jig-conformance-audit`
+- Codex: `jig:conformance-audit`
+- Antigravity: `jig-conformance-audit`
 - 입력: 로컬 clone, `origin`, tag 목록, 해석된 기준 파일 경로
 - 선택: 기준선을 직접 지정하는 `--since <ref>`
 

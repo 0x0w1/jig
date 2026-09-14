@@ -28,19 +28,19 @@ flowchart LR
 
 ## 상황별 스킬
 
-| 필요 | 스킬 | Claude Code | Codex / Antigravity |
-|---|---|---|---|
-| 초기 설정 마무리 | [`jig-setup`](jig-setup.md) | `/jig:jig-setup` | `jig-setup` |
-| GitHub 수렴 | [`github-sync`](github-sync.md) | `/jig:github-sync` | `jig-github-sync` |
-| jig 진단 | [`jig-doctor`](jig-doctor.md) | `/jig:jig-doctor` | `jig-doctor` |
-| 저장소 정리 | [`repo-hygiene`](repo-hygiene.md) | `/jig:repo-hygiene` | `jig-repo-hygiene` |
-| 이력 감사 | [`conformance-audit`](conformance-audit.md) | `/jig:conformance-audit` | `jig-conformance-audit` |
-| jig 업데이트 | [`jig-update`](jig-update.md) | `/jig:jig-update` | `jig-update` |
-| 일반 개발 | [`develop-task-flow`](develop-task-flow.md) | `/jig:develop-task-flow` | `jig-develop-task-flow` |
-| 긴급 수정 | [`hotfix-flow`](hotfix-flow.md) | `/jig:hotfix-flow` | `jig-hotfix-flow` |
-| 릴리즈 발행 | [`github-release`](github-release.md) | `/jig:github-release` | `jig-github-release` |
-| README 관리 | [`readme`](readme.md) | `/jig:readme` | `jig-readme` |
-| rubric 추천 | [`rubric-scan`](rubric-scan.md) | `/jig:rubric-scan` | `jig-rubric-scan` |
-| rubric 작성 | [`version-rubric`](version-rubric.md) | `/jig:version-rubric` | `jig-version-rubric` |
+| 필요 | 스킬 | Claude Code | Codex | Antigravity |
+|---|---|---|---|---|
+| 초기 설정 마무리 | [`jig-setup`](jig-setup.md) | `/jig:jig-setup` | `jig:jig-setup` | `jig-setup` |
+| GitHub 수렴 | [`github-sync`](github-sync.md) | `/jig:github-sync` | `jig:github-sync` | `jig-github-sync` |
+| jig 진단 | [`jig-doctor`](jig-doctor.md) | `/jig:jig-doctor` | `jig:jig-doctor` | `jig-doctor` |
+| 저장소 정리 | [`repo-hygiene`](repo-hygiene.md) | `/jig:repo-hygiene` | `jig:repo-hygiene` | `jig-repo-hygiene` |
+| 이력 감사 | [`conformance-audit`](conformance-audit.md) | `/jig:conformance-audit` | `jig:conformance-audit` | `jig-conformance-audit` |
+| jig 업데이트 | [`jig-update`](jig-update.md) | `/jig:jig-update` | `jig:jig-update` | `jig-update` |
+| 일반 개발 | [`develop-task-flow`](develop-task-flow.md) | `/jig:develop-task-flow` | `jig:develop-task-flow` | `jig-develop-task-flow` |
+| 긴급 수정 | [`hotfix-flow`](hotfix-flow.md) | `/jig:hotfix-flow` | `jig:hotfix-flow` | `jig-hotfix-flow` |
+| 릴리즈 발행 | [`github-release`](github-release.md) | `/jig:github-release` | `jig:github-release` | `jig-github-release` |
+| README 관리 | [`readme`](readme.md) | `/jig:readme` | `jig:readme` | `jig-readme` |
+| rubric 추천 | [`rubric-scan`](rubric-scan.md) | `/jig:rubric-scan` | `jig:rubric-scan` | `jig-rubric-scan` |
+| rubric 작성 | [`version-rubric`](version-rubric.md) | `/jig:version-rubric` | `jig:version-rubric` | `jig-version-rubric` |
 
-Claude Code는 `jig` plugin namespace로 스킬을 부릅니다. Codex와 Antigravity는 `jig-` prefix 디렉터리를 사용하며, 이미 `jig-`로 시작하는 이름에는 prefix를 중복하지 않습니다.
+Claude Code와 Codex는 같은 `jig` 플러그인을 설치하고 plugin namespace로 스킬을 부릅니다. 앞의 슬래시만 다릅니다. Antigravity는 플러그인 시스템이 없어 `jig-` prefix 디렉터리를 사용하며, 이미 `jig-`로 시작하는 이름에는 prefix를 중복하지 않습니다.

@@ -12,7 +12,7 @@ Use this repository skill only for setup and synchronization of GitHub repositor
 - Branches: `main`, `develop`.
 - Branch protection for `main` and `develop`: **optional**, and only when the repository can have it. Direct pushes allowed, force pushes and deletion blocked. See Branch Protection Is Optional.
 - Local guard, first layer: a git `pre-push` hook installed from `assets/pre-push` by `scripts/manage-pre-push.sh`. It blocks force pushes to and deletion of `main`/`develop` and restricts direct `main` pushes to the release fast-forward (`develop:main`) and the hotfix landing (`hotfix/<slug>:main`, owned by `hotfix-flow`). Local defense only; server-side protection stays the final barrier.
-- Local guard, second layer: the same policy as a `PreToolUse` hook that inspects the push command before it runs, `--no-verify` included, which a git hook cannot see. Claude Code ships it inside the `jig` plugin. For Codex (`.codex/hooks.json`) and Antigravity (`.agents/hooks.json`) this skill installs the hook entry with `scripts/manage-native-hooks.sh`; the entry runs the shipped `assets/guard-push.sh`. Project scope only — a user-scope entry would guard repositories jig is not installed in.
+- Local guard, second layer: the same policy as a `PreToolUse` hook that inspects the push command before it runs, `--no-verify` included, which a git hook cannot see. Claude Code runs it from inside the `jig` plugin. Codex does not run a plugin's own hooks, so Codex (`.codex/hooks.json`) and Antigravity (`.agents/hooks.json`) get the hook entry from `scripts/manage-native-hooks.sh` instead. The manager copies the shipped `assets/guard-push.sh` clone-local to `<git common dir>/jig/guard-push.sh` and the entry runs that copy, so one entry works whether jig arrived as a plugin or as skill files. Project scope only — a user-scope entry would guard repositories jig is not installed in.
 - No release-drafter files, no pull request template, no label sync; the release flow is CLI-driven (`github-release`) and does not use pull requests.
 - Sync is convergent and idempotent: one run aligns the repository with the current model even when several jig versions were skipped. `jig-update` runs it after updating installed files.
 
@@ -71,7 +71,7 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
 - Do not force push.
 - Do not delete branches.
 - Do not delete labels without explicit confirmation.
-- Do not create `.claude/skills` or unrequested AI skill directories inside this repository. `.codex/` is created only as `.codex/hooks.json`, only by the native hook manager, and only when `AGENTS.md` carries the Codex jig stamp.
+- Do not create `.claude/skills` or unrequested AI skill directories inside this repository. `.codex/` is created only as `.codex/hooks.json`, only by the native hook manager, and only when Codex itself shows the jig plugin installed or `AGENTS.md` carries the legacy Codex jig stamp.
 - Keep repository skills under `.agents/skills`.
 - Never rewrite a user's entry in `.codex/hooks.json` or `.agents/hooks.json`. The manager adds, updates, or removes only the entry it marks as its own (`statusMessage` `jig guard-push` for Codex, the `jig-guard-push` group for Antigravity), preserves everything else, and refuses a file it cannot parse or a symlink.
 - Never grant Codex hook trust on the user's behalf. Codex runs a hook only after the user reviews it in `/hooks`; report that step, do not perform it.
@@ -103,13 +103,14 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
    - Never bypass the installed hook with `--no-verify`.
 
 8. Install or update the native push hook by running `scripts/manage-native-hooks.sh install` relative to this skill directory.
-   - Hosts are detected from the jig managed block in `./AGENTS.md` (Codex → `.codex/hooks.json`) and `./GEMINI.md` (Antigravity → `.agents/hooks.json`). An undetected host gets no file. Claude Code needs nothing here: its plugin carries the same hook.
-   - The entry runs the shipped `assets/guard-push.sh` through a repository-relative command, so a payload update by `jig-update` refreshes the guard without changing the entry.
+   - Codex is detected from the Codex configuration, not from this repository: `jig@jig` in `codex plugin list --json`, or `[plugins."jig@jig"]` in `${CODEX_HOME:-~/.codex}/config.toml`, or the legacy jig managed block in `./AGENTS.md`. Antigravity is detected from the managed block in `./GEMINI.md`. An undetected host gets no file. Claude Code needs nothing here: it runs the same guard from its plugin.
+   - The manager copies the guard to `<git common dir>/jig/guard-push.sh` and points the entry at that copy. The copy is clone-local, so it is never committed, it survives a plugin upgrade, and a fresh clone needs this step run again. Re-running repairs a missing or drifted copy.
+   - The entry resolves that path at run time and passes when the copy is absent, so a repository that has not run this skill is never blocked by a stale entry.
    - Re-running is idempotent and answers `installed`, `added entry`, `updated entry`, or `already current`. Other entries in the file are preserved. Merging into an existing file needs `jq`; without it the manager writes only a fresh file and otherwise stops with a message instead of guessing.
    - A user-owned entry that already points at the guard is reported and left alone.
    - **Codex trusts hooks per definition.** After the entry is added or updated, Codex runs it only once the user has reviewed and trusted it in `/hooks`. Say so in the report every time; jig cannot grant that trust.
    - Antigravity reads only the hook's stdout JSON and treats a crash as allow, so the guard answers `{"decision":"deny"}` there rather than exiting non-zero.
-   - The Codex contract was verified live (`codex exec` runs the project hook, passes `tool_input.command`, honors exit 2). The Antigravity entry follows the documented contract; on the first Antigravity installation, confirm that `git push --no-verify origin main` is refused and report if it is not.
+   - The Codex contract was verified live (`codex exec` runs the project hook, passes `tool_input.command`, honors exit 2, and ignores a plugin's own hooks). The Antigravity entry follows the documented contract; on the first Antigravity installation, confirm that `git push --no-verify origin main` is refused and report if it is not.
 
 9. If legacy release-drafter files exist (`.github/drafter-config.yaml`, `.github/workflows/drafter.yaml`, `.github/PULL_REQUEST_TEMPLATE.md`), report them as removal candidates; remove them only with explicit confirmation.
 
@@ -117,7 +118,7 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
 
 When the user asks to uninstall `github-sync` or all of jig from the current project, run `scripts/manage-native-hooks.sh uninstall` and then `scripts/manage-pre-push.sh uninstall`, both relative to this skill directory and both **before** removing the skill or plugin — once the skill directory is gone, the native entry points at nothing:
 
-- The native hook manager removes only its own entry from `.codex/hooks.json` and `.agents/hooks.json`. A file that held nothing else is removed, and an emptied `.codex/` directory with it; a file with user entries keeps them.
+- The native hook manager removes only its own entry from `.codex/hooks.json` and `.agents/hooks.json`. A file that held nothing else is removed, and an emptied `.codex/` directory with it; a file with user entries keeps them. The clone-local guard copy is removed once no jig entry points at it any more.
 - A hook whose line 2 carries the valid `# jig:pre-push v<N>` ownership marker is removed.
 - If jig replaced a confirmed user hook, the manager restores `.git/hooks/pre-push.jig-user-backup` instead of leaving the path empty.
 - An unmarked hook is never removed.
@@ -130,7 +131,7 @@ Keep reports short and include:
 - Branches created or already present
 - Branch protection: applied | skipped by choice | not available (private repository without a plan that includes it) | not permitted (no admin) — and, when it is not in place, that the local guard is the only barrier
 - Local pre-push guard: installed | updated | already current | blocked by user hook
-- Native push hook, per detected host: installed | added entry | updated entry | already current | user entry | host not detected | blocked (jq missing, invalid JSON, symlink) — and, for Codex, that trusting the entry in `/hooks` is still the user's step
+- Native push hook, per detected host: installed | added entry | updated entry | already current | user entry | host not detected | blocked (jq missing, invalid JSON, symlink) — plus the clone-local guard copy, and, for Codex, that trusting the entry in `/hooks` is still the user's step
 - Legacy release-drafter files found, if any
 - Commands that could not run and why
 - User next actions, if any

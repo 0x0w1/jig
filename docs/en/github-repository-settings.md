@@ -2,7 +2,7 @@
 
 [한국어](../ko/github-repository-settings.md)
 
-This document describes what `install.sh` (for Codex and Antigravity CLI) does on GitHub. Claude Code installs as a plugin and never goes through the installer, so profile selection and convergence happen afterwards through `/jig:jig-setup`.
+This document describes what `install.sh` (for Antigravity CLI) does on GitHub. Claude Code and Codex install as plugins and never go through the installer, so profile selection and convergence happen afterwards through `/jig:jig-setup` and `jig:jig-setup`.
 
 Installing jig skills in project scope needs no GitHub profile. Installing without one only skips the GitHub repository settings sync; the installed `jig-setup` sets `JIG_GITHUB_PROFILE` or the local `jig.githubProfile` later. A profile's credential is passed per command through the environment and never changes the globally active account.
 
@@ -15,7 +15,7 @@ Installing jig skills in project scope needs no GitHub profile. Installing witho
 
 ## What install.sh Applies
 
-`install.sh --target <codex|antigravity> --scope project` installs the agent skill and rules files first. It attempts the GitHub work below only when a profile was already provided.
+`install.sh --target antigravity --scope project` installs the agent skill and rules files first. It attempts the GitHub work below only when a profile was already provided.
 
 - Selecting the GitHub CLI account:
   - The profile resolves in order: `--github-profile` → `JIG_GITHUB_PROFILE` → local `jig.githubProfile`.
@@ -116,13 +116,13 @@ Older jig versions installed a release-drafter PR flow. If any of the following 
 To see the planned work without changing files or GitHub settings, use dry-run mode.
 
 ```bash
-sh install.sh --target codex --scope project --dry-run
+sh install.sh --target antigravity --scope project --dry-run
 ```
 
 That validates the skill install plan without a profile. After installing, running `jig-setup` selects the profile, ensures `develop`, and settles branch protection. To wire up GitHub during the install, pass a profile:
 
 ```bash
-sh install.sh --target codex --scope project --github-profile your-account
+sh install.sh --target antigravity --scope project --github-profile your-account
 ```
 
 ## The Local pre-push Guard
@@ -133,6 +133,6 @@ Separately from server-side protection, `github-sync` installs a local guard at 
 - blocks remote deletion of `main` and `develop`
 - blocks direct pushes to `main` other than the `develop:main` fast-forward release
 
-A git hook can be bypassed with `--no-verify`; that is its limit. jig skills forbid the bypass, and a second layer enforces it: a `PreToolUse` hook that inspects the push command before it runs and refuses an offending one — `--no-verify` included. On Claude Code that hook ships inside the `jig` plugin. On Codex and Antigravity, `github-sync` installs it natively — one entry in `.codex/hooks.json` or `.agents/hooks.json` that runs the shipped `github-sync/assets/guard-push.sh` — through `github-sync/scripts/manage-native-hooks.sh`, which adds, refreshes, or removes only its own entry and preserves the user's. Codex runs a project hook only after the user reviews it once in `/hooks`; the sync report says so. Server-side branch protection is the last line when the repository can have it; when it cannot, these guards are the only ones. `jig-doctor` diagnoses both layers, and `github-sync` installs or refreshes them.
+A git hook can be bypassed with `--no-verify`; that is its limit. jig skills forbid the bypass, and a second layer enforces it: a `PreToolUse` hook that inspects the push command before it runs and refuses an offending one — `--no-verify` included. On Claude Code that hook ships inside the `jig` plugin. Codex does not run a plugin's own hooks, so on Codex and Antigravity `github-sync` installs it natively — one entry in `.codex/hooks.json` or `.agents/hooks.json` that runs a clone-local copy of the shipped `github-sync/assets/guard-push.sh` at `<git common dir>/jig/guard-push.sh` — through `github-sync/scripts/manage-native-hooks.sh`, which adds, refreshes, or removes only its own entry and preserves the user's. The clone-local copy is why the entry works the same whether jig arrived as a plugin or as skill files. Codex runs a project hook only after the user reviews it once in `/hooks`; the sync report says so. Server-side branch protection is the last line when the repository can have it; when it cannot, these guards are the only ones. `jig-doctor` diagnoses both layers, and `github-sync` installs or refreshes them.
 
 Before uninstalling `github-sync` or jig from a project, run the skill's guard cleanup. The native hook manager removes only its own entry and deletes the file only when nothing else was in it; the pre-push manager removes only a jig-marked hook. When the user explicitly allowed an existing hook to be replaced, uninstall restores its `.jig-user-backup`. Plugin or global-scope removal cannot enumerate clone-local `.git` directories, so cleanup must run once in each affected checkout.

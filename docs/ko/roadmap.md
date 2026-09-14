@@ -15,7 +15,7 @@ jig 초기 버전은 **개인 사이드 프로젝트의 CLI 에이전트 하네�
 
 ## 현재 제공
 
-- installer: 최신 릴리즈 태그 고정 설치, `--version` 롤백, `--skills` 선택 설치(`manifest.tsv` 카탈로그, codex/antigravity 전용)
+- installer: 최신 릴리즈 태그 고정 설치, `--version` 롤백, `--skills` 선택 설치(`manifest.tsv` 카탈로그, 남은 유일한 target인 antigravity 전용)
 - workflow 스킬 4종: `develop-task-flow`(일반 작업), `hotfix-flow`(`develop` 대기열을 기다릴 수 없는 릴리즈 결함), `github-release`, `github-sync`
 - 수명주기 스킬 2종: `jig-update`, `jig-doctor`
 - 온보딩 스킬 1종: `jig-setup` (설치 후 저장소별 GitHub 프로필 선택·검증)
@@ -24,7 +24,7 @@ jig 초기 버전은 **개인 사이드 프로젝트의 CLI 에이전트 하네�
 - 준수 검증 스킬 1종: `conformance-audit`(도입 기준선부터 이력을 절차와 대조, 읽기 전용, 위반 시 0이 아닌 종료 코드, CI 실행 가능)
 - 로컬 가드 2층, 전 CLI 공통: `github-sync`가 설치하는 git `pre-push` hook + push 명령을 실행 전에 검사하는 PreToolUse hook(`--no-verify` 우회 차단). 후자는 Claude Code 플러그인 안에 들어 있고, Codex(`.codex/hooks.json`)와 Antigravity(`.agents/hooks.json`)에는 `github-sync`가 네이티브 hook 항목으로 설치한다. 셋 모두 하나의 `guard-push.sh` 원본을 실행한다. 두 겹 모두 `main`으로 가는 길을 `develop:main`과 `hotfix/<slug>:main` 둘로만 허용
 - 릴리즈 이전에 시작하는 판정: `develop-task-flow`가 squash 커밋마다 `Release-Grade` trailer를 기록하고, `github-release`가 범위 내 최고값을 내리지 않는 하한으로 삼는다. 기준 파일의 `## Interface Paths` 표에서 계산한 참고용 바닥이 함께 쓰인다
-- 배포 방식: Claude Code는 플러그인 마켓플레이스(`jig@jig`, 호스트가 `/jig:<skill>`로 네임스페이스), Codex/Antigravity는 `jig-` prefix 스킬 파일
+- 배포 방식: 마켓플레이스 항목 하나가 두 플러그인 호스트를 담당한다(`jig@jig`, Claude Code는 `/jig:<skill>`, Codex는 `jig:<skill>`). 플러그인 시스템이 없는 Antigravity만 `jig-` prefix 스킬 파일
 
 병합 흐름은 **하나뿐이다**: 로컬 `git merge --squash` → `develop` 직접 push, Pull Request 없음. 팀 흐름은 아래 C 후보로 보류돼 있다.
 
@@ -46,11 +46,23 @@ jig 초기 버전은 **개인 사이드 프로젝트의 CLI 에이전트 하네�
 
 **`dependency-update`**는 호스트가 이미 제공한다. Dependabot과 Renovate가 무료로, jig에 없고 앞으로도 없을 언어별 지식까지 갖고 처리한다. jig는 shell과 Markdown이다. 더할 수 있는 건 갱신을 `develop-task-flow`에 태우는 것뿐인데 이미 있는 스킬 위의 얇은 래퍼다. 만들면 바로 아래 기록된 실수를 반복하게 된다.
 
+## 설계 기록: Codex가 플러그인 호스트가 됨
+
+Codex에 플러그인 시스템이 생겨 jig는 그쪽으로 스킬 파일 복사를 그만뒀다. 다시 논쟁하지 않도록 결정을 남긴다.
+
+- **payload 하나, 플러그인 호스트 둘.** Codex는 jig의 기존 `.claude-plugin/plugin.json`과 `.claude-plugin/marketplace.json`을 호환 조회로 읽고, 번들된 스킬을 Claude Code와 같은 이름인 `jig:<skill>`로 네임스페이스한다. 새로 만들 것이 없었고 대신 `dist/codex/`를 지웠다.
+- **installer에서 Codex target을 뺐다.** CLI 하나에 설치 모델을 둘 유지하면 `jig-doctor`·`jig-update`의 inventory 작업이 영구히 두 배가 된다. `install.sh --target codex`는 이제 플러그인 명령 두 줄을 담은 메시지와 함께 실패한다. 소유권 마커를 없앤 것과 같은 원칙이다 — 호스트가 제공하는 것을 재구현하지 않는다.
+- **폐기된 파일 설치본은 수동 마이그레이션이다.** 플러그인 설치는 사용자의 Codex 설정을 바꾸고, `.agents/skills/jig-*`는 같은 디렉터리를 쓰는 Antigravity의 것일 수도 있다. 둘 다 사람의 결정이므로 `jig-update`는 실행하지 않고 보고만 한다.
+- **마켓플레이스 파일은 `.claude-plugin/marketplace.json` 하나로 유지한다.** Codex는 `.agents/plugins/marketplace.json`을 자기 경로로, `.claude-plugin` 경로를 호환 폴백으로 문서화했고 jig는 지금 후자를 쓴다. 파일을 하나 더 두면 둘을 계속 맞춰야 한다. 폴백 폐기가 예고될 때 Codex 네이티브 경로로 옮긴다.
+- **Codex에서는 플러그인 hook을 쓸 수 없다.** `codex features list`가 `plugin_hooks`를 `removed`로 보고하고, 실제 `codex exec` 실행에서 플러그인의 `hooks/hooks.json`이 전혀 발화하지 않음을 확인했다. 그래서 push 가드는 여전히 `github-sync`를 통해 Codex에 닿는다. 아래 네이티브 hook 항목이 플러그인으로 대체되지 않은 이유다.
+- **검증.** `codex plugin marketplace add`와 `codex plugin add jig@jig`로 local·git 마켓플레이스 양쪽에서 설치하고, 스킬 목록에 `jig:github-sync` 등이 나오는 것을 Codex 0.150.1에서 확인했다.
+
 ## 설계 기록: 네이티브 push hook (E와 함께 제공)
 
 `manage-native-hooks.sh`의 형태를 정한 결정들이다. 다시 논쟁하지 않도록 남긴다.
 
 - **가드 원본은 하나.** `skills/github-sync/assets/guard-push.sh`가 유일한 push 가드다. Claude Code 플러그인의 `hooks/guard-push.sh`는 빌드 시 복사본이다. 이 스크립트가 두 payload 형태(Claude Code·Codex의 `tool_input.command`, Antigravity의 `toolCall.args.CommandLine`)를 읽고 각 호스트가 읽는 계약으로 답한다.
+- **hook 항목은 clone-local 복사본을 실행한다.** `manage-native-hooks.sh`가 가드를 `<git common dir>/jig/guard-push.sh`로 복사하고 항목이 그곳을 가리킨다. 플러그인으로 설치한 Codex에는 가리킬 `.agents/skills/jig-github-sync/`가 없고, 플러그인 캐시 경로는 업그레이드마다 바뀐다. clone-local 복사본은 안정적이고 커밋되지 않으며 `pre-push` hook처럼 uninstall이 제거한다.
 - **프로젝트 스코프만.** 사용자 스코프 `~/.codex/hooks.json`이나 `~/.gemini/config/hooks.json`에 항목을 넣으면 jig가 설치되지 않은 저장소까지 그 머신의 모든 저장소가 가드를 받는다. jig-managed project 밖의 동작이므로 제공하지 않는다.
 - **항목은 경로만 담는다.** Codex는 hook 정의가 바뀔 때마다 사용자에게 재신뢰를 요구한다. 그래서 판정 로직은 `jig-update`가 갱신하는 payload 파일에 두고, hooks.json 항목은 릴리즈 사이에 바뀌지 않는다.
 - **Codex 신뢰는 사용자의 단계다.** Codex는 비관리 hook을 사용자가 `/hooks`에서 검토한 뒤에만 실행한다. jig는 그 단계를 매번 보고하고 대신 수행하지 않는다. `jig-doctor`는 신뢰 상태를 볼 수 없으므로 hook이 활성이라고 단정하지 않고 그렇게 말한다.

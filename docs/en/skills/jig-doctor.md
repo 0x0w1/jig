@@ -1,6 +1,6 @@
 # jig Doctor
 
-<!-- jig:skill-source-digest b4cd0ba7d98fc6450702be67bc43399a2565d17f -->
+<!-- jig:skill-source-digest b3e52616e0627f5031293d2cc5cecc24037ecc21 -->
 
 [한국어](../../ko/skills/jig-doctor.md) · [Skill index](index.md)
 
@@ -15,11 +15,12 @@ Use it after setup or update, when versions or skill selections look inconsisten
 ## Invocation
 
 - Claude Code: `/jig:jig-doctor`
-- Codex and Antigravity: `jig-doctor`
+- Codex: `jig:jig-doctor`
+- Antigravity: `jig-doctor`
 
 ## Inventory model
 
-The inventory covers ten independent rows: Claude Code plugin project/local/user/managed, Claude standalone project/user, Codex project/global, and Antigravity project/global. A rules file counts only when it contains the jig managed block. A standalone root counts only when ledger/provenance or the conservative legacy identity proves ownership.
+The inventory covers eleven independent rows: Claude Code plugin project/local/user/managed, Claude standalone project/user, the user-global Codex plugin, Codex legacy files project/global, and Antigravity project/global. A rules file counts only when it contains the jig managed block, and the Codex plugin counts on Codex's own configuration rather than on anything in the repository. A standalone root counts only when ledger/provenance or the conservative legacy identity proves ownership.
 
 Standalone states include `verified`, `legacy-unledgered`, `ledger-invalid`, `partial`, `provenance-conflict`, `non-owned`, `source-mirror`, and `absent`. A user-authored `non-owned` root is not a jig defect.
 
@@ -27,7 +28,7 @@ Standalone states include `verified`, `legacy-unledgered`, `ledger-invalid`, `pa
 
 ```mermaid
 flowchart TD
-    Inventory[Inventory all ten target/scope rows] --> Instances{Detected jig instances?}
+    Inventory[Inventory all eleven target/scope rows] --> Instances{Detected jig instances?}
     Instances -- No --> ReportAbsent[Report absent and skipped evidence]
     Instances -- Yes --> PerInstance[Check version, selection, drift, provenance, migrations per instance]
     PerInstance --> Project{Project-scoped instance belongs to current worktree?}
@@ -38,7 +39,7 @@ flowchart TD
     Delegate --> Report
 ```
 
-Plugin payloads are host-managed and are not compared with file payload tags. Versioned file installations are compared against the matching release's `dist/files.tsv`; missing files, drift, and leftovers are reported separately.
+Both plugin payloads are host-managed and are not compared with file payload tags. Codex now installs the same plugin the Claude Code host does; a `.agents/skills/jig-*` Codex installation is legacy and is reported with its migration to the plugin. Versioned file installations are compared against the matching release's `dist/files.tsv`; missing files, drift, and leftovers are reported separately.
 
 ## Reads and external checks
 
@@ -56,7 +57,7 @@ The skill reads plugin settings, standalone ledgers/provenance, managed blocks a
 
 The report covers inventory, per-instance version/selection/drift/provenance, pending migrations, optional protection, branch divergence, legacy leftovers, local guard, profile, rubric, README profile, and recommended actions. Payload/version/provenance findings belong to `jig-update`; protection/guard to `github-sync`; profile to `jig-setup`; rubric to `version-rubric`; README profile to `readme`.
 
-The local guard line covers both layers. The `pre-push` hook is judged by its ownership marker and a byte comparison with the shipped source. The native hook entry is judged per host by the `github-sync` status helper — `installed`, `not installed`, `entry drift`, `user entry`, `guard missing`, `leftover`, `host not detected`, `invalid json`, `jq missing` — and the guard payload it points at is compared like any other selected file. Codex trusts a hook only after the user reviews it in `/hooks`, which is invisible from outside, so an installed Codex entry is reported with that reminder and never as active.
+The local guard line covers both layers. The `pre-push` hook is judged by its ownership marker and a byte comparison with the shipped source. The native hook entry is judged per host by the `github-sync` status helper — `installed`, `not installed`, `entry drift`, `user entry`, `guard missing`, `guard drift`, `leftover`, `host not detected`, `invalid json`, `symlink`, `jq missing`. `guard missing` and `guard drift` describe the clone-local guard copy the entry runs; `github-sync` restores it. Codex trusts a hook only after the user reviews it in `/hooks`, which is invisible from outside, so an installed Codex entry is reported with that reminder and never as active.
 
 Both project-owned files under `.jig/` are read the same way: resolve the path, report the source, name which sections are present, and check that the file is committed — an uncommitted one applies on one machine and nowhere else. Neither is compared against any payload, and an absent file is a normal state rather than a defect. A missing rubric still matters because `github-release` stops without one; a missing README profile only means the `readme` skill falls back to its generic defaults. Branch divergence requires manual reconciliation and never a force push.
 

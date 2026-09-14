@@ -7,7 +7,7 @@ jig **installs differently on each supported CLI.** There is no way to install e
 | CLI | How it installs | Unit | Owner |
 |---|---|---|---|
 | Claude Code | plugin marketplace | the `jig` plugin | the Claude Code host |
-| Codex | `install.sh` | `.agents/skills/jig-*` files | the jig installer |
+| Codex | plugin marketplace | the `jig` plugin | the Codex host |
 | Antigravity CLI | `install.sh` | `.agents/skills/jig-*` files | the jig installer |
 
 For just the commands, see [Quick Start in the README](../../README.md#quick-start). This document explains **what each path installs, where, and how it is managed afterwards.**
@@ -95,60 +95,57 @@ Before removing the plugin, ask `/jig:github-sync` to uninstall the current repo
 
 ### What gets installed
 
-Codex has no plugin system, so the installer copies files.
+Codex has a plugin system, so jig installs there as the same plugin Claude Code uses, from the same marketplace repository. The installer is not involved.
 
-project scope:
-
-```text
-./AGENTS.md                       # jig managed block added or replaced
-.agents/skills/
-  jig-github-sync/SKILL.md
-  jig-github-release/SKILL.md
-  jig-develop-task-flow/SKILL.md
-  jig-setup/SKILL.md
-  jig-update/SKILL.md
-  jig-doctor/SKILL.md
-  jig-readme/SKILL.md
-  jig-version-rubric/SKILL.md
-  jig-version-rubric/rubrics/      # the per-type rubric catalog
-  jig-rubric-scan/SKILL.md
+```bash
+codex plugin marketplace add 0x0w1/jig
+codex plugin add jig@jig
 ```
 
-A skill is a directory, not a single file. A skill that ships reference files alongside it, such as `jig-version-rubric`, installs those too; the installer downloads whatever the release's `dist/files.tsv` lists.
+The plugin is cached under `${CODEX_HOME:-~/.codex}/plugins/`, and the install is recorded in `${CODEX_HOME:-~/.codex}/config.toml`:
 
-global scope:
+```toml
+[marketplaces.jig]
+source_type = "git"
+source = "https://github.com/0x0w1/jig.git"
 
-```text
-~/.codex/AGENTS.md
-~/.agents/skills/jig-*/
+[plugins."jig@jig"]
+enabled = true
 ```
+
+Nothing is written into your repository. The install is user-global, so every repository on the machine sees the skills.
 
 ### Using it
 
-Codex recognizes the `SKILL.md` under `.agents/skills/*` as a native skill. Both the directory name and the frontmatter `name` carry the `jig-` prefix, so they never collide with skills you wrote. The managed block in `AGENTS.md` holds only the list of installed skills; the procedures themselves load from each `SKILL.md`.
+Bundled skills are namespaced by the plugin, so they load as `jig:github-sync`, `jig:jig-doctor`, and so on — the same names Claude Code shows, without the leading slash. `codex plugin list` shows what is installed.
+
+### The push guard
+
+Codex does not run a plugin's own hooks, so the `PreToolUse` push guard is not carried by the plugin. `jig:github-sync` installs it as a repository hook entry in `.codex/hooks.json` instead, pointing at a clone-local copy of the guard. Codex runs a non-managed hook only after you review and trust it once in `/hooks`.
 
 ### Versions
 
-The installed version and skill selection are stamped inside the managed block.
+The plugin is host-managed and carries no jig version stamp. Refresh it with:
 
-```text
-<!-- jig:version v0.2.0 skills=github-sync,github-release,develop-task-flow,jig-setup,jig-update,jig-doctor -->
+```bash
+codex plugin marketplace upgrade jig
+codex plugin add jig@jig
 ```
 
-The `jig-update` skill reads that stamp to reinstall the same selection at the latest release, and `jig-doctor` uses it as the basis for diagnosis. To update, run the same command again — the installer is idempotent and refreshes only what changed.
+`jig-update` runs those two commands for you and reports Codex as pending if the CLI is unavailable.
 
 ### Removing it
 
-Before deleting the skill directories, run `jig-github-sync` and ask it to uninstall the current repository's local guards: the native hook entry in `.codex/hooks.json` or `.agents/hooks.json`, then the pre-push hook. The cleanup removes only jig's own entry and jig-marked hook, keeps every user entry, and restores a user hook that jig backed up. Then remove the skill files yourself.
+Before removing the plugin, ask `jig:github-sync` to uninstall the current repository's local guards: the native hook entry in `.codex/hooks.json`, then the pre-push hook. The cleanup removes only jig's own entry and jig-marked hook, keeps every user entry, and restores a user hook that jig backed up.
 
 ```bash
-rm -rf .agents/skills/jig-github-sync .agents/skills/jig-github-release \
-  .agents/skills/jig-develop-task-flow .agents/skills/jig-update .agents/skills/jig-doctor \
-  .agents/skills/jig-setup .agents/skills/jig-readme \
-  .agents/skills/jig-version-rubric .agents/skills/jig-rubric-scan
+codex plugin remove jig@jig
+codex plugin marketplace remove jig
 ```
 
-In `AGENTS.md`, delete only the span between `<!-- jig:start ... -->` and `<!-- jig:end ... -->`. jig never touched anything outside the block.
+### Migrating from the file installation
+
+Before v0.22.0 the installer copied `jig-` prefixed skill files into `.agents/skills` and wrote a managed block into `AGENTS.md`. That installation still loads, but the installer no longer targets Codex and will not refresh it. To migrate, install the plugin with the two commands above, then remove the block between `<!-- jig:start ... -->` and `<!-- jig:end ... -->` in `AGENTS.md`. **Remove `.agents/skills/jig-*` only if Antigravity is not also installed in that repository** — both CLIs read the same directory.
 
 ---
 
@@ -156,7 +153,7 @@ In `AGENTS.md`, delete only the span between `<!-- jig:start ... -->` and `<!-- 
 
 ### What gets installed
 
-The same file-copy approach as Codex; only the rules file name and the global scope paths differ.
+Antigravity has no plugin system, so the installer copies files.
 
 project scope:
 
@@ -176,23 +173,23 @@ global scope:
 
 Antigravity CLI reads `GEMINI.md` at the workspace root as its rules file and recognizes native skills under `.agents/skills/*`.
 
-**It shares the project scope path (`.agents/skills`) with Codex.** Installing both CLIs in one repository is safe because the skill files are identical; only the rules files differ, as `AGENTS.md` and `GEMINI.md`.
+**It shares the project scope path (`.agents/skills`) with a legacy Codex file installation.** That is safe because the skill files are identical; only the rules files differ, as `GEMINI.md` and `AGENTS.md`. It is also why migrating Codex to the plugin must not delete `.agents/skills/jig-*` while Antigravity is still installed.
 
 ### Versions and removal
 
-Same as Codex. The stamp goes into the managed block in `GEMINI.md`.
+The installed version and skill selection are stamped inside the managed block in `GEMINI.md`, and `jig-update` reads that stamp to reinstall the same selection at the latest release. To remove it, run the guard cleanup from `jig-github-sync`, delete `.agents/skills/jig-*`, then delete only the span between the jig markers in `GEMINI.md`.
 
 ---
 
 ## Installer Behavior
 
-Applies to Codex and Antigravity installs only.
+Applies to Antigravity installs only. Claude Code and Codex install the `jig` plugin from their own marketplaces.
 
 ### Installer options
 
 | Option | Description |
 |---|---|
-| `--target codex\|antigravity` | The one CLI to install (required). There is no `all`, and `claude-code` is not a target |
+| `--target antigravity` | The CLI to install (required). `antigravity` is the only value; `codex` and `claude-code` use plugins |
 | `--scope project\|global` | Install scope; defaults to `project` |
 | `--github-profile <profile>` | Profile to use when the install should also wire up GitHub (optional). `--github-account` also works |
 | `--github-host <host>` | GitHub Enterprise host |
@@ -202,7 +199,7 @@ Applies to Codex and Antigravity installs only.
 | `--dry-run` | Print the planned work without changing files |
 | `--force` | Replace an existing managed file that carries no jig marker |
 
-The installer is for Codex and Antigravity only. Claude Code's plugin host owns install, update, and removal, so it never uses `install.sh`.
+The installer is for Antigravity only. The Claude Code and Codex plugin hosts own install, update, and removal there, so neither uses `install.sh`.
 
 A normal install does not prompt to change the local git user. Terminal input may still be needed when a `gh` login is required or `--configure-git-user` is used.
 
@@ -218,7 +215,7 @@ The installer checks the current state before writing. When a file is already wh
 
 ### The managed block
 
-jig owns only the span between the markers in `AGENTS.md` and `GEMINI.md`.
+jig owns only the span between the markers in `GEMINI.md` (and in `AGENTS.md` for a legacy Codex file installation).
 
 - With markers present, only that span is replaced.
 - Without markers, existing content is **preserved** and the block is appended at the end of the file.
@@ -268,13 +265,13 @@ The environment variables win over the local config. Either way, jig skills neve
 A normal install does not ask. Turn it on with an option when you want it.
 
 ```bash
-sh install.sh --target codex --scope project --configure-git-user
+sh install.sh --target antigravity --scope project --configure-git-user
 ```
 
 The values can also be passed non-interactively.
 
 ```bash
-sh install.sh --target codex --scope project \
+sh install.sh --target antigravity --scope project \
   --git-user-name "Your Name" --git-user-email "your@email.com"
 ```
 
@@ -285,6 +282,7 @@ sh install.sh --target codex --scope project \
 Whichever CLI you installed, the GitHub profile can be settled afterwards. Run the `jig-setup` skill to verify the installation and the profile, and to converge the repository onto the jig branch model.
 
 - Claude Code: `/jig:jig-setup`
-- Codex and Antigravity: `jig-setup`
+- Codex: `jig:jig-setup`
+- Antigravity: `jig-setup`
 
 The skill stores no token; it uses only the profile name from `JIG_GITHUB_PROFILE` or the local `git config`. It then runs `github-sync` to ensure `develop` and settle branch protection, and `jig-doctor` to check the state.

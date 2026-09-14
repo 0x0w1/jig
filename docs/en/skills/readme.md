@@ -15,7 +15,8 @@ Use it when starting documentation, after commands/options/paths changed, when R
 ## Invocation
 
 - Claude Code: `/jig:readme`
-- Codex and Antigravity: `jig-readme`
+- Codex: `jig:readme`
+- Antigravity: `jig-readme`
 
 ## Workflow
 

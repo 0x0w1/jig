@@ -15,7 +15,8 @@ Only when all three hold: the defect is already reachable from `main`, waiting f
 ## Invocation and inputs
 
 - Claude Code: `/jig:hotfix-flow`
-- Codex and Antigravity: `jig-hotfix-flow`
+- Codex: `jig:hotfix-flow`
+- Antigravity: `jig-hotfix-flow`
 - Inputs: a defect reachable from `origin/main`, the latest tag reachable from `main`, the project rubric, an authenticated GitHub profile
 
 ## Workflow

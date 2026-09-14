@@ -15,7 +15,8 @@ Use only after the user explicitly asks for a release and all intended changes a
 ## Invocation and inputs
 
 - Claude Code: `/jig:github-release`
-- Codex and Antigravity: `jig-github-release`
+- Codex: `jig:github-release`
+- Antigravity: `jig-github-release`
 - Inputs: clean/synced `develop`, latest reachable `vX.Y.Z` tag, project rubric, commit subjects/bodies and their `Release-Grade` trailers, authenticated GitHub profile
 
 ## Workflow

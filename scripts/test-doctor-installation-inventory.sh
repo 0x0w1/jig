@@ -15,7 +15,7 @@ extract_contract() {
 extract_contract skills/jig-update/SKILL.md > "$OUTPUTS/update-contract"
 extract_contract skills/jig-doctor/SKILL.md > "$OUTPUTS/doctor-contract"
 cmp -s "$OUTPUTS/update-contract" "$OUTPUTS/doctor-contract"
-[ "$(grep -c '^| ' "$OUTPUTS/doctor-contract")" -eq 11 ]
+[ "$(grep -c '^| ' "$OUTPUTS/doctor-contract")" -eq 12 ]
 
 write_skill() {
   skill_destination="$1"

@@ -1,6 +1,6 @@
 # jig Update
 
-<!-- jig:skill-source-digest 5107b2656d36f84ad70f69c00b391cc553d31db2 -->
+<!-- jig:skill-source-digest 0099586a275e3595f364702245221947d1cf1317 -->
 
 [한국어](../../ko/skills/jig-update.md) · [Skill index](index.md)
 
@@ -10,16 +10,17 @@
 
 ## When to use
 
-Use it to move installed Claude Code plugins, existing Claude standalone copies, Codex, and Antigravity to the latest GitHub release. It also collects release migrations, converges a project repository when appropriate, and finishes with `jig-doctor`.
+Use it to move installed Claude Code and Codex plugins, existing Claude standalone copies, and Antigravity to the latest GitHub release. It also collects release migrations, converges a project repository when appropriate, and finishes with `jig-doctor`.
 
 ## Invocation
 
 - Claude Code: `/jig:jig-update`
-- Codex and Antigravity: `jig-update`
+- Codex: `jig:jig-update`
+- Antigravity: `jig-update`
 
 ## Installation and ownership model
 
-Claude plugin scopes are host-managed. Existing standalone roots use `.jig-installation` and per-skill `.jig-provenance`; ledgerless legacy roots are admitted only through conservative identity checks. Codex and Antigravity are updated by rerunning `install.sh` once per detected target/scope with that instance's stamped selection.
+Claude plugin scopes are host-managed. Existing standalone roots use `.jig-installation` and per-skill `.jig-provenance`; ledgerless legacy roots are admitted only through conservative identity checks. The Codex plugin is refreshed through its own host with `codex plugin marketplace upgrade jig` and `codex plugin add jig@jig`. Antigravity is updated by rerunning `install.sh` once per detected scope with that instance's stamped selection. A legacy `.agents/skills/jig-*` Codex installation is no longer refreshed in place: it is reported with a manual migration to the plugin, and its shared files are never deleted for one target while the other still uses them.
 
 `dist/files.tsv` is treated as untrusted input. Standalone paths must stay inside a physical, non-symlink skill root. A name match alone never proves ownership.
 
@@ -52,7 +53,7 @@ Only line-anchored `migration-auto` and `migration-manual` blocks in release not
 
 ## Reads and writes
 
-The skill reads all installation evidence, stamps, selections, ledgers, provenance, release notes, and payload catalogs. It updates plugin scopes through the host, standalone roots through the shipped transactional helper, and Codex/Antigravity through a pinned installer. Changed file installations retain `.bak` files. `.jig/versioning.md` is project-owned and never touched.
+The skill reads all installation evidence, stamps, selections, ledgers, provenance, release notes, and payload catalogs. It updates plugin scopes through their hosts, standalone roots through the shipped transactional helper, and Antigravity through a pinned installer. Changed file installations retain `.bak` files. `.jig/versioning.md` is project-owned and never touched.
 
 ## Safety and failure behavior
 

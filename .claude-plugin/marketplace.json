@@ -1,6 +1,6 @@
 {
   "name": "jig",
-  "description": "jig — repository procedures for AI agent CLIs: same cut, every project. Skills for the develop/main CLI release flow.",
+  "description": "jig — repository procedures for AI agent CLIs: same cut, every project. Skills for the develop/main CLI release flow. Installs on Claude Code and Codex.",
   "owner": {
     "name": "0x0w1",
     "url": "https://github.com/0x0w1"
@@ -9,7 +9,7 @@
     {
       "name": "jig",
       "source": "./dist/claude-code-plugin/jig",
-      "description": "jig repository workflow skills: project setup, develop flow, CLI releases, repository sync, and lifecycle management. Skills are namespaced as /jig:<skill>."
+      "description": "jig repository workflow skills: project setup, develop flow, CLI releases, repository sync, and lifecycle management. Skills are namespaced as /jig:<skill> on Claude Code and jig:<skill> on Codex."
     }
   ]
 }

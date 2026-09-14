@@ -13,7 +13,9 @@ Each CLI is installed on its own, but diagnosis inventories all of them before j
 
 - **Claude Code plugin** is host-managed and may be enabled at project, local, user, or managed scope. Its skills are namespaced as `/jig:<skill>` and its host version is not compared with file payload tags.
 - **Claude Code standalone** is a compatibility installation under `.claude/skills` or `~/.claude/skills`. A current installation has a `.jig-installation` ledger plus per-skill `.jig-provenance`; a verified legacy copy may have no ledger yet.
-- **Codex and Antigravity** have no plugin system. Their project and global rules files carry independent managed blocks and version stamps; skill roots differ by target and scope.
+- **Codex plugin** is host-managed too, installed user-global through `codex plugin add jig@jig` from the same payload as the Claude Code plugin. Its skills are namespaced `jig:<skill>` and it carries no jig version stamp.
+- **Codex legacy files** are the retired `.agents/skills/jig-*` installation the jig installer used to write. It still loads, but the installer no longer targets Codex; report it as a migration to the plugin, owned by `jig-update`.
+- **Antigravity** has no plugin system. Its project and global rules files carry independent managed blocks and version stamps; skill roots differ by scope.
 
 ## Installation Inventory
 
@@ -28,8 +30,9 @@ Use this exact contract, shared with `jig-update`. Inventory all rows before dec
 | Claude Code | managed | `jig@jig` reported at managed scope by `claude plugin list --json` |
 | Claude Code standalone | project | valid `.jig-installation` or verified legacy jig skill set under `./.claude/skills` |
 | Claude Code standalone | user | valid `.jig-installation` or verified legacy jig skill set under `~/.claude/skills` |
-| Codex | project | jig managed block in `./AGENTS.md` |
-| Codex | global | jig managed block in `~/.codex/AGENTS.md` |
+| Codex | user | `jig@jig` installed in `codex plugin list --json`, or `[plugins."jig@jig"]` in `${CODEX_HOME:-~/.codex}/config.toml` |
+| Codex legacy files | project | jig managed block in `./AGENTS.md` |
+| Codex legacy files | global | jig managed block in `~/.codex/AGENTS.md` |
 | Antigravity | project | jig managed block in `./GEMINI.md` |
 | Antigravity | global | jig managed block in `~/.gemini/GEMINI.md` |
 <!-- jig:end installation-inventory -->
@@ -42,20 +45,22 @@ Before any `gh` command, resolve the host from `JIG_GITHUB_HOST`, local `jig.git
 
 ## Checks
 
-1. **Complete installation inventory**: inspect all ten rows in the shared contract, regardless of which agent invoked the skill.
+1. **Complete installation inventory**: inspect all eleven rows in the shared contract, regardless of which agent invoked the skill.
    - Use `claude plugin list --json` as the primary plugin inventory. Use project, local, and user settings as fallback and to prove those exact scopes; an unscoped text match proves only that the plugin exists. Report host-managed version data without comparing it with file payload tags. If the CLI and every settings source are unavailable, mark only that plugin inventory as skipped.
    - Run the standalone inspector for both project and user roots. `non-owned` means an ordinary user skill root and is not a jig defect. `source-mirror` means the jig repository's development copy and is not an installed payload. Report `legacy-unledgered`, `ledger-invalid`, `partial`, and `provenance-conflict` distinctly; the latter three belong to `jig-update` but must remain untouched by doctor.
-   - Detect Codex project/global and Antigravity project/global independently from each rules file's own jig managed block. File existence alone is not installation evidence. Read the version and `skills=` from that same block; a stamp without `skills=` means the full default set.
-   - Skill roots are target- and scope-specific: project Codex and Antigravity use `./.agents/skills`, global Codex uses `~/.agents/skills`, and global Antigravity uses `~/.gemini/config/skills`. Shared project files do not merge the two rules-file instances.
+   - Detect the Codex plugin from the Codex configuration, not from this repository: `codex plugin list --json` when the CLI is available, otherwise `[plugins."jig@jig"]` in `${CODEX_HOME:-~/.codex}/config.toml`. It installs user-global, so there is one row and it is unrelated to which directory is current. Report `enabled = false` as installed but disabled.
+   - Detect Codex legacy files and Antigravity project/global independently from each rules file's own jig managed block. File existence alone is not installation evidence. Read the version and `skills=` from that same block; a stamp without `skills=` means the full default set.
+   - Skill roots are target- and scope-specific: project Antigravity and Codex legacy files use `./.agents/skills`, global Codex legacy files use `~/.agents/skills`, and global Antigravity uses `~/.gemini/config/skills`. Shared project files do not merge the two rules-file instances.
 2. **Version and selection, per instance**: resolve the latest release tag once (`gh api repos/0x0w1/jig/releases/latest --jq .tag_name`) and report each detected instance independently.
    - Claude Code plugin: host-managed version and plugin-managed selection.
    - Claude Code standalone: ledger `version` and exact `<manifest skill>=<directory>` mappings. A verified legacy root has unknown version and selection until its first successful `jig-update`; do not claim it is current.
-   - Codex and Antigravity: that instance's rules-file stamp and `skills=` selection. Never reuse the first stamp found for another target or scope.
+   - Codex plugin: host-managed, like the Claude Code plugin. It reports no jig version; never guess one and never compare it with a file payload tag.
+   - Codex legacy files and Antigravity: that instance's rules-file stamp and `skills=` selection. Never reuse the first stamp found for another target or scope.
 3. **Drift and provenance, per instance**:
-   - Claude Code plugin is updated by the host; verify enabled state but do not compare plugin files.
+   - Both plugins are updated by their host; verify enabled state but do not compare plugin files.
    - For each versioned file installation, read that version's `dist/files.tsv`. A missing catalog means the release shipped `SKILL.md` only. Compare every selected payload path and report missing and mismatched files separately. `main`, `custom`, and unknown versions cannot prove fixed-payload drift.
-   - Codex payload path: `dist/codex/.agents/skills/jig-<skill>/<path>`. Antigravity uses its matching distribution path. Resolve the installed root from the inventory row rather than assuming project scope.
-   - Standalone unprefixed mappings such as `github-sync=github-sync` compare with the Claude Code plugin payload. Prefixed mappings such as `github-sync=jig-github-sync` compare with the Codex payload. Before comparing content, require the ledger mapping, skill directory, `SKILL.md`, and exact `.jig-provenance` to agree; use the inspector status as the finding category.
+   - Antigravity payload path: `dist/antigravity/.agents/skills/jig-<skill>/<path>`. Codex legacy files were installed from the retired `dist/codex/` tree, whose content was identical, so compare them against the Antigravity path for any release that no longer ships `dist/codex/`. Resolve the installed root from the inventory row rather than assuming project scope.
+   - Standalone unprefixed mappings such as `github-sync=github-sync` compare with the plugin payload. Prefixed mappings such as `github-sync=jig-github-sync` compare with the prefixed Antigravity payload. Before comparing content, require the ledger mapping, skill directory, `SKILL.md`, and exact `.jig-provenance` to agree; use the inspector status as the finding category.
    - A payload mismatch is drift. A missing selected file is a partial installation. A file the payload does not list is a leftover. Report leftovers without deleting them; only `jig-update` may remove one, with confirmation.
 4. **Pending migrations, per versioned instance**: for each installed version behind latest, read every newer release note (`gh release view <tag> --repo 0x0w1/jig`), then merge and de-duplicate the needed items while retaining the affected target/scope list.
    - Count **line-anchored markers only** (`^<!-- jig:start migration-auto -->$` and `^<!-- jig:start migration-manual -->$`); notes often name these markers in prose, and a substring search would count those mentions as blocks.
@@ -93,7 +98,7 @@ Checks 5–10 diagnose repository state, not global installation state. Run them
    - A marked file that matches the source but is not executable is broken.
    - `.git/hooks/pre-push.jig-user-backup` is an intentional backup only while the jig hook is installed; `github-sync` restores it during uninstall.
    - Fix owner is `github-sync`; report, never modify.
-   - **Native push hook** (second guard layer, project scope): run `scripts/manage-native-hooks.sh status` from the `github-sync` skill of the same installation. It is read-only and prints one line per host — `installed | not installed | entry drift | user entry | guard missing | leftover | host not detected | invalid json | symlink | jq missing`. `not installed`, `entry drift`, `guard missing`, and `leftover` (an entry whose host stamp is gone) go to `github-sync`; `installed`, `user entry`, and `host not detected` need nothing. When `installed`, the guard payload `.agents/skills/jig-github-sync/assets/guard-push.sh` is compared with the release payload like any other selected file, and a mismatch is drift → `jig-update`. Codex runs a hook only after the user trusted it in `/hooks`, and that state is not visible from outside: report `installed (trust: confirm in /hooks)` and never claim the Codex hook is active. Claude Code's copy ships inside the plugin and has no repository state to check.
+   - **Native push hook** (second guard layer, project scope): run `scripts/manage-native-hooks.sh status` from the `github-sync` skill of the same installation. It is read-only and prints one line per host — `installed | not installed | entry drift | user entry | guard missing | guard drift | leftover | host not detected | invalid json | symlink | jq missing`. Everything except `installed`, `user entry`, and `host not detected` goes to `github-sync`, which re-runs the manager. `guard missing` and `guard drift` describe the clone-local guard copy at `<git common dir>/jig/guard-push.sh`, which `github-sync` restores from the payload it ships; `leftover` is an entry whose host is no longer installed. Codex is detected from the Codex configuration, so a plugin-installed Codex counts even though this repository holds no Codex stamp. Codex runs a hook only after the user trusted it in `/hooks`, and that state is not visible from outside: report `installed (trust: confirm in /hooks)` and never claim the Codex hook is active. Claude Code's copy ships inside the plugin and has no repository state to check.
 9. **GitHub profile**: report whether the profile came from `JIG_GITHUB_PROFILE`, local `jig.githubProfile`, or the globally active fallback. When a profile is configured, verify its stored credential and `gh api user` identity without printing the token. A missing credential, identity mismatch, or missing local profile for a multi-account host is a `jig-setup` finding.
 
 10. **Version rubric**: resolve the path from `JIG_VERSION_RUBRIC`, then local `jig.versionRubric`, then `.jig/versioning.md`.
@@ -149,7 +154,8 @@ Write the report in the language the repository already uses for its own documen
 |---|---|---|---|---|---|
 | Claude Code | project | plugin | enabled | host-managed | plugin-managed |
 | Claude Code | user | standalone | verified | <ledger version> | <skill=directory mappings> |
-| Codex | global | managed files | current | <stamp> | <skills> |
+| Codex | user | plugin | enabled | host-managed | plugin-managed |
+| Antigravity | project | managed files | current | <stamp> | <skills> |
 
 ### Drift and provenance
 - <target>/<scope>: clean | missing files | drifted files | legacy-unledgered | ledger-invalid | partial | provenance-conflict
@@ -171,7 +177,7 @@ Write the report in the language the repository already uses for its own documen
 ### Local guard
 - pre-push: OK vN | not installed | source drift | not executable | user's own hook | blocked by core.hooksPath
 - user-hook backup: none | held for uninstall restoration | orphaned
-- native hook, codex: installed (trust: confirm in /hooks) | not installed | entry drift | user entry | guard missing | leftover | host not detected | invalid json | jq missing
+- native hook, codex: installed (trust: confirm in /hooks) | not installed | entry drift | user entry | guard missing | guard drift | leftover | host not detected | invalid json | symlink | jq missing
 - native hook, antigravity: same states, without the trust note
 - native hook, Claude Code: shipped in the plugin, nothing to check here
 

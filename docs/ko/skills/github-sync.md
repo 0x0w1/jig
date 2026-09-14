@@ -1,12 +1,12 @@
 # GitHub Sync
 
-<!-- jig:skill-source-digest e0f6735d916529e9259a0248c183a3b60e858012 -->
+<!-- jig:skill-source-digest 85240f5ac328f1b1ea924d41a3ccf8032437076e -->
 
 [English](../../en/skills/github-sync.md) · [스킬 index](index.md) · [GitHub 저장소 설정](../github-repository-settings.md)
 
 ## 개요
 
-`github-sync`는 저장소를 jig의 CLI release 모델에 수렴합니다. `main`·`develop`, 선택적 server-side protection, 그리고 두 겹의 local guard — git `pre-push` hook과, Codex·Antigravity에 네이티브로 설치하는 `PreToolUse` push hook(Claude Code는 같은 hook을 플러그인 안에 담아 배포) — 을 관리합니다. 멱등적이며 release, tag, PR template, label, Release Drafter automation은 다루지 않습니다.
+`github-sync`는 저장소를 jig의 CLI release 모델에 수렴합니다. `main`·`develop`, 선택적 server-side protection, 그리고 두 겹의 local guard — git `pre-push` hook과, Codex·Antigravity에 네이티브로 설치하는 `PreToolUse` push hook(Claude Code는 같은 hook을 플러그인 안에서 실행) — 을 관리합니다. 멱등적이며 release, tag, PR template, label, Release Drafter automation은 다루지 않습니다.
 
 ## 사용 시점
 
@@ -15,7 +15,8 @@
 ## 실행 방법과 전제 조건
 
 - Claude Code: `/jig:github-sync`
-- Codex·Antigravity: `jig-github-sync`
+- Codex: `jig:github-sync`
+- Antigravity: `jig-github-sync`
 - Git 저장소가 필요합니다. GitHub 작업에는 `gh`, 저장소 권한, `JIG_GITHUB_PROFILE` 또는 local `jig.githubProfile`이 필요합니다.
 
 ## 작업 흐름
@@ -38,8 +39,8 @@ flowchart TD
     Ask -- No --> Record[local skipped 기록]
     Apply --> Guard
     Record --> Guard
-    Guard --> Hosts{Codex 또는 Antigravity 스탬프?}
-    Hosts -- Yes --> Native[네이티브 hook 항목 추가·갱신]
+    Guard --> Hosts{Codex 플러그인 또는 Antigravity 스탬프?}
+    Hosts -- Yes --> Native[guard를 clone-local 복사 후 항목 추가·갱신]
     Hosts -- No --> Legacy
     Native --> Legacy[legacy release 파일 보고]
 ```
@@ -54,7 +55,9 @@ local guard는 `main`·`develop` 삭제와 non-fast-forward push를 막고 `main
 
 helper는 원자적으로 설치하고 jig 소유 설치본의 drift를 복구하며 `core.hooksPath`가 설정돼 있으면 설치를 거부합니다. marker가 없는 사용자 hook은 명시적 확인 없이 교체하지 않습니다. 교체가 승인되면 `.git/hooks/pre-push.jig-user-backup`으로 보존합니다.
 
-두 번째 겹은 `scripts/manage-native-hooks.sh`입니다. rules 파일에 jig 스탬프가 있는 호스트마다 hook 항목 하나를 추가합니다 — Codex는 `.codex/hooks.json`, Antigravity는 `.agents/hooks.json`. 이 항목은 모든 shell 명령 앞에서 배포된 `assets/guard-push.sh`를 실행하므로, git hook이 거부할 push나 `--no-verify`가 붙은 push는 실행 전에 거부됩니다. 항목에는 guard의 저장소 상대 경로만 들어 있어 `jig-update`가 guard를 갱신해도 항목은 바뀌지 않습니다. 파일 안의 다른 항목은 보존합니다. 병합에는 `jq`가 필요하고, 없으면 새 파일만 씁니다. Codex는 사용자가 `/hooks`에서 한 번 검토한 뒤에만 hook을 실행하므로 보고서가 매번 이를 알립니다. project scope에만 설치합니다.
+두 번째 겹은 `scripts/manage-native-hooks.sh`입니다. Codex는 플러그인 자체의 hook을 실행하지 않으므로, 감지된 호스트마다 hook 항목 하나를 추가합니다 — Codex는 `.codex/hooks.json`, Antigravity는 `.agents/hooks.json`. 이 항목은 모든 shell 명령 앞에서 guard를 실행하므로, git hook이 거부할 push나 `--no-verify`가 붙은 push는 실행 전에 거부됩니다. Codex는 Codex 설정에 jig 플러그인이 설치돼 있거나 legacy `AGENTS.md` 스탬프가 있으면 감지되고, Antigravity는 `GEMINI.md` 스탬프로 감지됩니다.
+
+manager는 배포된 `assets/guard-push.sh`를 `<git common dir>/jig/guard-push.sh`로 clone-local 복사하고 항목이 그곳을 가리키게 합니다. 덕분에 jig가 플러그인으로 왔든 스킬 파일로 왔든 같은 항목이 동작하고 플러그인 업그레이드에도 살아남습니다. 항목은 실행 시점에 그 경로를 해석하며 복사본이 없으면 통과시킵니다. 파일 안의 다른 항목은 보존합니다. 병합에는 `jq`가 필요하고, 없으면 새 파일만 씁니다. Codex는 사용자가 `/hooks`에서 한 번 검토한 뒤에만 hook을 실행하므로 보고서가 매번 이를 알립니다. project scope에만 설치합니다.
 
 ## 판단 지점과 안전 규칙
 
@@ -67,7 +70,7 @@ helper는 원자적으로 설치하고 jig 소유 설치본의 drift를 복구�
 
 ## 제거 정리
 
-현재 프로젝트에서 스킬이나 플러그인을 제거하기 전에 두 helper의 `uninstall` mode를 실행합니다 — guard payload가 아직 있을 때 네이티브 hook manager를 먼저. 네이티브 manager는 자기 항목만 제거하고, 다른 항목이 없던 파일(과 비게 된 `.codex/`)만 삭제합니다. pre-push manager는 jig 소유 marker가 있는 hook만 제거하며 승인 후 보존했던 사용자 hook이 있으면 복원합니다. user/global 설치 제거로는 모든 clone을 발견할 수 없으므로 각 프로젝트 checkout에서 명시적으로 정리해야 합니다.
+현재 프로젝트에서 스킬이나 플러그인을 제거하기 전에 두 helper의 `uninstall` mode를 실행합니다 — guard payload가 아직 있을 때 네이티브 hook manager를 먼저. 네이티브 manager는 자기 항목만 제거하고, 다른 항목이 없던 파일(과 비게 된 `.codex/`)만 삭제하며, 어떤 jig 항목도 가리키지 않게 되면 clone-local guard 복사본도 제거합니다. pre-push manager는 jig 소유 marker가 있는 hook만 제거하며 승인 후 보존했던 사용자 hook이 있으면 복원합니다. user/global 설치 제거로는 모든 clone을 발견할 수 없으므로 각 프로젝트 checkout에서 명시적으로 정리해야 합니다.
 
 ## 결과물
 

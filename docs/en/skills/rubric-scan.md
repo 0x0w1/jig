@@ -15,7 +15,8 @@ Run it before creating a rubric when the project type is unclear, or after the p
 ## Invocation and catalog
 
 - Claude Code: `/jig:rubric-scan`
-- Codex and Antigravity: `jig-rubric-scan`
+- Codex: `jig:rubric-scan`
+- Antigravity: `jig-rubric-scan`
 - Catalog resolution: `JIG_RUBRIC_CATALOG`, Claude plugin, project install, jig source repository, then user install
 
 The scan reads `rubrics/INDEX.md` first for types, detection signals, scoring, and merge rules. It reads only candidate bodies, never every rubric file. If the catalog is absent, it recommends the default through `version-rubric` rather than inventing a type.

@@ -2,7 +2,7 @@
 
 [English](../en/github-repository-settings.md)
 
-이 문서는 `install.sh`(Codex, Antigravity CLI 대상)의 GitHub 동작을 설명합니다. Claude Code는 플러그인으로 설치되어 installer를 거치지 않으므로 저장소 프로필 설정과 수렴은 설치 후 `/jig:jig-setup`으로 처리합니다.
+이 문서는 `install.sh`(Antigravity CLI 대상)의 GitHub 동작을 설명합니다. Claude Code와 Codex는 플러그인으로 설치되어 installer를 거치지 않으므로 저장소 프로필 설정과 수렴은 설치 후 `/jig:jig-setup`과 `jig:jig-setup`으로 처리합니다.
 
 jig project scope 스킬 설치에는 GitHub 프로필이 필요하지 않습니다. 프로필 없이 설치하면 GitHub Repository 설정 동기화만 건너뜁니다. 설치된 `jig-setup`이 이후 `JIG_GITHUB_PROFILE` 또는 로컬 `jig.githubProfile`을 설정합니다. 프로필 credential은 명령별 환경으로 전달하며 전역 active account를 바꾸지 않습니다.
 
@@ -15,7 +15,7 @@ jig project scope 스킬 설치에는 GitHub 프로필이 필요하지 않습니
 
 ## install.sh가 적용하는 항목
 
-`install.sh --target <codex|antigravity> --scope project`는 Agent 스킬/룰 파일을 먼저 설치합니다. 프로필이 이미 제공된 경우에만 이어서 다음 GitHub 작업을 시도합니다.
+`install.sh --target antigravity --scope project`는 Agent 스킬/룰 파일을 먼저 설치합니다. 프로필이 이미 제공된 경우에만 이어서 다음 GitHub 작업을 시도합니다.
 
 - GitHub CLI 계정 선택:
   - `--github-profile` → `JIG_GITHUB_PROFILE` → 로컬 `jig.githubProfile` 순서로 프로필을 확정합니다.
@@ -116,13 +116,13 @@ installer는 다음 상황에서 GitHub Repository 설정 작업을 건너뛰고
 파일이나 GitHub 설정을 수정하지 않고 예정 작업만 보려면 dry-run mode를 사용합니다.
 
 ```bash
-sh install.sh --target codex --scope project --dry-run
+sh install.sh --target antigravity --scope project --dry-run
 ```
 
 위 명령은 프로필 없이 스킬 설치 계획을 검증합니다. 설치 후 `jig-setup`을 실행하면 프로필을 선택하고 `develop` 브랜치와 branch protection을 수렴합니다. 설치 중 GitHub 연동까지 하려면 선택적으로 다음처럼 프로필을 전달할 수 있습니다.
 
 ```bash
-sh install.sh --target codex --scope project --github-profile your-account
+sh install.sh --target antigravity --scope project --github-profile your-account
 ```
 
 ## 로컬 pre-push 가드
@@ -133,6 +133,6 @@ sh install.sh --target codex --scope project --github-profile your-account
 - `main`/`develop` 원격 삭제 차단
 - `develop:main` fast-forward(릴리즈) 이외의 `main` 직접 push 차단
 
-`--no-verify`로 우회할 수 있는 것이 git hook의 한계입니다. jig 스킬은 우회를 금지하고, 두 번째 겹이 이를 강제합니다 — push 명령을 실행 전에 검사해 `--no-verify`를 포함한 위반 명령을 거부하는 `PreToolUse` hook입니다. Claude Code에서는 이 hook이 `jig` 플러그인 안에 들어 있습니다. Codex와 Antigravity에서는 `github-sync`가 네이티브로 설치합니다 — 배포된 `github-sync/assets/guard-push.sh`를 실행하는 항목 하나를 `.codex/hooks.json` 또는 `.agents/hooks.json`에 넣으며, `github-sync/scripts/manage-native-hooks.sh`가 자기 항목만 추가·갱신·제거하고 사용자 항목은 보존합니다. Codex는 사용자가 `/hooks`에서 한 번 검토한 뒤에만 프로젝트 hook을 실행하며 sync 보고서가 이를 알립니다. 저장소가 보호를 걸 수 있으면 서버측 branch protection이 최종 방어선이고, 걸 수 없으면 이 가드들이 유일한 방어선입니다. 두 겹 모두 진단은 `jig-doctor`, 설치·갱신은 `github-sync`가 담당합니다.
+`--no-verify`로 우회할 수 있는 것이 git hook의 한계입니다. jig 스킬은 우회를 금지하고, 두 번째 겹이 이를 강제합니다 — push 명령을 실행 전에 검사해 `--no-verify`를 포함한 위반 명령을 거부하는 `PreToolUse` hook입니다. Claude Code에서는 이 hook이 `jig` 플러그인 안에 들어 있습니다. Codex는 플러그인 자체의 hook을 실행하지 않으므로 Codex와 Antigravity에서는 `github-sync`가 네이티브로 설치합니다 — 배포된 `github-sync/assets/guard-push.sh`의 clone-local 복사본(`<git common dir>/jig/guard-push.sh`)을 실행하는 항목 하나를 `.codex/hooks.json` 또는 `.agents/hooks.json`에 넣으며, `github-sync/scripts/manage-native-hooks.sh`가 자기 항목만 추가·갱신·제거하고 사용자 항목은 보존합니다. clone-local 복사본 덕분에 jig가 플러그인으로 왔든 스킬 파일로 왔든 같은 항목이 동작합니다. Codex는 사용자가 `/hooks`에서 한 번 검토한 뒤에만 프로젝트 hook을 실행하며 sync 보고서가 이를 알립니다. 저장소가 보호를 걸 수 있으면 서버측 branch protection이 최종 방어선이고, 걸 수 없으면 이 가드들이 유일한 방어선입니다. 두 겹 모두 진단은 `jig-doctor`, 설치·갱신은 `github-sync`가 담당합니다.
 
 프로젝트에서 `github-sync`나 jig를 제거하기 전에는 스킬의 guard cleanup을 실행합니다. 네이티브 hook manager는 자기 항목만 제거하고 다른 항목이 없던 파일만 삭제합니다. pre-push manager는 jig marker가 있는 hook만 제거합니다. 기존 사용자 hook 교체를 명시적으로 허용했던 경우 uninstall이 `.jig-user-backup`을 복원합니다. plugin 또는 global scope 제거는 clone별 `.git` 디렉터리를 열거할 수 없으므로 영향받은 checkout마다 한 번씩 정리해야 합니다.

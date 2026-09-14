@@ -15,7 +15,8 @@
 ## 실행 방법과 입력
 
 - Claude Code: `/jig:github-release`
-- Codex·Antigravity: `jig-github-release`
+- Codex: `jig:github-release`
+- Antigravity: `jig-github-release`
 - 입력: clean·synced `develop`, 최신 reachable `vX.Y.Z` tag, project rubric, commit subject·body와 그 `Release-Grade` trailer, 인증된 GitHub profile
 
 ## 작업 흐름

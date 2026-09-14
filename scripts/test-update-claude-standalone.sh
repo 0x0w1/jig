@@ -13,8 +13,8 @@ mkdir -p \
   "$PAYLOAD/dist/claude-code-plugin/jig/skills/jig-update/blocked" \
   "$PAYLOAD/dist/claude-code-plugin/jig/skills/github-sync" \
   "$PAYLOAD/dist/claude-code-plugin/jig/skills/jig-setup" \
-  "$PAYLOAD/dist/codex/.agents/skills/jig-github-sync" \
-  "$PAYLOAD/dist/codex/.agents/skills/jig-setup"
+  "$PAYLOAD/dist/antigravity/.agents/skills/jig-github-sync" \
+  "$PAYLOAD/dist/antigravity/.agents/skills/jig-setup"
 
 printf '%b\n' \
   'jig-update\tsolo-cli\tyes' \
@@ -66,7 +66,7 @@ printf '%s\n' \
   '---' \
   '# jig Setup' \
   'new prefixed setup payload' \
-  > "$PAYLOAD/dist/codex/.agents/skills/jig-setup/SKILL.md"
+  > "$PAYLOAD/dist/antigravity/.agents/skills/jig-setup/SKILL.md"
 
 printf '%s\n' \
   '---' \
@@ -74,7 +74,7 @@ printf '%s\n' \
   '---' \
   '# GitHub Sync' \
   'new prefixed payload' \
-  > "$PAYLOAD/dist/codex/.agents/skills/jig-github-sync/SKILL.md"
+  > "$PAYLOAD/dist/antigravity/.agents/skills/jig-github-sync/SKILL.md"
 
 write_legacy_jig_update() {
   legacy_destination="$1"
@@ -150,7 +150,7 @@ JIG_UPDATE_RAW_BASE_URL="file://$TEST_ROOT/payload" \
   sh "$SCRIPT" --root "$USER_SKILLS" --scope user --version "$VERSION" >/dev/null
 
 cmp -s \
-  "$PAYLOAD/dist/codex/.agents/skills/jig-github-sync/SKILL.md" \
+  "$PAYLOAD/dist/antigravity/.agents/skills/jig-github-sync/SKILL.md" \
   "$USER_SKILLS/jig-github-sync/SKILL.md"
 grep -F 'old prefixed payload' "$USER_SKILLS/jig-github-sync/SKILL.md.bak" >/dev/null
 grep -Fx 'scope=user' "$USER_SKILLS/.jig-installation" >/dev/null
@@ -206,7 +206,7 @@ printf '%s\n' \
 JIG_UPDATE_RAW_BASE_URL="file://$TEST_ROOT/payload" \
   sh "$SCRIPT" --root "$LEGACY_PREFIXED_SETUP_SKILLS" --scope user --version "$VERSION" >/dev/null
 cmp -s \
-  "$PAYLOAD/dist/codex/.agents/skills/jig-setup/SKILL.md" \
+  "$PAYLOAD/dist/antigravity/.agents/skills/jig-setup/SKILL.md" \
   "$LEGACY_PREFIXED_SETUP_SKILLS/jig-project-setup/SKILL.md"
 grep -Fx 'skill=jig-setup' "$LEGACY_PREFIXED_SETUP_SKILLS/jig-project-setup/.jig-provenance" >/dev/null
 grep -Fx 'directory=jig-project-setup' "$LEGACY_PREFIXED_SETUP_SKILLS/jig-project-setup/.jig-provenance" >/dev/null

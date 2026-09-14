@@ -1,6 +1,6 @@
 # jig Setup
 
-<!-- jig:skill-source-digest 54b847980cd0da0a0d44f93f537d3b4978fda8b9 -->
+<!-- jig:skill-source-digest 8884dfdb84e0648c682bd13f4d5c0000e1877fb2 -->
 
 [한국어](../../ko/skills/jig-setup.md) · [Skill index](index.md) · [Documentation home](../index.md)
 
@@ -15,7 +15,8 @@ Use it after installing jig, when a repository has no `jig.githubProfile`, when 
 ## Invocation
 
 - Claude Code: `/jig:jig-setup`
-- Codex and Antigravity: `jig-setup`
+- Codex: `jig:jig-setup`
+- Antigravity: `jig-setup`
 - Natural language: "Finish jig setup for this repository using profile `your-account`."
 
 ## Inputs and prerequisites
@@ -47,7 +48,7 @@ flowchart TD
     Sync --> Doctor[Run jig-doctor]
 ```
 
-For Claude Code, repair means ensuring `jig@jig` is enabled at the detected scope. For Codex and Antigravity, it reruns the installer only when the managed stamp or `jig-setup` payload is incomplete, preserving the stamped selection.
+For Claude Code and Codex, repair means ensuring `jig@jig` is installed and enabled in that host; when it is missing, the skill hands over the two plugin commands rather than installing files. For Antigravity, it reruns the installer only when the managed stamp or `jig-setup` payload is incomplete, preserving the stamped selection.
 
 ## Reads and writes
 

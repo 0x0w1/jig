@@ -28,19 +28,19 @@ Setup binds the repository to the right GitHub identity, normal work lands on `d
 
 ## Choose a skill
 
-| Need | Skill | Claude Code | Codex / Antigravity |
-|---|---|---|---|
-| Finish setup | [`jig-setup`](jig-setup.md) | `/jig:jig-setup` | `jig-setup` |
-| Converge GitHub | [`github-sync`](github-sync.md) | `/jig:github-sync` | `jig-github-sync` |
-| Diagnose jig | [`jig-doctor`](jig-doctor.md) | `/jig:jig-doctor` | `jig-doctor` |
-| Clean the repository | [`repo-hygiene`](repo-hygiene.md) | `/jig:repo-hygiene` | `jig-repo-hygiene` |
-| Audit the history | [`conformance-audit`](conformance-audit.md) | `/jig:conformance-audit` | `jig-conformance-audit` |
-| Update jig | [`jig-update`](jig-update.md) | `/jig:jig-update` | `jig-update` |
-| Implement work | [`develop-task-flow`](develop-task-flow.md) | `/jig:develop-task-flow` | `jig-develop-task-flow` |
-| Ship an urgent fix | [`hotfix-flow`](hotfix-flow.md) | `/jig:hotfix-flow` | `jig-hotfix-flow` |
-| Publish a release | [`github-release`](github-release.md) | `/jig:github-release` | `jig-github-release` |
-| Maintain README | [`readme`](readme.md) | `/jig:readme` | `jig-readme` |
-| Choose a rubric | [`rubric-scan`](rubric-scan.md) | `/jig:rubric-scan` | `jig-rubric-scan` |
-| Write the rubric | [`version-rubric`](version-rubric.md) | `/jig:version-rubric` | `jig-version-rubric` |
+| Need | Skill | Claude Code | Codex | Antigravity |
+|---|---|---|---|---|
+| Finish setup | [`jig-setup`](jig-setup.md) | `/jig:jig-setup` | `jig:jig-setup` | `jig-setup` |
+| Converge GitHub | [`github-sync`](github-sync.md) | `/jig:github-sync` | `jig:github-sync` | `jig-github-sync` |
+| Diagnose jig | [`jig-doctor`](jig-doctor.md) | `/jig:jig-doctor` | `jig:jig-doctor` | `jig-doctor` |
+| Clean the repository | [`repo-hygiene`](repo-hygiene.md) | `/jig:repo-hygiene` | `jig:repo-hygiene` | `jig-repo-hygiene` |
+| Audit the history | [`conformance-audit`](conformance-audit.md) | `/jig:conformance-audit` | `jig:conformance-audit` | `jig-conformance-audit` |
+| Update jig | [`jig-update`](jig-update.md) | `/jig:jig-update` | `jig:jig-update` | `jig-update` |
+| Implement work | [`develop-task-flow`](develop-task-flow.md) | `/jig:develop-task-flow` | `jig:develop-task-flow` | `jig-develop-task-flow` |
+| Ship an urgent fix | [`hotfix-flow`](hotfix-flow.md) | `/jig:hotfix-flow` | `jig:hotfix-flow` | `jig-hotfix-flow` |
+| Publish a release | [`github-release`](github-release.md) | `/jig:github-release` | `jig:github-release` | `jig-github-release` |
+| Maintain README | [`readme`](readme.md) | `/jig:readme` | `jig:readme` | `jig-readme` |
+| Choose a rubric | [`rubric-scan`](rubric-scan.md) | `/jig:rubric-scan` | `jig:rubric-scan` | `jig-rubric-scan` |
+| Write the rubric | [`version-rubric`](version-rubric.md) | `/jig:version-rubric` | `jig:version-rubric` | `jig-version-rubric` |
 
-Claude Code names skills through the `jig` plugin namespace. Codex and Antigravity use `jig-`-prefixed skill directories, except names already beginning with `jig-` are not prefixed twice.
+Claude Code and Codex both install the `jig` plugin and name its skills through the plugin namespace; only the leading slash differs. Antigravity has no plugin system and uses `jig-`-prefixed skill directories, except names already beginning with `jig-` are not prefixed twice.

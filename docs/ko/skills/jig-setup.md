@@ -1,6 +1,6 @@
 # jig Setup
 
-<!-- jig:skill-source-digest 54b847980cd0da0a0d44f93f537d3b4978fda8b9 -->
+<!-- jig:skill-source-digest 8884dfdb84e0648c682bd13f4d5c0000e1877fb2 -->
 
 [English](../../en/skills/jig-setup.md) · [스킬 index](index.md) · [문서 홈](../index.md)
 
@@ -15,7 +15,8 @@ jig 설치 직후, `jig.githubProfile`이 없을 때, 여러 GitHub 계정 중 �
 ## 실행 방법
 
 - Claude Code: `/jig:jig-setup`
-- Codex·Antigravity: `jig-setup`
+- Codex: `jig:jig-setup`
+- Antigravity: `jig-setup`
 - 자연어: "`your-account` 프로필로 이 저장소의 jig 설정을 마무리해 줘."
 
 ## 입력과 전제 조건
@@ -47,7 +48,7 @@ flowchart TD
     Sync --> Doctor[jig-doctor 실행]
 ```
 
-Claude Code 복구는 감지된 scope에서 `jig@jig`가 enable되었는지 확인합니다. Codex와 Antigravity는 managed stamp나 `jig-setup` payload가 불완전할 때만 기존 skill 선택을 보존하며 installer를 다시 실행합니다.
+Claude Code와 Codex 복구는 해당 host에서 `jig@jig`가 설치·enable되었는지 확인하고, 없으면 파일을 설치하는 대신 플러그인 명령 두 줄을 안내합니다. Antigravity는 managed stamp나 `jig-setup` payload가 불완전할 때만 기존 skill 선택을 보존하며 installer를 다시 실행합니다.
 
 ## 읽기·변경 범위
 

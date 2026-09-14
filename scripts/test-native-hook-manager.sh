@@ -4,8 +4,7 @@ set -eu
 ROOT=$(CDPATH= cd "$(dirname "$0")/.." && pwd)
 MANAGER="$ROOT/skills/github-sync/scripts/manage-native-hooks.sh"
 GUARD_SOURCE="$ROOT/skills/github-sync/assets/guard-push.sh"
-GUARD_RELATIVE=".agents/skills/jig-github-sync/assets/guard-push.sh"
-GUARD_COMMAND='sh "$(git rev-parse --show-toplevel)/.agents/skills/jig-github-sync/assets/guard-push.sh"'
+GUARD_COMMAND='sh -c '\''guard=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)/jig/guard-push.sh; [ -f "$guard" ] || exit 0; exec sh "$guard"'\'''
 TEST_ROOT=$(mktemp -d)
 trap 'rm -rf "$TEST_ROOT"' EXIT HUP INT TERM
 
@@ -16,11 +15,18 @@ fail() {
 
 command -v jq >/dev/null 2>&1 || fail "jq is required to run these tests"
 
-# A managed project has the rules-file stamp for each installed host and the guard
-# payload under the prefixed github-sync skill directory.
+# Every run uses an empty Codex home so the machine's own plugin state never decides
+# whether the tests see Codex as installed.
+CODEX_HOME="$TEST_ROOT/codex-home"
+export CODEX_HOME
+mkdir -p "$CODEX_HOME"
+
+# A managed project carries the rules-file stamp for each installed host. The guard
+# payload comes from the manager's own sibling asset, not from the project.
 new_project() {
   project="$1"
   shift
+  rm -rf "$project"
   mkdir -p "$project"
   git -C "$project" init -q
   for host in "$@"; do
@@ -29,8 +35,6 @@ new_project() {
       antigravity) printf '# Rules\n\n<!-- jig:start github-release-setup -->\n<!-- jig:version v0.0.0 -->\n<!-- jig:end github-release-setup -->\n' > "$project/GEMINI.md" ;;
     esac
   done
-  mkdir -p "$project/$(dirname "$GUARD_RELATIVE")"
-  cp "$GUARD_SOURCE" "$project/$GUARD_RELATIVE"
 }
 
 manager() {
@@ -41,7 +45,12 @@ status_of() {
   manager "$1" status --host "$2" | sed "s/^$2: //"
 }
 
-# Fresh project with both hosts: install creates both files from the templates.
+guard_path() {
+  printf '%s/.git/jig/guard-push.sh' "$1"
+}
+
+# Fresh project with both hosts: install creates both files from the templates and
+# copies the guard clone-local.
 PROJECT="$TEST_ROOT/fresh"
 new_project "$PROJECT" codex antigravity
 [ "$(status_of "$PROJECT" codex)" = "not installed" ] || fail "fresh codex status was not 'not installed'"
@@ -49,6 +58,10 @@ new_project "$PROJECT" codex antigravity
 manager "$PROJECT" install
 [ -f "$PROJECT/.codex/hooks.json" ] || fail "install did not create .codex/hooks.json"
 [ -f "$PROJECT/.agents/hooks.json" ] || fail "install did not create .agents/hooks.json"
+GUARD=$(guard_path "$PROJECT")
+[ -f "$GUARD" ] || fail "install did not copy the guard clone-local"
+[ -x "$GUARD" ] || fail "the clone-local guard is not executable"
+cmp -s "$GUARD_SOURCE" "$GUARD" || fail "the clone-local guard differs from the shipped source"
 jq -e --arg cmd "$GUARD_COMMAND" '.hooks.PreToolUse[0].matcher == "Bash" and .hooks.PreToolUse[0].hooks[0].command == $cmd and .hooks.PreToolUse[0].hooks[0].statusMessage == "jig guard-push"' \
   "$PROJECT/.codex/hooks.json" >/dev/null || fail "codex template does not carry the jig entry"
 jq -e --arg cmd "$GUARD_COMMAND" '.["jig-guard-push"].PreToolUse[0].matcher == "run_command" and .["jig-guard-push"].PreToolUse[0].hooks[0].command == $cmd' \
@@ -56,34 +69,53 @@ jq -e --arg cmd "$GUARD_COMMAND" '.["jig-guard-push"].PreToolUse[0].matcher == "
 [ "$(status_of "$PROJECT" codex)" = "installed" ] || fail "codex status after install was not 'installed'"
 [ "$(status_of "$PROJECT" antigravity)" = "installed" ] || fail "antigravity status after install was not 'installed'"
 
-# The installed entry runs the guard through the same command the hook file carries.
+# The installed entry command runs the guard from anywhere inside the worktree.
+mkdir -p "$PROJECT/nested/deeper"
 (
-  cd "$PROJECT"
-  command_line=$(jq -r '.hooks.PreToolUse[0].hooks[0].command' .codex/hooks.json)
+  cd "$PROJECT/nested/deeper"
+  command_line=$(jq -r '.hooks.PreToolUse[0].hooks[0].command' "$PROJECT/.codex/hooks.json")
   if printf '{"tool_input":{"command":"git push --force origin main"}}' | sh -c "$command_line" 2>/dev/null; then
     exit 1
   fi
   printf '{"toolCall":{"args":{"CommandLine":"git push origin main"}}}' | sh -c "$command_line" | grep -Fq '"decision":"deny"'
-) || fail "the installed hook command did not run the guard"
+) || fail "the installed hook command did not run the guard from a subdirectory"
 
-# Re-running is idempotent and leaves the file byte-identical.
+# With the guard absent the entry passes rather than erroring: the git hook and
+# server-side protection are the backstops.
+mv "$GUARD" "$TEST_ROOT/guard-parked"
+(
+  cd "$PROJECT"
+  command_line=$(jq -r '.hooks.PreToolUse[0].hooks[0].command' "$PROJECT/.codex/hooks.json")
+  printf '{"tool_input":{"command":"git push --force origin main"}}' | sh -c "$command_line"
+) || fail "the hook entry failed instead of passing when the guard was missing"
+[ "$(status_of "$PROJECT" codex)" = "guard missing" ] || fail "a missing clone-local guard was not reported"
+mv "$TEST_ROOT/guard-parked" "$GUARD"
+printf '#!/bin/sh\n# jig:guard-push v0\nexit 0\n' > "$GUARD"
+[ "$(status_of "$PROJECT" codex)" = "guard drift" ] || fail "a drifted clone-local guard was not reported"
+manager "$PROJECT" install
+cmp -s "$GUARD_SOURCE" "$GUARD" || fail "install did not repair the drifted guard"
+[ "$(status_of "$PROJECT" codex)" = "installed" ] || fail "codex status after guard repair was not 'installed'"
+
+# Re-running is idempotent and leaves the files byte-identical.
 cp "$PROJECT/.codex/hooks.json" "$TEST_ROOT/codex-before"
 cp "$PROJECT/.agents/hooks.json" "$TEST_ROOT/antigravity-before"
 manager "$PROJECT" install
 cmp -s "$TEST_ROOT/codex-before" "$PROJECT/.codex/hooks.json" || fail "a second install rewrote .codex/hooks.json"
 cmp -s "$TEST_ROOT/antigravity-before" "$PROJECT/.agents/hooks.json" || fail "a second install rewrote .agents/hooks.json"
 
-# Uninstall removes a file jig created alone, and the .codex directory it created.
-manager "$PROJECT" uninstall
+# Uninstalling one host keeps the guard while the other host still points at it.
+manager "$PROJECT" uninstall --host codex
 [ ! -e "$PROJECT/.codex/hooks.json" ] || fail "uninstall left .codex/hooks.json behind"
 [ ! -e "$PROJECT/.codex" ] || fail "uninstall left an empty .codex directory behind"
+[ -f "$GUARD" ] || fail "uninstalling one host removed the guard the other host still uses"
+manager "$PROJECT" uninstall
 [ ! -e "$PROJECT/.agents/hooks.json" ] || fail "uninstall left .agents/hooks.json behind"
-[ -d "$PROJECT/.agents/skills" ] || fail "uninstall removed the skills directory"
+[ ! -e "$GUARD" ] || fail "the final uninstall left the clone-local guard behind"
 
 # Existing user hooks are preserved through install and uninstall.
 PROJECT="$TEST_ROOT/merge"
 new_project "$PROJECT" codex antigravity
-mkdir -p "$PROJECT/.codex"
+mkdir -p "$PROJECT/.codex" "$PROJECT/.agents"
 cat > "$PROJECT/.codex/hooks.json" <<'EOF'
 {
   "hooks": {
@@ -117,11 +149,12 @@ manager "$PROJECT" uninstall
 jq -e '.userSetting == true and (.hooks.PreToolUse | length) == 1 and (.hooks.PostToolUse | length) == 1 and ([.. | strings | select(contains("guard-push"))] | length) == 0' \
   "$PROJECT/.codex/hooks.json" >/dev/null || fail "codex uninstall did not leave exactly the user entries"
 jq -e 'has("my-linter") and (has("jig-guard-push") | not)' "$PROJECT/.agents/hooks.json" >/dev/null || fail "antigravity uninstall did not leave exactly the user group"
+[ ! -e "$(guard_path "$PROJECT")" ] || fail "uninstall left the guard behind with no jig entry remaining"
 
 # An outdated jig entry is repaired in place.
 PROJECT="$TEST_ROOT/drift"
 new_project "$PROJECT" codex antigravity
-mkdir -p "$PROJECT/.codex"
+mkdir -p "$PROJECT/.codex" "$PROJECT/.agents"
 cat > "$PROJECT/.codex/hooks.json" <<'EOF'
 {"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"sh /old/path/guard-push.sh","statusMessage":"jig guard-push"}]}]}}
 EOF
@@ -140,7 +173,7 @@ PROJECT="$TEST_ROOT/user-entry"
 new_project "$PROJECT" codex
 mkdir -p "$PROJECT/.codex"
 cat > "$PROJECT/.codex/hooks.json" <<'EOF'
-{"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"sh .agents/skills/jig-github-sync/assets/guard-push.sh"}]}]}}
+{"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"sh .git/jig/guard-push.sh"}]}]}}
 EOF
 cp "$PROJECT/.codex/hooks.json" "$TEST_ROOT/user-entry-before"
 [ "$(status_of "$PROJECT" codex)" = "user entry" ] || fail "a user entry pointing at the guard was not reported"
@@ -161,23 +194,22 @@ rm "$PROJECT/AGENTS.md"
 manager "$PROJECT" uninstall
 [ ! -e "$PROJECT/.codex/hooks.json" ] || fail "uninstall did not clear the leftover"
 
-# Install refuses when the guard payload is missing, and reports it afterwards.
-PROJECT="$TEST_ROOT/no-guard"
-new_project "$PROJECT" codex
-rm "$PROJECT/$GUARD_RELATIVE"
-if manager "$PROJECT" install 2>/dev/null; then
-  fail "install accepted a missing guard payload"
-fi
-[ ! -e "$PROJECT/.codex/hooks.json" ] || fail "blocked install wrote a hook file"
-new_project "$PROJECT" codex
-manager "$PROJECT" install
-rm "$PROJECT/$GUARD_RELATIVE"
-[ "$(status_of "$PROJECT" codex)" = "guard missing" ] || fail "a missing guard payload was not reported"
+# Codex installed as a plugin has no rules-file stamp; the Codex config is the evidence.
+PROJECT="$TEST_ROOT/codex-plugin"
+new_project "$PROJECT"
+[ "$(status_of "$PROJECT" codex)" = "host not detected" ] || fail "codex was detected without plugin or stamp evidence"
+printf '[plugins."jig@jig"]\nenabled = true\n' > "$CODEX_HOME/config.toml"
+[ "$(status_of "$PROJECT" codex)" = "not installed" ] || fail "a plugin-installed Codex was not detected"
+manager "$PROJECT" install --host codex
+[ -f "$PROJECT/.codex/hooks.json" ] || fail "plugin-installed Codex did not get a hook entry"
+[ "$(status_of "$PROJECT" codex)" = "installed" ] || fail "plugin-installed Codex status was not 'installed'"
+manager "$PROJECT" uninstall --host codex
+rm -f "$CODEX_HOME/config.toml"
 
 # Invalid JSON and symlinks are refused without changes.
 PROJECT="$TEST_ROOT/invalid"
 new_project "$PROJECT" codex antigravity
-mkdir -p "$PROJECT/.codex"
+mkdir -p "$PROJECT/.codex" "$PROJECT/.agents"
 printf '{ not json' > "$PROJECT/.codex/hooks.json"
 printf '[]' > "$PROJECT/.agents/hooks.json"
 [ "$(status_of "$PROJECT" codex)" = "invalid json" ] || fail "invalid JSON was not reported for codex"
@@ -203,14 +235,16 @@ fi
 # Without jq: a fresh file is still written from the template; an existing file is never touched.
 SHIM="$TEST_ROOT/bin"
 mkdir -p "$SHIM"
-for tool in sh git grep cat mv rm rmdir mkdir mktemp dirname sed; do
+for tool in sh git grep cat mv cp rm rmdir mkdir mktemp dirname sed chmod cmp printf; do
   tool_path=$(command -v "$tool" 2>/dev/null || true)
   [ -n "$tool_path" ] && ln -s "$tool_path" "$SHIM/$tool" 2>/dev/null || true
 done
 PROJECT="$TEST_ROOT/no-jq"
 new_project "$PROJECT" codex antigravity
 (cd "$PROJECT" && PATH="$SHIM" sh "$MANAGER" install --host codex) || fail "without jq install could not write a fresh file"
-jq -e '.hooks.PreToolUse[0].hooks[0].statusMessage == "jig guard-push"' "$PROJECT/.codex/hooks.json" >/dev/null || fail "template written without jq is not the jig entry"
+jq -e --arg cmd "$GUARD_COMMAND" '.hooks.PreToolUse[0].hooks[0].command == $cmd and .hooks.PreToolUse[0].hooks[0].statusMessage == "jig guard-push"' \
+  "$PROJECT/.codex/hooks.json" >/dev/null || fail "template written without jq is not the jig entry"
+mkdir -p "$PROJECT/.agents"
 printf '{"my-linter":{}}' > "$PROJECT/.agents/hooks.json"
 if (cd "$PROJECT" && PATH="$SHIM" sh "$MANAGER" install --host antigravity 2>/dev/null); then
   fail "without jq install merged into an existing file"

@@ -1,12 +1,12 @@
 # GitHub Sync
 
-<!-- jig:skill-source-digest e0f6735d916529e9259a0248c183a3b60e858012 -->
+<!-- jig:skill-source-digest 85240f5ac328f1b1ea924d41a3ccf8032437076e -->
 
 [한국어](../../ko/skills/github-sync.md) · [Skill index](index.md) · [Repository settings](../github-repository-settings.md)
 
 ## Overview
 
-`github-sync` converges a repository on jig's CLI release model: `main` and `develop`, optional server-side protection, and two layers of local guard — the git `pre-push` hook, and a `PreToolUse` push hook installed natively for Codex and Antigravity (Claude Code ships the same hook inside the plugin). It is idempotent and deliberately excludes releases, tags, pull-request templates, labels, and Release Drafter automation.
+`github-sync` converges a repository on jig's CLI release model: `main` and `develop`, optional server-side protection, and two layers of local guard — the git `pre-push` hook, and a `PreToolUse` push hook installed natively for Codex and Antigravity (Claude Code runs the same hook from inside the plugin). It is idempotent and deliberately excludes releases, tags, pull-request templates, labels, and Release Drafter automation.
 
 ## When to use
 
@@ -15,7 +15,8 @@ Use it during `jig-setup`, after `jig-update`, when `develop` is missing, when p
 ## Invocation and prerequisites
 
 - Claude Code: `/jig:github-sync`
-- Codex and Antigravity: `jig-github-sync`
+- Codex: `jig:github-sync`
+- Antigravity: `jig-github-sync`
 - Requires a Git repository. GitHub operations additionally require `gh`, repository access, and the profile selected by `JIG_GITHUB_PROFILE` or local `jig.githubProfile`.
 
 ## Workflow
@@ -38,8 +39,8 @@ flowchart TD
     Ask -- No --> Record[Record skipped locally]
     Apply --> Guard
     Record --> Guard
-    Guard --> Hosts{Codex or Antigravity stamp?}
-    Hosts -- Yes --> Native[Add or refresh the native hook entry]
+    Guard --> Hosts{Codex plugin or Antigravity stamp?}
+    Hosts -- Yes --> Native[Copy the guard clone-local, add or refresh the entry]
     Hosts -- No --> Legacy
     Native --> Legacy[Report legacy release files]
 ```
@@ -54,7 +55,9 @@ The local guard blocks deletion and non-fast-forward pushes to `main`/`develop`,
 
 The helper installs atomically, repairs a jig-owned drifted copy, and refuses a configured `core.hooksPath`. It never replaces an unmarked user hook without explicit confirmation. If replacement is approved, it preserves that hook as `.git/hooks/pre-push.jig-user-backup`.
 
-The second layer is `scripts/manage-native-hooks.sh`. For each host whose rules file carries the jig stamp it adds one hook entry — `.codex/hooks.json` for Codex, `.agents/hooks.json` for Antigravity — that runs the shipped `assets/guard-push.sh` before any shell command; a push that the git hook would refuse, or that carries `--no-verify`, is refused before it runs. The entry holds only the guard's repository-relative path, so `jig-update` refreshes the guard without changing the entry. Other entries in either file are preserved; merging needs `jq`, and without it the manager writes only a fresh file. Codex runs a hook only after the user reviews it once in `/hooks`; the report says so every time. Project scope only.
+The second layer is `scripts/manage-native-hooks.sh`. Codex does not run a plugin's own hooks, so for each detected host it adds one hook entry — `.codex/hooks.json` for Codex, `.agents/hooks.json` for Antigravity — that runs the guard before any shell command; a push the git hook would refuse, or one carrying `--no-verify`, is refused before it runs. Codex counts as detected when the Codex configuration shows the jig plugin installed or the legacy `AGENTS.md` stamp is present; Antigravity counts on its `GEMINI.md` stamp.
+
+The manager copies the shipped `assets/guard-push.sh` clone-local to `<git common dir>/jig/guard-push.sh` and points the entry there, so one entry works whether jig arrived as a plugin or as skill files and survives a plugin upgrade. The entry resolves that path at run time and passes when the copy is absent. Other entries in either file are preserved; merging needs `jq`, and without it the manager writes only a fresh file. Codex runs a hook only after the user reviews it once in `/hooks`; the report says so every time. Project scope only.
 
 ## Decision points and safety
 
@@ -67,7 +70,7 @@ The second layer is `scripts/manage-native-hooks.sh`. For each host whose rules 
 
 ## Uninstall cleanup
 
-Run both helpers' `uninstall` modes before removing the skill or plugin from the current project — the native hook manager first, while the guard payload still exists. The native manager removes only its own entry and deletes the file (and an emptied `.codex/`) only when nothing else was in it; the pre-push manager removes only a hook with the jig ownership marker and restores the confirmed user-hook backup when present. Removing a user/global installation cannot discover every clone, so each project checkout must be cleaned explicitly.
+Run both helpers' `uninstall` modes before removing the skill or plugin from the current project — the native hook manager first, while the guard payload still exists. The native manager removes only its own entry, deletes the file (and an emptied `.codex/`) only when nothing else was in it, and removes the clone-local guard copy once no jig entry points at it; the pre-push manager removes only a hook with the jig ownership marker and restores the confirmed user-hook backup when present. Removing a user/global installation cannot discover every clone, so each project checkout must be cleaned explicitly.
 
 ## Outputs
 
