@@ -43,20 +43,40 @@ So `github-sync` never applies it silently.
 
 1. It reads `private` and `permissions.admin` from `gh api repos/<owner>/<repo>`.
 2. If the repository cannot have protection, it logs one line and moves on. Not a failure.
-3. If it can, it **asks once** — "this repository is public (or on a plan that includes it), so `main` and `develop` can be protected. Set that up now?"
+3. Classify each branch. A satisfied policy needs no write or question; ask only for an unapproved change. A protected branch does not authorize changing the other branch. Preserve a recorded `skipped` choice; record already-satisfied `enabled` only when both branches satisfy the baseline and no skipped choice exists.
 4. The answer is recorded in `git config --local jig.branchProtection` as `enabled` or `skipped`, and the next sync does not ask again. The value lives in `.git/config`, so it does not reach clones; a collaborator answers separately on their own machine.
 
-`jig-doctor` reads the same way. A `403` means "outside this plan" and is not a defect; a `404` with `skipped` recorded means the user declined. Neither produces a recommended action.
+`jig-doctor` reads the same way. A `403` means a plan or permission limit and is not a defect; a `404` with `skipped` recorded means the user declined. Neither produces a recommended action, and neither does a policy stronger than jig's baseline: `jig-doctor` reports required reviews and required checks as the repository's own, never as drift.
 
 **Without protection, the local `pre-push` guard is the only barrier.** Both skills say so in their report.
 
 jig never creates or edits rulesets. A repository already governed by one is left alone and reported as protected.
 
-### The Policy That Gets Applied
+### What Gets Applied
 
-Both `main` and `develop` forbid force pushes and branch deletion.
+jig guarantees **two things** on `main` and `develop`: force pushes are blocked and the branch cannot be deleted. It requires neither pull-request reviews nor status checks.
 
-The same policy applies to both: no pull request required, no required status checks. `develop` takes the identical body at `branches/develop/protection`.
+**Not requiring them is not the same as removing them.** A repository that already requires two approvals and a green CI run keeps requiring them after a sync. Those settings belong to the repository, not to jig.
+
+So `github-sync` reads the branch's current protection first and classifies it:
+
+```bash
+sh scripts/classify-protection.sh --file <response.json>
+sh scripts/plan-protection.sh < <response.json>
+```
+
+| `verdict` | What the sync does |
+|---|---|
+| `absent` | offers the two guarantees; there is no existing policy to preserve |
+| `satisfied` | nothing. Both guarantees already hold, whether by jig's baseline or a stronger policy |
+| `needs-tightening` | plans a lossless update, or blocks unsupported data |
+| `unreadable` | changes nothing and reports it |
+
+The helpers run locally with `jq` on a saved API response; preserve HTTP status separately. Generic 404s, auth/rate-limit errors, and incomplete flags are unreadable, not absent. Only a verified `Branch not protected` response permits a new-policy plan.
+
+The planner emits `none`, `update` with a PUT-compatible `body`, or `blocked` without a body. It preserves supported reviews, check app bindings, actor restrictions, and flags while changing only force pushes/deletion. GET objects cannot be sent unchanged to PUT. Unknown/incomplete fields and signature protection requiring another endpoint block updates. Planning does not authorize sending: reuse an approved `enabled` choice, preserve `skipped`, re-read before sending, and verify all preserved controls afterward. Concurrent administrator writes remain a limitation. See the [GitHub update API](https://docs.github.com/en/rest/branches/branch-protection#update-branch-protection) for the request contract.
+
+Only after verified absence and approval, a new policy uses these required baseline fields:
 
 ```bash
 gh api -X PUT "repos/<owner>/<repo>/branches/main/protection" --input - <<'EOF'
@@ -66,11 +86,12 @@ gh api -X PUT "repos/<owner>/<repo>/branches/main/protection" --input - <<'EOF'
   "required_pull_request_reviews": null,
   "restrictions": null,
   "allow_force_pushes": false,
-  "allow_deletions": false,
-  "required_conversation_resolution": false
+  "allow_deletions": false
 }
 EOF
 ```
+
+For a branch that already has a policy, the same call carries that policy's own `required_status_checks`, `required_pull_request_reviews`, `restrictions`, and `enforce_admins` values back into the body, changing only `allow_force_pushes` or `allow_deletions`. `develop` is handled the same way at `branches/develop/protection`.
 
 ## When It Stops
 

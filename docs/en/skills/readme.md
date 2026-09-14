@@ -1,6 +1,6 @@
 # README Skill
 
-<!-- jig:skill-source-digest 146d9e857d0230dd6db022b80f8b28db1a654e90 -->
+<!-- jig:skill-source-digest ff8e7b1cf64d75370b091a29dd2d9dbab7ca1daa -->
 
 [한국어](../../ko/skills/readme.md) · [Skill index](index.md)
 
@@ -41,14 +41,17 @@ flowchart TD
     Preserve --> Report[Report no drift]
     Validate --> Compress{Create or update?}
     Compress -- Create --> Applied[Compress while drafting]
-    Compress -- Update --> Proposal[Propose each move, then ask]
-    Proposal --> Answer{User accepts?}
+    Compress -- Update --> Proposal[Name each proposed move]
+    Proposal --> Already{Restructuring already requested?}
+    Already -- Yes --> Applied
+    Already -- No --> Answer{User accepts?}
     Answer -- Yes --> Applied
     Answer -- No --> Kept[Keep the README as it is, report the proposal]
-    Applied --> Flow{develop-task-flow available?}
+    Applied --> Flow{Authorized Git scope?}
     Kept --> Flow
-    Flow -- Yes --> Merge[Use docs commit through develop]
-    Flow -- No --> Propose[Propose normal commit]
+    Flow -- Local --> Report[Report working tree]
+    Flow -- Commit --> Commit[Commit only]
+    Flow -- Land --> Merge[Adopted develop flow or repository workflow]
 ```
 
 CLI projects add commands/options, libraries add an API summary and example, and services/apps add development/production startup and required environment variables.
@@ -83,21 +86,23 @@ The rest of the pass is about what earns its place near the top:
 - command blocks differing by one argument merge into one
 - past about four sections, a one-line link row goes under the title
 
-On an existing README none of this happens silently. The skill names each repeated fact, where it would move, and asks first; a declined proposal is still reported.
+On an existing README none of this happens silently. The skill names each repeated fact and its destination. Requested compression/restructuring proceeds without asking again; otherwise it asks about the proposed structural change and reports declined proposals.
 
 ## Reads and writes
 
-It reads manifests, lock files, entrypoints, CLI definitions, scripts, service configs, docs, and examples. It writes only README content justified by those files. On existing READMEs it first collects a drift list and leaves still-accurate sections untouched.
+It reads manifests, lock files, entrypoints, CLI definitions, scripts, service configs, docs, and examples. It writes only README content justified by those files. On existing READMEs it collects drift and preserves accurate content while applying requested editing or restructuring.
 
 ## Accuracy, layout, and safety
 
 - Commands must exist in code or build/install files; every local link target must exist.
 - Do not invent badges, integrations, options, or features.
 - Keep identifier-table descriptions short enough that names do not wrap; use lists when explanations are long.
-- Never restructure a published README without asking: the compression pass proposes moves on the update path and applies them only after the user accepts.
+- Never restructure a published README without asking — unless the user already asked for that compression or restructuring, in which case it is applied and reported rather than put back as a question. An instruction already given is not re-confirmed.
+- Inspect the existing diff and preserve user work. Editing a modified README needs no fresh approval unless it discards content outside the approved change.
+- Delegate only in a repository that adopted `develop-task-flow`, passing current limits and explicitly approved standing policy. Local work stays uncommitted; commit-only scope stops before landing.
 - Write `.jig/readme.md` only on acceptance, never as a side effect of an ordinary README update, and never over an existing profile without confirmation.
 - Preserve existing language. A new README follows repository language, defaulting to English.
-- When `develop-task-flow` exists, merge through a `docs:` squash commit on `develop`.
+- When landing is already authorized, use a `docs:` squash commit on `develop` without re-confirming. Skill availability alone authorizes nothing.
 
 ## Outputs
 

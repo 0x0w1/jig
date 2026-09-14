@@ -1,6 +1,6 @@
 # Version Rubric
 
-<!-- jig:skill-source-digest 375edc3423f217fcd16535adf734db28a402e692 -->
+<!-- jig:skill-source-digest af9061e8cf58f4efbba7e0f7ea0b9bf09e6dc67b -->
 
 [English](../../en/skills/version-rubric.md) · [스킬 index](index.md) · [Rubric 계약](../version-rubric.md)
 
@@ -28,38 +28,31 @@ legacy Korean title도 유효하지만 English title과 한 파일에서 섞으�
 
 ```mermaid
 flowchart TD
-    Resolve[rubric path·source 해석] --> Exists{file 존재?}
-    Exists -- Yes --> Review[basis·grade·title·commit state 보고]
-    Review --> Intent{Keep·re-set·edit·reset·convert·add paths?}
-    Intent -- Keep --> Report[변경 없음]
-    Intent -- Edit --> Edit[요청한 grade 또는 title만 변경]
-    Intent -- Add paths --> Paths[Interface Paths 표 추가]
-    Intent -- Re-set --> Offer[default를 보여주고 한 번 질문]
-    Intent -- Reset --> Default[새 Basis로 default 작성]
-    Exists -- No --> Offer
-    Offer -- Yes --> Default
-    Offer -- No --> Catalog[catalog 제시 또는 rubric-scan]
-    Catalog --> Fit{type 적합?}
-    Fit -- Yes --> Adopt[선택 draft 작성]
-    Fit -- No --> Custom[3개 grade의 project 용어 수집]
-    Paths --> Commit[develop-task-flow로 commit 위임]
-    Edit --> Commit
-    Default --> Commit
-    Adopt --> Commit
-    Custom --> Commit
-    Commit --> Report
+    Resolve[해석된 기준과 요청 확인] --> Review{검토만 요청?}
+    Review -- Yes --> Report[쓰기 없이 보고]
+    Review -- No --> Choice{구체적 기준 변경 승인됨?}
+    Choice -- Yes --> Write[승인된 변경만 작성]
+    Choice -- No --> Propose[현재 기준·제안 표시 후 질문]
+    Propose -- 수락 --> Write
+    Propose -- 무응답 --> Report
+    Propose -- 거절 --> Catalog[카탈로그 제안 또는 프로젝트 결정 수집]
+    Catalog --> Choice
+    Write --> Scope{승인된 Git 상한?}
+    Scope -- Local --> Uncommitted[미커밋 보고]
+    Scope -- Commit --> Commit[커밋만 위임]
+    Scope -- Land --> Flow[승인된 저장소 흐름 위임]
 ```
 
 default는 human intervention을, catalog draft는 SemVer consumer compatibility를 판정합니다. 두 axis는 대안이며 question을 섞지 말고 하나를 전체로 adoption해야 합니다.
 
 ## 읽기·변경 범위
 
-해석된 rubric, Git commit state, catalog `INDEX.md`, 선택된 catalog draft 하나, repository context를 읽습니다. rubric path와 parent `.jig/` 디렉터만 쓰고, 가능하면 commit을 `develop-task-flow`로 위임합니다. catalog는 shipped payload이므로 project 선택을 기록하기 위해 편집하지 않습니다.
+해석된 기준·Git 상태와 필요한 경우 카탈로그 목록·관련 초안 하나, 작업에 필요한 저장소 맥락을 읽습니다. 승인된 기준 변경만 작성하고 검토는 읽기 전용입니다. Git 작업은 채택된 `develop-task-flow`에 현재 제한과 명시적으로 승인된 기존 정책을 전달합니다. 로컬 변경은 미커밋, 커밋만 승인되면 병합 전 중단, 이미 승인된 반영은 재확인 없이 진행합니다. 기준 스킬은 브랜치·태그·보호·릴리즈를 직접 관리하지 않으며 카탈로그는 배포 자료로 유지합니다.
 
 ## 판단 지점과 안전 규칙
 
-- 기존 rubric을 교체하기 전에 내용을 보여주고 확인합니다.
-- create·re-set 질문에 답하지 않으면 default를 adoption하고 `> Basis:`에 기록합니다.
+- 기존 기준을 보여주고 구체적 교체에 대한 명시적 결정을 따릅니다. 이미 받은 결정은 다시 묻지 않습니다.
+- 침묵은 승인이 아닙니다. create·re-set 질문에 답이 없으면 아무것도 쓰지 않고 default를 제안으로 보고한 뒤 멈춥니다. 요청이 이미 default 사용을 승인했을 때만 재질문 없이 씁니다. 기존 기준 교체도 명시적인 교체 결정이 필요합니다. 일반적인 설치 요청이나 침묵은 승인이 아닙니다.
 - 사용자의 언어와 용어를 보존합니다. 임의 rephrase는 향후 grading을 바꾸기 때문입니다.
 - 무단 translate·retitle, `.bak` 생성, catalog 편집, release grading, GitHub 설정 변경, 강제 commit을 하지 않습니다.
 - untracked·uncommitted rubric을 덮어쓰기 전에 경고합니다.

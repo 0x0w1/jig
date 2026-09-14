@@ -1,11 +1,46 @@
 ---
 name: develop-task-flow
-description: Use for ordinary implementation tasks in this repository that should start from develop, create a feature/fix/chore branch, complete changes and tests, squash-merge the branch back into develop locally, and push develop. No pull requests.
+description: "Use for ordinary implementation tasks in a repository that has adopted the jig develop/main model: start from develop, create a feature/fix/chore branch, complete changes and tests, squash-merge back into develop locally, and push develop. No pull requests. Execution scope comes from the current request and explicitly approved repository policy; installation or branch names alone grant no permission."
 ---
 
 # Develop Task Flow
 
 Use this repository skill for normal development work requested by the user.
+
+## Applies When
+
+**Installation is not adoption.** jig can be installed user-global — a Claude Code user-scope plugin, a Codex plugin — and is then present in every repository on the machine, including ones that never took up this branch model. Being loaded here says nothing about how this repository works.
+
+Adoption comes from repository instructions or an earlier explicit user decision to use jig's `develop/main` flow. Installing or loading jig, and branch names alone, do not establish that decision. Read the relevant repository policy; do not introduce a new configuration flag.
+
+Check the branch prerequisites separately, using local and remote-tracking refs for both `main` and `develop`:
+
+```bash
+git show-ref --verify --quiet refs/heads/main || git show-ref --verify --quiet refs/remotes/origin/main
+git show-ref --verify --quiet refs/heads/develop || git show-ref --verify --quiet refs/remotes/origin/develop
+```
+
+- **Adopted, prerequisites present** → use the branch model within Execution Scope.
+- **Not adopted, unclear, or prerequisites missing** → complete authorized local work and verification under the repository's own workflow. Do not create `develop`, infer approval to push, or replace that workflow. If committing was requested, follow its existing commit policy. Report any prerequisite that blocks an authorized landing; `jig-setup` or `github-sync` can establish the model when adoption/setup is requested.
+
+## Execution Scope
+
+Distinguish four stages; permission for one does not imply later stages:
+
+| Stage | What it does |
+|---|---|
+| 1. Edit and verify | requested file edits and relevant checks |
+| 2. Commit | record task changes in Git |
+| 3. Land | task branch, squash merge, push `develop` |
+| 4. Release | promote, tag, publish via `github-release` |
+
+Set the ceiling from the user's current request and repository policy they have explicitly approved:
+
+1. **Current limits win.** Local only, no commit, no merge, no push, or leave for review limits this task even under a standing landing policy. A review/diagnosis request authorizes inspection and reporting; edit files only when fixes are also requested. Implement/fix/update authorizes the work, but those verbs alone do not authorize committing or pushing.
+2. **Reuse standing approval.** If repository instructions already authorize committing and landing ordinary tasks, complete those stages without asking again unless the current request limits them. Adopting branch names alone is not that authorization. With no approval for a later stage, finish the authorized work and report it; do not make an optional commit/push question block local implementation.
+3. **Release is separate.** Stage 4 always needs an explicit release request and belongs to `github-release`.
+
+**Being called by another skill does not widen scope.** `readme`, `version-rubric`, and other callers pass the original request and its ceiling. Their ability to delegate a commit grants no additional permission. Decide reversible implementation details within the approved change; ask only for unresolved user decisions needed to proceed.
 
 ## Branch Model
 
@@ -14,7 +49,7 @@ Use this repository skill for normal development work requested by the user.
   - `feature/<slug>` for user-visible features or enhancements.
   - `fix/<slug>` for bug, regression, or security fixes.
   - `chore/<slug>` for tooling, dependencies, refactors, docs, or automation setup.
-- Finish the task by squash-merging the branch into `develop` locally and pushing `develop`. There are no pull requests.
+- When landing is authorized, finish the task by squash-merging the branch into `develop` locally and pushing `develop`. There are no pull requests.
 - Ordinary code, config, documentation, generated `dist`, workflow, and installer changes must follow this flow before any release can include them.
 - A release promotes `develop` to `main` with a fast-forward push; it is not a task. Use `github-release` for releases.
 
@@ -62,12 +97,12 @@ Release-Grade: minor
 
 If the task is large, split it into phases:
 
-1. Inspect repo, worktree, branch state, and available test commands.
-2. Create or reuse the task branch from `origin/develop`.
+1. Inspect repo, worktree, branch state, and available test commands, and settle the scope.
+2. Create or reuse the task branch from `origin/develop`, when the scope reaches stage 3.
 3. Implement the requested change.
-4. Run focused tests, then broader tests when practical.
-5. Commit on the task branch, squash-merge into `develop`, push `develop`.
-6. Report results and any remaining action.
+4. Run focused tests and required broader checks; repeat or expand only for new evidence.
+5. Commit on the task branch, squash-merge into `develop`, push `develop` — each step only as far as the scope reaches.
+6. Report results, the scope taken, and any remaining action.
 
 ## Documentation Rules
 
@@ -84,17 +119,18 @@ If the task is large, split it into phases:
 - Do not delete branches without explicit user confirmation; merged task branches may remain.
 - Do not push directly to `main`; `main` only updates through `github-release`.
 - Do not modify or revert unrelated user changes.
-- Do not overwrite files with different content without explicit confirmation.
+- Read `git status --short` and the relevant diff before editing. Normal task-scoped edits, including edits to an already modified file that preserve existing user work, need no fresh approval. Explicit confirmation is needed only when a replacement would discard unrelated or otherwise unapproved user content; a dirty file alone is not a reason to ask. Patch around existing changes and never include unrelated edits in a commit.
+- Decide reversible implementation details yourself — naming, file placement, refactor shape, which helper to reuse. Ask only what the user alone can settle: scope, external behavior, irreversible operations, and anything the Safety Rules require confirmation for. A question the repository already answers is not a question.
 - Do not merge into `develop` if tests fail or the squash commit would include changes outside the current task.
 - Do not record a `Release-Grade` the resolved rubric does not support, and omit the trailer entirely when no rubric resolves.
 - Do not use this skill for release execution; use `github-release`.
-- If the user has not explicitly asked for a release, stop after `develop` is pushed.
+- Stop at the authorized ceiling; after an authorized landing, stop without releasing unless a release was explicitly requested.
 
 ## Procedure
 
-1. Inspect:
+1. Inspect, and settle Applies When and Execution Scope from what you find:
    - `git status --short --branch`
-   - `git fetch origin --prune`
+   - Fetch `origin` when needed for an authorized landing; a local review does not require a fetch or prune.
    - `git branch --list --all`
    - available test scripts or project docs
 2. Classify branch prefix:
@@ -102,24 +138,28 @@ If the task is large, split it into phases:
    - `fix` for bug/security/regression correction.
    - `chore` for tooling, docs, refactor, config, dependency, or automation work.
 3. Create a short kebab-case slug from the task.
-4. Create or reuse `<prefix>/<slug>` from `origin/develop`.
+4. Create or reuse `<prefix>/<slug>` from `origin/develop`. Skip this and every later branch step when Execution Scope caps the run below stage 3.
 5. Implement the task while preserving unrelated changes.
 6. Run tests:
    - Always run the most relevant focused test command if one exists.
    - Run the broad project test command when practical.
    - If no tests exist, run syntax/config validation appropriate to changed files and report the gap.
 7. Apply the Documentation Rules before committing.
-8. Commit only the task changes on the task branch.
+8. When committing is authorized, commit only task changes. At stage 2 use the branch allowed by the repository policy and request; creating or switching a branch also requires that scope. At stage 3 use the task branch.
 9. Update `develop`: `git checkout develop` then `git pull --ff-only origin develop`.
 10. Squash-merge: `git merge --squash <prefix>/<slug>`, then grade the task per Release Grade and commit once following the Commit Message Rules, ending the body with the `Release-Grade` trailer.
 11. Push `develop` without force.
 12. Leave the task branch in place; offer cleanup only as an optional next action.
 
+Steps 8 through 11 run only as far as the settled scope allows. A run capped at stage 1 stops after step 7 and reports the working-tree changes; a run capped at stage 2 stops after step 8.
+
 ## Final Report
 
 Keep reports short and include:
 
-- Branch created or reused
+- Scope the run took: edit and verify | committed | landed on `develop`, and what decided it
+- Whether the repository has adopted this flow, when that changed the scope
+- Branch created or reused, or none because the run stopped earlier
 - Files changed
 - Tests run and result
 - README/docs update status

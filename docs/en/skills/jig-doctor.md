@@ -1,6 +1,6 @@
 # jig Doctor
 
-<!-- jig:skill-source-digest b3e52616e0627f5031293d2cc5cecc24037ecc21 -->
+<!-- jig:skill-source-digest afa553fca66f9fe881dad9124810543e8eaf5de7 -->
 
 [한국어](../../ko/skills/jig-doctor.md) · [Skill index](index.md)
 
@@ -51,7 +51,9 @@ The skill reads plugin settings, standalone ledgers/provenance, managed blocks a
 - Never treat `.jig/` project content or an ordinary user skill as payload drift.
 - If a tool is unavailable, run independent checks and mark only dependent checks skipped.
 - Repository checks do not run for user/global-only installations in an unrelated directory.
-- Protection `403` or a recorded skip is informational; it is not automatically a defect.
+- Protection `403` or a recorded skip is informational; it is not automatically a defect. Neither is a policy stronger than jig's two guarantees: required reviews, required checks, and push restrictions are reported as the repository's own and never as drift.
+
+Only a verified `Branch not protected` response establishes absence. Generic 404s, authentication/rate-limit errors, and incomplete flags are reported as unreadable; the doctor changes nothing.
 
 ## Outputs and fix ownership
 

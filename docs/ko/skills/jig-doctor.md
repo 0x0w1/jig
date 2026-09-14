@@ -1,6 +1,6 @@
 # jig Doctor
 
-<!-- jig:skill-source-digest b3e52616e0627f5031293d2cc5cecc24037ecc21 -->
+<!-- jig:skill-source-digest afa553fca66f9fe881dad9124810543e8eaf5de7 -->
 
 [English](../../en/skills/jig-doctor.md) · [스킬 index](index.md)
 
@@ -51,7 +51,9 @@ plugin settings, standalone ledger·provenance, managed block·version stamp, re
 - 프로젝트 소유 `.jig/`나 일반 사용자 스킬을 payload drift로 판정하지 않습니다.
 - tool이 없으면 독립적인 점검은 계속하고 해당 tool에 의존하는 점검만 skipped로 보고합니다.
 - user/global-only 설치에서는 관계없는 현재 디렉터리의 repository check를 실행하지 않습니다.
-- protection `403`이나 기록된 skip은 정보이며 자동으로 defect가 되지 않습니다.
+- protection `403`이나 기록된 skip은 정보이며 자동으로 defect가 되지 않습니다. jig의 두 보장보다 강한 정책도 마찬가지입니다. required review, required check, push restriction은 저장소의 것으로 보고하며 drift로 판정하지 않습니다.
+
+`Branch not protected`가 확인된 응답만 보호 부재로 봅니다. 일반 404·인증/호출 한도 오류·불완전한 플래그는 해석 불가로 보고하며 doctor는 변경하지 않습니다.
 
 ## 결과와 수리 소유권
 

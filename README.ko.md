@@ -97,7 +97,7 @@ jig는 일반 스킬 모음과 달리 세션 절차만 배포하지 않습니다
 
 `readme` 스킬은 모든 저장소에 같은 README 구조를 강요하지 않습니다. 그 저장소의 언어, section 순서, 상세 문서 경계, 작성 관습을 `.jig/readme.md`에 기록하고 README를 생성하거나 검토할 때 그 규약을 따릅니다. 규약이 없으면 초안을 제안하고 사용자가 수락한 뒤에만 기록합니다. 전체 흐름은 [README 스킬 가이드](docs/ko/skills/readme.md)에 있습니다.
 
-작업 병합 방식은 **solo-cli 하나**입니다. 작업 브랜치를 로컬에서 squash merge로 `develop`에 합치고 직접 push하며 Pull Request를 쓰지 않습니다.
+jig 운영 모델을 채택한 저장소의 병합 방식은 **solo-cli 하나**입니다. 반영이 승인되면 작업 브랜치를 로컬에서 `develop`에 squash merge하고 PR 없이 직접 push합니다. 실행은 현재 요청과 명시적으로 승인된 저장소 정책을 따르며, 로컬 작업 제한이 우선합니다. jig 설치만으로 병합·푸시가 승인되지는 않습니다. 자세한 내용은 [실행 범위](docs/ko/skills/develop-task-flow.md#실행-범위)를 참고하세요.
 
 `main`은 두 경로로만 움직입니다 — 릴리즈의 `develop:main` fast-forward, 그리고 릴리즈된 결함을 `develop` 대기열보다 먼저 내보낼 때의 `hotfix/<slug>:main`입니다. 두 겹의 가드 — git `pre-push` hook과 각 CLI의 `PreToolUse` hook — 모두 이 둘만 허용하고 나머지는 거부합니다.
 

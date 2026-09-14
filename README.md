@@ -97,7 +97,7 @@ Unlike a plain collection of skills, jig converges *repository state* — the br
 
 The `readme` skill does not impose one README shape on every repository. It records that repository's language, section order, detail-doc boundaries, and writing conventions in `.jig/readme.md`, then follows that profile when drafting or checking the README. When no profile exists, it proposes one and writes it only after approval; see the [README skill guide](docs/en/skills/readme.md) for the full workflow.
 
-There is a **single merge flow, solo-cli**: a work branch is squash-merged into `develop` locally and pushed directly. No pull requests.
+For repositories that adopt it, jig has a **single merge flow, solo-cli**: an authorized landing squash-merges a work branch into `develop` locally and pushes directly, without a pull request. Execution follows the current request and explicitly approved repository policy; local-only limits take priority. Installing jig alone does not authorize a merge or push. See [execution scope](docs/en/skills/develop-task-flow.md#how-far-a-run-goes).
 
 `main` moves only two ways: the release fast-forward `develop:main`, and `hotfix/<slug>:main` when a released defect has to ship ahead of the `develop` queue. Both guard layers — the git `pre-push` hook and the `PreToolUse` hook on each CLI — allow those two and refuse everything else.
 

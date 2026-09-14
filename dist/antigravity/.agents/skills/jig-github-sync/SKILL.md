@@ -10,7 +10,7 @@ Use this repository skill only for setup and synchronization of GitHub repositor
 ## Scope
 
 - Branches: `main`, `develop`.
-- Branch protection for `main` and `develop`: **optional**, and only when the repository can have it. Direct pushes allowed, force pushes and deletion blocked. See Branch Protection Is Optional.
+- Branch protection for `main` and `develop`: **optional**, and only when the repository can have it. jig guarantees exactly two things — force pushes blocked and deletion blocked — and adds nothing else. It does not require pull-request reviews or status checks, and **not requiring them is not the same as removing them**: a repository that already requires either keeps requiring it. See Branch Protection Is Optional.
 - Local guard, first layer: a git `pre-push` hook installed from `assets/pre-push` by `scripts/manage-pre-push.sh`. It blocks force pushes to and deletion of `main`/`develop` and restricts direct `main` pushes to the release fast-forward (`develop:main`) and the hotfix landing (`hotfix/<slug>:main`, owned by `hotfix-flow`). Local defense only; server-side protection stays the final barrier.
 - Local guard, second layer: the same policy as a `PreToolUse` hook that inspects the push command before it runs, `--no-verify` included, which a git hook cannot see. Claude Code runs it from inside the `jig` plugin. Codex does not run a plugin's own hooks, so Codex (`.codex/hooks.json`) and Antigravity (`.agents/hooks.json`) get the hook entry from `scripts/manage-native-hooks.sh` instead. The manager copies the shipped `assets/guard-push.sh` clone-local to `<git common dir>/jig/guard-push.sh` and the entry runs that copy, so one entry works whether jig arrived as a plugin or as skill files. Project scope only — a user-scope entry would guard repositories jig is not installed in.
 - No release-drafter files, no pull request template, no label sync; the release flow is CLI-driven (`github-release`) and does not use pull requests.
@@ -20,7 +20,7 @@ Use this repository skill only for setup and synchronization of GitHub repositor
 
 GitHub gives branch protection to public repositories on every plan, but a **private repository needs a paid plan** (Pro, Team, or Enterprise). On a private repository on the free plan the API answers `403`, and so does the rulesets API. That is the normal state for most personal projects, not a defect.
 
-So protection is never applied silently. Probe first, ask second, and treat "not available" as a pass.
+Probe first. Apply only an authorized change, reusing the recorded choice; treat unavailable protection as a reported limitation.
 
 **Probe** (read-only, before touching anything):
 
@@ -28,12 +28,32 @@ So protection is never applied silently. Probe first, ask second, and treat "not
 gh api repos/<owner>/<repo> --jq '{private: .private, admin: .permissions.admin}'
 ```
 
+Then read the branch's current protection, keeping the HTTP result and JSON body separately. Do not pipe away or suppress API errors. Run these helpers relative to this skill directory against the saved response:
+
+```bash
+sh scripts/classify-protection.sh --file <response.json>
+sh scripts/plan-protection.sh < <response.json>
+```
+
+Use only a successful `200` policy response or a verified `404` body whose message is `Branch not protected`. A generic `404`, auth/rate-limit error, malformed JSON, or missing/non-boolean flags is `unreadable`, never absence. Verify repository/branch access before treating a specific unprotected response as setup eligibility. Both helpers are local and need `jq`; neither calls GitHub or grants permission to apply its output.
+
+It prints `verdict=`, `force_pushes=`, `deletions=`, `extras=`, and `missing=`.
+
+| `verdict` | Meaning | What to do |
+|---|---|---|
+| `absent` | the branch is not protected | offer jig's two guarantees per the question below |
+| `satisfied` | force pushes and deletion are already blocked | send nothing; preserve the recorded choice |
+| `needs-tightening` | at least one guarantee is missing | add only what `missing=` names, preserving everything in `extras=` |
+| `unreadable` | the response could not be classified | report it and change nothing |
+
+`extras=` summarizes known protections beyond jig’s baseline — required reviews, required checks, push restrictions, admin enforcement, and the rest. **They are not jig's to remove; the full response, not this summary, is the preservation source.** A `satisfied` verdict with extras present means a stronger policy than jig's baseline is already in force, and the correct action is to leave it exactly as it is.
+
 | Probe result | Meaning | What to do |
 |---|---|---|
 | `admin: false` | The profile cannot change settings on this repository | Skip. Report it as a permission limit, not a failure |
-| `private: false` | Public repository — protection is available on every plan | Ask |
+| `private: false` | Public repository — protection is available | Classify; ask only for an unapproved change |
 | `private: true`, protection API answers `403` | Private repository without a plan that includes protection | Skip. Say so in one line and move on |
-| `private: true`, protection API answers `200` or `404` | Paid plan — protection is available | Ask |
+| `private: true`, readable policy or verified unprotected response | Protection can be evaluated | Classify; ask only for an unapproved change |
 
 Confirm the private case against the API rather than guessing a plan from `gh api user`; the plan on the account is not always the plan that governs the repository.
 
@@ -41,10 +61,12 @@ Confirm the private case against the API rather than guessing a plan from `gh ap
 
 > This repository is public (or on a plan that includes it), so `main` and `develop` can be protected against force pushes and deletion. Set that up now?
 
-- Yes → apply the policy in Procedure step 6, then record `git config --local jig.branchProtection enabled`.
+- Yes → record `git config --local jig.branchProtection enabled` as approval for the two guarantees, then apply per Procedure step 6 and report each actual result separately.
 - No → record `git config --local jig.branchProtection skipped` and continue. The local `pre-push` guard still covers force pushes, deletion, and direct pushes to `main` on this machine.
-- Already protected with the policy in Procedure step 6 → record `enabled` and do not ask. The repository is already where the answer would put it, so the question has nothing to decide.
-- Already recorded → do not ask again. `enabled` re-applies the policy convergently; `skipped` skips with a one-line log. Re-ask only when the user asks to change it.
+- Already `satisfied` → send nothing and do not ask. Record `enabled` only when both branches are satisfied and there is no existing `skipped` choice; observing one protected branch must not authorize changing the other. The repository is already where the answer would put it, so the question has nothing to decide. This holds whether the existing policy is exactly jig's baseline or stronger than it.
+- Already recorded → do not ask again. `enabled` converges the two guarantees and leaves everything else alone; `skipped` skips with a one-line log. Re-ask only when the user asks to change it.
+
+Never put the question as an offer to replace a stronger policy with jig's baseline. jig has no opinion about reviews or checks, so removing them is never something this skill proposes; a user who wants them gone says so, and that is a change to their own policy rather than a sync.
 
 `jig.branchProtection` lives in `.git/config`, so it does not reach clones or CI. It records a choice about this checkout, not a repository contract; a collaborator is asked separately on their own machine.
 
@@ -71,6 +93,8 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
 - Do not force push.
 - Do not delete branches.
 - Do not delete labels without explicit confirmation.
+- Never remove or relax a branch protection this repository already has. jig only ever adds its two guarantees; required reviews, required status checks, push restrictions, admin enforcement, and every other existing control are the repository's own; preserve them or decline the update.
+- Do not ask again about a setting already recorded or already in place. A sync that changes nothing asks nothing.
 - Do not create `.claude/skills` or unrequested AI skill directories inside this repository. `.codex/` is created only as `.codex/hooks.json`, only by the native hook manager, and only when Codex itself shows the jig plugin installed or `AGENTS.md` carries the legacy Codex jig stamp.
 - Keep repository skills under `.agents/skills`.
 - Never rewrite a user's entry in `.codex/hooks.json` or `.agents/hooks.json`. The manager adds, updates, or removes only the entry it marks as its own (`statusMessage` `jig guard-push` for Codex, the `jig-guard-push` group for Antigravity), preserves everything else, and refuses a file it cannot parse or a symlink.
@@ -88,13 +112,22 @@ If a phase is blocked by permission, missing auth, unsupported repository plan, 
 3. Run `gh repo view` and `gh auth status`. If GitHub CLI is unavailable, unauthenticated, or lacks permission, report the remaining GitHub steps.
 4. Confirm `main` exists locally and remotely when possible.
 5. Confirm `develop` exists locally and remotely when possible. If missing, create it from `main` and push without force.
-6. Settle branch protection per Branch Protection Is Optional: probe, then ask unless `jig.branchProtection` already records a choice. When applying, protect `main` and `develop` with the same policy:
-   - no required pull request reviews
-   - no required status checks
+6. Settle branch protection per Branch Protection Is Optional. Probe, classify each branch's current protection, then ask unless `jig.branchProtection` already records a choice or the verdict is already `satisfied`.
+
+   When applying, converge **only jig's two guarantees** on `main` and `develop`:
    - force pushes disabled
    - deletion disabled
 
-   A `403` from the protection API at this point means the plan does not include it. Skip, log one line, and continue with the remaining steps; never retry it as an error. jig does not configure rulesets — a repository already governed by a ruleset is left alone.
+   Run `scripts/plan-protection.sh` on the saved current response and read its JSON:
+   - `action=none` → send nothing. Existing baseline and stronger settings already satisfy jig; do not prompt again.
+   - `action=update` → `body` is a PUT-compatible request. For a verified absent policy it includes the API's required baseline fields. For a supported existing policy it translates GET flags and actor objects to PUT booleans and names, preserving reviews, check app bindings, restrictions, and other supported controls while disabling force pushes/deletion.
+   - `action=blocked` → send nothing; report the reason. Unknown/incomplete fields and signature protection needing separate endpoint handling are intentionally unsupported for updates. Do not work around this by sending a fixed body or echoing a GET response into PUT.
+
+   Planning is not approval. Apply an update only under the current request or recorded `enabled` choice. `skipped` remains skipped, even when an existing protection is observed; a user's separate policy is not a new jig opt-in. Do not infer ownership from equality with the baseline.
+
+   Before an authorized update, re-read the policy and compare it with the planned source; if it changed, discard the plan and reclassify. After sending the planned `body`, read back and verify both guarantees and preserved controls. Report a verification failure without retrying with a weaker body. The API has no transaction across these reads and writes; concurrent administrator changes remain a limitation.
+
+   A `403` means permission or plan limits; report the observed reason, change nothing, and continue other authorized work. jig does not configure rulesets; preserve existing rulesets, and do not claim an ambiguous `404` proves their absence.
 7. Install or update the local guard by running `scripts/manage-pre-push.sh install` relative to this skill directory.
    - The manager copies the shipped `assets/pre-push` source atomically to the repository's default `.git/hooks/pre-push` path and makes it executable.
    - Re-running it is idempotent. It repairs permissions and replaces a marked jig hook when its payload drifted or its version is old.
@@ -129,7 +162,8 @@ When the user asks to uninstall `github-sync` or all of jig from the current pro
 Keep reports short and include:
 
 - Branches created or already present
-- Branch protection: applied | skipped by choice | not available (private repository without a plan that includes it) | not permitted (no admin) — and, when it is not in place, that the local guard is the only barrier
+- Branch protection, per branch: already satisfied | guarantees added (name which) | skipped by choice | not available (private repository without a plan that includes it) | not permitted (no admin) | unreadable — and, when it is not in place, that the local guard is the only barrier
+- Existing protections preserved, when the repository had any beyond jig's two guarantees
 - Local pre-push guard: installed | updated | already current | blocked by user hook
 - Native push hook, per detected host: installed | added entry | updated entry | already current | user entry | host not detected | blocked (jq missing, invalid JSON, symlink) — plus the clone-local guard copy, and, for Codex, that trusting the entry in `/hooks` is still the user's step
 - Legacy release-drafter files found, if any

@@ -1,6 +1,6 @@
 # GitHub Sync
 
-<!-- jig:skill-source-digest 85240f5ac328f1b1ea924d41a3ccf8032437076e -->
+<!-- jig:skill-source-digest f540337856ad091c0c24956d31be7dc804ec0b91 -->
 
 [한국어](../../ko/skills/github-sync.md) · [Skill index](index.md) · [Repository settings](../github-repository-settings.md)
 
@@ -31,13 +31,19 @@ flowchart TD
     Create --> Probe[Probe admin, visibility, and protection API]
     Probe --> Available{Protection available and permitted?}
     Available -- No --> Guard[Run managed pre-push installer]
-    Available -- Yes --> Choice{Recorded choice?}
-    Choice -- enabled --> Apply[Apply policy convergently]
+    Available -- Yes --> Classify{Protection verdict?}
+    Classify -- satisfied --> Guard
+    Classify -- unreadable --> Guard
+    Classify -- absent or needs-tightening --> Choice{Recorded choice?}
+    Choice -- enabled --> Apply[Plan lossless PUT conversion]
     Choice -- skipped --> Guard
     Choice -- none --> Ask[Ask once]
     Ask -- Yes --> Apply
     Ask -- No --> Record[Record skipped locally]
-    Apply --> Guard
+    Apply --> Plan{Planner action?}
+    Plan -- update --> Send[Re-read, apply authorized body, verify]
+    Plan -- blocked or none --> Guard
+    Send --> Guard
     Record --> Guard
     Guard --> Hosts{Codex plugin or Antigravity stamp?}
     Hosts -- Yes --> Native[Copy the guard clone-local, add or refresh the entry]
@@ -45,7 +51,11 @@ flowchart TD
     Native --> Legacy[Report legacy release files]
 ```
 
-Protection blocks force pushes and deletion on both branches while allowing direct pushes and requiring neither PR reviews nor status checks. A private repository on a plan without protection normally returns `403`; that is informational, not a defect.
+jig manages only force-push and deletion blocking. Existing reviews, check app bindings, restrictions, and other repository controls are preserved. Save the HTTP status and response body separately; use `classify-protection.sh --file <response.json>` and `plan-protection.sh < <response.json>` from the skill directory. Both are local, require `jq`, and never call GitHub.
+
+The planner returns `none` for an already satisfied policy, `update` with a PUT-compatible `body` for verified absence or supported tightening, or `blocked` without a body for unreadable/unsupported data. It translates GET flag objects and actor metadata rather than echoing GET JSON into PUT. Unknown fields, incomplete policies, signature settings requiring a separate endpoint, and unknown check app bindings block updates. A generic 404 or authentication/rate-limit error never means absence; only a verified `Branch not protected` response does.
+
+Planning grants no approval. Reuse `enabled` for jig's two guarantees and keep `skipped`; a protected branch does not authorize changing its unprotected sibling. Record satisfaction as `enabled` only if both branches satisfy the baseline and no skipped choice exists. Re-read before an authorized PUT and verify afterward. Changed source data invalidates the plan; concurrent administrator changes remain a limitation because read/write operations are not transactional.
 
 ## Reads and writes
 
@@ -61,7 +71,8 @@ The manager copies the shipped `assets/guard-push.sh` clone-local to `<git commo
 
 ## Decision points and safety
 
-- Ask once before enabling available protection unless the checkout already records `enabled` or `skipped`.
+- Ask once before enabling available protection unless the checkout already records `enabled` or `skipped`, or both guarantees already hold.
+- Never remove or relax a protection the repository already has. Required reviews, required checks, push restrictions, and admin enforcement are the repository's own and survive every sync.
 - Never overwrite an unmarked user-authored `pre-push` hook without explicit confirmation and a `.jig-user-backup` copy.
 - Never rewrite a user's entry in `.codex/hooks.json` or `.agents/hooks.json`; only the jig-marked entry is added, updated, or removed, and an unparseable file or a symlink is refused.
 - Never grant Codex hook trust for the user; report the `/hooks` step instead.
@@ -74,7 +85,7 @@ Run both helpers' `uninstall` modes before removing the skill or plugin from the
 
 ## Outputs
 
-The report lists branch creation/current state, protection as applied/skipped/unavailable/not permitted, local pre-push guard state, the native hook state per detected host (with the Codex `/hooks` trust reminder), legacy files found, blocked commands, and next actions.
+The report lists branch creation/current state, protection per branch as already satisfied/guarantees added/skipped/unavailable/not permitted/unreadable along with any existing protections preserved, local pre-push guard state, the native hook state per detected host (with the Codex `/hooks` trust reminder), legacy files found, blocked commands, and next actions.
 
 ## Related skills
 
@@ -87,4 +98,7 @@ The report lists branch creation/current state, protection as applied/skipped/un
 
 - [`skills/github-sync/SKILL.md`](../../../skills/github-sync/SKILL.md)
 - [`guard-push.sh`](../../../skills/github-sync/assets/guard-push.sh), the one guard source for every host
+- [`classify-protection.sh`](../../../skills/github-sync/scripts/classify-protection.sh), the protection verdict the skill reads
 - [GitHub repository settings](../github-repository-settings.md)
+
+- [`plan-protection.sh`](../../../skills/github-sync/scripts/plan-protection.sh) and [`protection-request.jq`](../../../skills/github-sync/scripts/protection-request.jq): local request planning and conservative GET-to-PUT conversion

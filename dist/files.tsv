@@ -2,8 +2,11 @@
 github-sync	SKILL.md
 github-sync	assets/guard-push.sh
 github-sync	assets/pre-push
+github-sync	scripts/classify-protection.sh
 github-sync	scripts/manage-native-hooks.sh
 github-sync	scripts/manage-pre-push.sh
+github-sync	scripts/plan-protection.sh
+github-sync	scripts/protection-request.jq
 github-release	SKILL.md
 develop-task-flow	SKILL.md
 hotfix-flow	SKILL.md
@@ -13,6 +16,7 @@ jig-update	scripts/update-claude-standalone.sh
 jig-doctor	SKILL.md
 jig-doctor	scripts/inspect-claude-standalone.sh
 repo-hygiene	SKILL.md
+repo-hygiene	scripts/classify-branches.sh
 conformance-audit	SKILL.md
 conformance-audit	scripts/audit-history.sh
 readme	SKILL.md

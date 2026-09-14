@@ -1,6 +1,6 @@
 # GitHub Sync
 
-<!-- jig:skill-source-digest 85240f5ac328f1b1ea924d41a3ccf8032437076e -->
+<!-- jig:skill-source-digest f540337856ad091c0c24956d31be7dc804ec0b91 -->
 
 [English](../../en/skills/github-sync.md) · [스킬 index](index.md) · [GitHub 저장소 설정](../github-repository-settings.md)
 
@@ -31,13 +31,19 @@ flowchart TD
     Create --> Probe[admin·visibility·protection API probe]
     Probe --> Available{protection 사용·변경 가능?}
     Available -- No --> Guard[관리형 pre-push installer 실행]
-    Available -- Yes --> Choice{기록된 선택?}
-    Choice -- enabled --> Apply[정책 수렴]
+    Available -- Yes --> Classify{보호 판정?}
+    Classify -- satisfied --> Guard
+    Classify -- unreadable --> Guard
+    Classify -- absent or needs-tightening --> Choice{기록된 선택?}
+    Choice -- enabled --> Apply[정책 보존 PUT 변환 계획]
     Choice -- skipped --> Guard
     Choice -- none --> Ask[한 번 확인]
     Ask -- Yes --> Apply
     Ask -- No --> Record[local skipped 기록]
-    Apply --> Guard
+    Apply --> Plan{요청 생성 결과?}
+    Plan -- update --> Send[다시 읽고 승인된 body 적용·검증]
+    Plan -- blocked or none --> Guard
+    Send --> Guard
     Record --> Guard
     Guard --> Hosts{Codex 플러그인 또는 Antigravity 스탬프?}
     Hosts -- Yes --> Native[guard를 clone-local 복사 후 항목 추가·갱신]
@@ -45,7 +51,11 @@ flowchart TD
     Native --> Legacy[legacy release 파일 보고]
 ```
 
-protection은 두 branch의 force push와 삭제를 막지만 PR review와 status check를 요구하지 않습니다. protection을 제공하지 않는 plan의 private 저장소가 `403`을 반환하는 것은 defect가 아니라 정보입니다.
+jig가 관리하는 것은 force push·삭제 차단뿐이며, 기존 review·검사 앱 연결·접근 제한 등은 보존합니다. HTTP 상태와 body를 따로 보관한 뒤 스킬 디렉터리에서 `classify-protection.sh --file <response.json>`과 `plan-protection.sh < <response.json>`을 실행합니다. 둘 다 `jq`가 필요한 로컬 도구이며 GitHub를 호출하지 않습니다.
+
+요청 생성기는 이미 충족된 정책에는 `none`, 확인된 부재 또는 지원되는 강화에는 PUT용 `body`를 포함한 `update`, 해석 불가·미지원 데이터에는 body 없는 `blocked`를 반환합니다. GET의 플래그 객체와 사용자·팀·앱 정보를 PUT 형식으로 변환합니다. 알 수 없는 필드·불완전한 정책·별도 API가 필요한 서명 설정·검사 앱 연결 미확정은 변경을 차단합니다. 일반 404나 인증·호출 한도 오류는 부재가 아니며, 접근 가능 여부와 `Branch not protected` 응답이 확인돼야 합니다.
+
+요청 생성은 승인이 아닙니다. `enabled`는 두 보장에 재사용하고 `skipped`는 유지합니다. 보호된 한 브랜치를 보고 다른 브랜치 변경까지 승인됐다고 추론하지 않습니다. 두 브랜치가 모두 충족하고 기존 skipped가 없을 때만 충족 상태를 enabled로 기록합니다. 승인된 PUT 전 재조회하고 이후 보존 결과를 검증합니다. 원본이 달라지면 계획을 폐기합니다. 조회·쓰기는 트랜잭션이 아니므로 다른 관리자의 동시 변경은 한계로 남습니다.
 
 ## 읽기·변경 범위
 
@@ -61,7 +71,8 @@ manager는 배포된 `assets/guard-push.sh`를 `<git common dir>/jig/guard-push.
 
 ## 판단 지점과 안전 규칙
 
-- checkout이 `enabled`나 `skipped`를 기록하지 않았고 protection이 가능하면 한 번 묻습니다.
+- checkout이 `enabled`나 `skipped`를 기록하지 않았고, 두 보장이 아직 성립하지 않으며, protection이 가능하면 한 번 묻습니다.
+- 저장소가 이미 가진 protection을 제거하거나 약화시키지 않습니다. required review, required check, push restriction, admin enforcement는 저장소의 것이며 모든 sync를 그대로 통과합니다.
 - marker가 없는 사용자 `pre-push` hook은 명시적 확인과 `.jig-user-backup` 없이 덮어쓰지 않습니다.
 - `.codex/hooks.json`·`.agents/hooks.json`의 사용자 항목은 고치지 않습니다. jig marker가 있는 항목만 추가·갱신·제거하고, 파싱할 수 없는 파일이나 symlink는 거부합니다.
 - Codex hook 신뢰를 사용자 대신 부여하지 않습니다. `/hooks` 단계를 보고할 뿐입니다.
@@ -74,7 +85,7 @@ manager는 배포된 `assets/guard-push.sh`를 `<git common dir>/jig/guard-push.
 
 ## 결과물
 
-branch 생성·현재 상태, protection의 applied·skipped·unavailable·not permitted 상태, local pre-push guard, 감지된 호스트별 네이티브 hook 상태(Codex는 `/hooks` 신뢰 안내 포함), legacy 파일, 실행하지 못한 명령과 다음 조치를 보고합니다.
+branch 생성·현재 상태, branch별 protection 상태(이미 충족·보장 추가·skipped·unavailable·not permitted·unreadable)와 보존한 기존 protection, local pre-push guard, 감지된 호스트별 네이티브 hook 상태(Codex는 `/hooks` 신뢰 안내 포함), legacy 파일, 실행하지 못한 명령과 다음 조치를 보고합니다.
 
 ## 관련 스킬
 
@@ -87,4 +98,7 @@ branch 생성·현재 상태, protection의 applied·skipped·unavailable·not p
 
 - [`skills/github-sync/SKILL.md`](../../../skills/github-sync/SKILL.md)
 - [`guard-push.sh`](../../../skills/github-sync/assets/guard-push.sh): 모든 호스트가 공유하는 유일한 guard 원본
+- [`classify-protection.sh`](../../../skills/github-sync/scripts/classify-protection.sh): 스킬이 읽는 protection 판정
 - [GitHub 저장소 설정](../github-repository-settings.md)
+
+- [`plan-protection.sh`](../../../skills/github-sync/scripts/plan-protection.sh)·[`protection-request.jq`](../../../skills/github-sync/scripts/protection-request.jq): 로컬 요청 생성·보수적 GET→PUT 변환

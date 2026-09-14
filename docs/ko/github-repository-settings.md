@@ -43,20 +43,40 @@ jig project scope 스킬 설치에는 GitHub 프로필이 필요하지 않습니
 
 1. `gh api repos/<owner>/<repo>`로 `private`와 `permissions.admin`을 확인합니다.
 2. 적용할 수 없는 저장소면 한 줄 로그를 남기고 넘어갑니다. 실패로 처리하지 않습니다.
-3. 적용할 수 있으면 **한 번 묻습니다** — "이 저장소는 public이거나 해당 플랜이라 `main`·`develop`을 보호할 수 있습니다. 지금 설정할까요?"
+3. 브랜치별로 분류합니다. 이미 충족된 정책에는 쓰기·질문이 없고 미승인 변경만 묻습니다. 보호된 한 브랜치가 다른 브랜치 변경의 승인이 되지 않습니다. 기존 `skipped`는 유지하며 두 브랜치가 모두 충족하고 skipped 기록이 없을 때만 이미 충족된 `enabled`로 기록합니다.
 4. 대답은 `git config --local jig.branchProtection`에 `enabled` 또는 `skipped`로 남습니다. 다음 sync는 다시 묻지 않습니다. 이 값은 `.git/config`에 있어 clone에는 전달되지 않으므로 다른 사람은 자기 머신에서 따로 답합니다.
 
-`jig-doctor`도 같은 기준으로 읽습니다. `403`은 "플랜 밖"이라 결함이 아닙니다. `404`인데 `skipped`가 기록돼 있으면 "사용자가 안 하기로 함"입니다. 둘 다 권장 조치를 만들지 않습니다.
+`jig-doctor`도 같은 기준으로 읽습니다. `403`은 플랜 또는 권한 제한이라 결함이 아닙니다. `404`인데 `skipped`가 기록돼 있으면 "사용자가 안 하기로 함"입니다. 둘 다 권장 조치를 만들지 않고, jig 기준보다 강한 정책도 마찬가지입니다. `jig-doctor`는 required review와 required check를 저장소의 것으로 보고하며 drift로 판정하지 않습니다.
 
 **보호를 걸지 않으면 로컬 `pre-push` 가드가 유일한 방어선입니다.** 두 스킬 모두 이 사실을 보고에 적습니다.
 
 jig는 ruleset을 만들거나 고치지 않습니다. 이미 ruleset으로 보호된 저장소는 그대로 두고 보호된 것으로 보고합니다.
 
-### 적용되는 정책
+### 적용되는 것
 
-`main`과 `develop` 모두 force push와 branch deletion을 금지합니다.
+jig가 `main`과 `develop`에 보장하는 것은 **두 가지**입니다. force push 차단과 branch 삭제 차단입니다. Pull Request review도 status check도 요구하지 않습니다.
 
-`main`과 `develop`에 같은 정책: Pull Request 불필요, required status check 없음. `develop`에도 같은 body로 `branches/develop/protection`에 적용합니다.
+**요구하지 않는 것과 제거하는 것은 다릅니다.** 이미 승인 2회와 CI 통과를 요구하는 저장소는 sync 후에도 그대로 요구합니다. 그 설정은 jig가 아니라 저장소의 것입니다.
+
+그래서 `github-sync`는 branch의 현재 protection을 먼저 읽고 분류합니다.
+
+```bash
+sh scripts/classify-protection.sh --file <response.json>
+sh scripts/plan-protection.sh < <response.json>
+```
+
+| `verdict` | sync가 하는 일 |
+|---|---|
+| `absent` | 두 보장을 제안합니다. 보존할 기존 정책이 없습니다 |
+| `satisfied` | 아무것도 하지 않습니다. jig 기준이든 더 강한 정책이든 두 보장이 이미 성립합니다 |
+| `needs-tightening` | 정책 보존 변환을 계획하고 미지원 데이터는 차단합니다 |
+| `unreadable` | 아무것도 바꾸지 않고 보고합니다 |
+
+도구는 저장한 API 응답에 `jq`로 동작하며 HTTP 상태는 따로 보관합니다. 일반 404·인증/호출 한도 오류·불완전한 플래그는 부재가 아니라 해석 불가입니다. `Branch not protected`가 확인돼야 신규 정책을 계획합니다.
+
+요청 생성기는 `none`, PUT용 `body`를 포함한 `update`, body 없는 `blocked`를 반환합니다. 지원되는 review·검사 앱 연결·사용자/팀/앱 제한·플래그를 보존하고 force push·삭제 차단만 바꿉니다. GET 객체를 PUT으로 그대로 보낼 수 없습니다. 알 수 없거나 불완전한 필드, 별도 API가 필요한 서명 설정은 변경을 차단합니다. 요청 생성은 전송 승인이 아닙니다. 승인된 `enabled`를 재사용하고 `skipped`를 유지하며, 전송 전 재조회·전송 후 보존 결과를 검증합니다. 다른 관리자의 동시 쓰기는 한계로 남습니다. 요청 형식은 [GitHub update API](https://docs.github.com/en/rest/branches/branch-protection#update-branch-protection)를 따릅니다.
+
+부재 확인과 승인이 끝난 신규 정책에만 다음 필수 기본 필드를 사용합니다.
 
 ```bash
 gh api -X PUT "repos/<owner>/<repo>/branches/main/protection" --input - <<'EOF'
@@ -66,11 +86,12 @@ gh api -X PUT "repos/<owner>/<repo>/branches/main/protection" --input - <<'EOF'
   "required_pull_request_reviews": null,
   "restrictions": null,
   "allow_force_pushes": false,
-  "allow_deletions": false,
-  "required_conversation_resolution": false
+  "allow_deletions": false
 }
 EOF
 ```
+
+이미 정책이 있는 branch에서는 같은 호출이 그 정책의 `required_status_checks`, `required_pull_request_reviews`, `restrictions`, `enforce_admins` 값을 그대로 body에 실어 보내고 `allow_force_pushes`나 `allow_deletions`만 바꿉니다. `develop`도 `branches/develop/protection`에 같은 방식으로 처리합니다.
 
 ## 중단되는 경우
 

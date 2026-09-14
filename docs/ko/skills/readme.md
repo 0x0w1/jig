@@ -1,6 +1,6 @@
 # README 스킬
 
-<!-- jig:skill-source-digest 146d9e857d0230dd6db022b80f8b28db1a654e90 -->
+<!-- jig:skill-source-digest ff8e7b1cf64d75370b091a29dd2d9dbab7ca1daa -->
 
 [English](../../en/skills/readme.md) · [스킬 index](index.md)
 
@@ -41,14 +41,17 @@ flowchart TD
     Preserve --> Report[drift 없음 보고]
     Validate --> Compress{create인가 update인가?}
     Compress -- create --> Applied[초안 단계에서 압축 적용]
-    Compress -- update --> Proposal[이동 항목을 제안하고 질문]
-    Proposal --> Answer{사용자 수락?}
+    Compress -- update --> Proposal[이동 항목 제시]
+    Proposal --> Already{이미 재구성 요청됨?}
+    Already -- Yes --> Applied
+    Already -- No --> Answer{사용자 수락?}
     Answer -- Yes --> Applied
     Answer -- No --> Kept[README 그대로 두고 제안만 보고]
-    Applied --> Flow{develop-task-flow 존재?}
+    Applied --> Flow{승인된 Git 범위?}
     Kept --> Flow
-    Flow -- Yes --> Merge[docs commit으로 develop 병합]
-    Flow -- No --> Propose[일반 commit 제안]
+    Flow -- Local --> Report[작업 트리 보고]
+    Flow -- Commit --> Commit[커밋까지만]
+    Flow -- Land --> Merge[채택된 develop 흐름 또는 저장소 흐름]
 ```
 
 CLI project는 command·option, library는 API summary·example, service/app은 dev·prod 실행과 필수 environment variable를 추가합니다.
@@ -83,21 +86,23 @@ project type이 같아도 저장소마다 README를 다르게 씁니다. 어떤 
 - 인자 하나만 다른 명령 block은 하나로 합칩니다
 - section이 넷을 넘으면 제목 아래에 한 줄 이동 링크를 둡니다
 
-이미 공개된 README에서는 이 중 무엇도 조용히 일어나지 않습니다. 반복된 사실과 옮겨 갈 위치를 먼저 제시하고 묻습니다. 거절된 제안도 보고에 남습니다.
+이미 공개된 README에서는 이 중 무엇도 조용히 일어나지 않습니다. 반복된 사실과 이동 위치를 제시합니다. 이미 요청된 압축·재구성은 재확인 없이 적용하고, 그 밖의 구조 변경만 질문합니다. 거절된 제안도 보고합니다.
 
 ## 읽기·변경 범위
 
-manifest, lock file, entrypoint, CLI definition, script, service config, docs, example을 읽습니다. 이 파일로 근거를 확인한 README 내용만 쓸 수 있습니다. 기존 README는 drift list를 먼저 만들고 정확한 section을 그대로 둡니다.
+manifest, lock file, entrypoint, CLI definition, script, service config, docs, example을 읽습니다. 이 파일로 근거를 확인한 README 내용만 쓸 수 있습니다. 기존 README는 drift list를 만들고 정확한 내용을 보존하면서 요청된 편집·재구성을 적용합니다.
 
 ## 정확성·layout·안전 규칙
 
 - command는 code나 build·install file에 존재해야 하고 local link target은 모두 실제로 있어야 합니다.
 - badge, integration, option, feature를 지어내지 않습니다.
 - identifier table의 설명은 이름이 wrap되지 않게 짧게 유지하고 설명이 길면 list를 사용합니다.
-- 공개된 README를 묻지 않고 재구조화하지 않습니다. update 경로의 압축은 제안이고 사용자가 수락한 뒤에만 적용합니다.
+- 공개된 README를 묻지 않고 재구조화하지 않습니다. 다만 사용자가 이미 그 압축·재구조화를 요청했다면 질문으로 되돌리지 않고 적용한 뒤 보고합니다. 이미 받은 지시를 다시 확인하지 않습니다.
+- 기존 diff와 사용자 변경을 보존합니다. 수정된 README라도 정상 편집에는 재승인을 요구하지 않고 승인 범위 밖 내용을 잃게 할 때만 묻습니다.
+- `develop-task-flow`를 채택한 저장소에서만 현재 제한과 명시적으로 승인된 기존 정책을 전달해 위임합니다. 로컬 작업은 미커밋으로, 커밋만 승인된 작업은 병합 전에 멈춥니다.
 - `.jig/readme.md`는 수락한 뒤에만 쓰고, 일반 README 갱신의 부수 효과로 쓰지 않으며, 기존 규약은 확인 없이 덮지 않습니다.
 - 기존 언어를 보존하고 새 README는 repository 언어, 기본은 English를 사용합니다.
-- `develop-task-flow`가 있으면 `develop`의 `docs:` squash commit으로 병합합니다.
+- 반영이 이미 승인되었으면 재확인 없이 `develop`의 `docs:` squash commit으로 진행합니다. 스킬 존재만으로 권한을 추론하지 않습니다.
 
 ## 결과물
 

@@ -80,6 +80,63 @@ for audit_payload in \
   fi
 done
 require_text "dist/claude-code-plugin/jig/skills/conformance-audit/SKILL.md" "Never rewrite history"
+
+# Branch classification and branch-protection classification are decided by shipped
+# scripts, not by prose, so both must reach every payload and the retired rules must
+# not come back into the skill bodies alongside them.
+for hygiene_payload in \
+  "dist/claude-code-plugin/jig/skills/repo-hygiene" \
+  "dist/antigravity/.agents/skills/jig-repo-hygiene"; do
+  require_file "$hygiene_payload/scripts/classify-branches.sh"
+  require_text "$hygiene_payload/scripts/classify-branches.sh" "undecidable"
+  require_text "$hygiene_payload/SKILL.md" "classify-branches.sh"
+  if ! sh -n "$hygiene_payload/scripts/classify-branches.sh"; then
+    fail "$hygiene_payload/scripts/classify-branches.sh has invalid shell syntax"
+  fi
+  if grep -F 'git diff --quiet develop...' "$hygiene_payload/SKILL.md" >/dev/null 2>&1; then
+    fail "$hygiene_payload/SKILL.md still decides branch state with the retired three-dot diff"
+  fi
+done
+require_text dist/files.tsv "repo-hygiene	scripts/classify-branches.sh"
+
+for protection_payload in \
+  "dist/claude-code-plugin/jig/skills/github-sync" \
+  "dist/antigravity/.agents/skills/jig-github-sync"; do
+  require_file "$protection_payload/scripts/classify-protection.sh"
+  require_text "$protection_payload/scripts/classify-protection.sh" "needs-tightening"
+  require_text "$protection_payload/SKILL.md" "classify-protection.sh"
+  if ! sh -n "$protection_payload/scripts/classify-protection.sh"; then
+    fail "$protection_payload/scripts/classify-protection.sh has invalid shell syntax"
+  fi
+done
+require_text dist/files.tsv "github-sync	scripts/classify-protection.sh"
+
+# Byte equality keeps the exercised logic identical in both distributions and local copies.
+for changed_skill in develop-task-flow readme version-rubric repo-hygiene github-sync jig-doctor; do
+  case "$changed_skill" in jig-*) changed_alias=$changed_skill ;; *) changed_alias=jig-$changed_skill ;; esac
+  find "skills/$changed_skill" -type f | while IFS= read -r source; do
+    relative=${source#skills/$changed_skill/}
+    require_same "$source" "dist/claude-code-plugin/jig/skills/$changed_skill/$relative"
+    require_same "$source" ".claude/skills/$changed_skill/$relative"
+    require_same "dist/antigravity/.agents/skills/$changed_alias/$relative" ".agents/skills/$changed_alias/$relative"
+    if [ "$relative" != SKILL.md ]; then
+      require_same "$source" "dist/antigravity/.agents/skills/$changed_alias/$relative"
+    fi
+  done
+done
+
+
+# jig guarantees two things and removes nothing. A payload that still describes the
+# baseline as "no required pull request reviews" would have the agent send a body that
+# deletes a repository's own review requirement.
+for protection_skill_payload in \
+  "dist/claude-code-plugin/jig/skills/github-sync/SKILL.md" \
+  "dist/claude-code-plugin/jig/skills/jig-doctor/SKILL.md"; do
+  if grep -F 'no required pull request reviews' "$protection_skill_payload" >/dev/null 2>&1; then
+    fail "$protection_skill_payload still states jig's policy removes required pull request reviews"
+  fi
+done
+
 require_text "dist/claude-code-plugin/jig/skills/conformance-audit/SKILL.md" "Why a Baseline"
 sh scripts/test-update-claude-standalone.sh
 sh scripts/test-doctor-installation-inventory.sh
@@ -87,6 +144,8 @@ sh scripts/test-install-skill-aliases.sh
 sh scripts/test-pre-push-manager.sh
 sh scripts/test-guard-push.sh
 sh scripts/test-native-hook-manager.sh
+sh scripts/test-repo-hygiene-branches.sh
+sh scripts/test-protection-classifier.sh
 sh scripts/test-conformance-audit.sh
 sh scripts/test-docs-structure.sh
 # The product name is jig everywhere the user types it.

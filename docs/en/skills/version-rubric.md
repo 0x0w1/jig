@@ -1,6 +1,6 @@
 # Version Rubric
 
-<!-- jig:skill-source-digest 375edc3423f217fcd16535adf734db28a402e692 -->
+<!-- jig:skill-source-digest af9061e8cf58f4efbba7e0f7ea0b9bf09e6dc67b -->
 
 [한국어](../../ko/skills/version-rubric.md) · [Skill index](index.md) · [Rubric contract](../version-rubric.md)
 
@@ -28,41 +28,34 @@ Legacy Korean titles remain valid but must not be mixed with English titles. The
 
 ```mermaid
 flowchart TD
-    Resolve[Resolve rubric path and source] --> Exists{File exists?}
-    Exists -- Yes --> Review[Report basis, grades, titles, commit state]
-    Review --> Intent{Keep, re-set, edit, reset, convert, add paths?}
-    Intent -- Keep --> Report[No change]
-    Intent -- Edit --> Edit[Change only requested grade or titles]
-    Intent -- Add paths --> Paths[Append Interface Paths table]
-    Intent -- Re-set --> Offer[Show default and ask one question]
-    Intent -- Reset --> Default[Write default with new Basis]
-    Exists -- No --> Offer
-    Offer -- Yes --> Default
-    Offer -- No --> Catalog[Offer catalog or run rubric-scan]
-    Catalog --> Fit{Type fits?}
-    Fit -- Yes --> Adopt[Write selected draft]
-    Fit -- No --> Custom[Collect project wording for three grades]
-    Paths --> Commit[Hand change to develop-task-flow]
-    Edit --> Commit
-    Default --> Commit
-    Adopt --> Commit
-    Custom --> Commit
-    Commit --> Report
+    Resolve[Read resolved rubric and requested action] --> Review{Review only?}
+    Review -- Yes --> Report[Report without writing]
+    Review -- No --> Choice{Specific rubric change approved?}
+    Choice -- Yes --> Write[Apply only approved change]
+    Choice -- No --> Propose[Show current and proposed rubric, ask]
+    Propose -- Accepted --> Write
+    Propose -- Unanswered --> Report
+    Propose -- Declined --> Catalog[Offer catalog or collect project decisions]
+    Catalog --> Choice
+    Write --> Scope{Authorized Git ceiling?}
+    Scope -- Local --> Uncommitted[Report uncommitted]
+    Scope -- Commit --> Commit[Delegate commit only]
+    Scope -- Land --> Flow[Delegate authorized repository flow]
 ```
 
 The default grades on human intervention. Catalog drafts grade SemVer consumer compatibility. They are alternative axes and must be adopted whole, not mixed question by question.
 
 ## Reads and writes
 
-It reads the resolved rubric, Git commit state, catalog `INDEX.md`, one selected catalog draft, and repository context. It writes only the resolved rubric path and its parent `.jig/` directory, then delegates committing to `develop-task-flow` when available. The catalog is shipped payload and is never edited to record a project choice.
+It reads the resolved rubric, Git state, the catalog index and one relevant draft when needed, and task-relevant repository context. It writes only the approved rubric change. Review is read-only. Git operations are delegated to an adopted `develop-task-flow` within current limits and explicitly approved standing policy: local changes remain uncommitted, commit-only scope excludes landing, and already authorized landing needs no repeated approval. The rubric skill itself does not manage branches, tags, protection, or releases; its catalog remains shipped payload.
 
 ## Decision points and safety
 
-- Show and confirm before replacing an existing rubric.
-- If a create/re-set question is skipped, adopt the default and record that in `> Basis:`.
+- Show the existing rubric and require an explicit decision for the specific replacement; reuse that decision when already given.
+- Silence is never approval. An unanswered create/re-set question means nothing is written: the default is reported as proposed and the run stops. The default is written without a fresh answer only when the request already asked for it, and replacement of an existing rubric likewise requires an explicit decision. A generic setup request or silence grants neither.
 - Preserve the user's language and vocabulary; rephrasing changes future grading.
 - Never silently translate/retitle, create `.bak`, modify catalog files, grade a release, touch GitHub settings, or force a commit.
-- Warn before overwriting an untracked or uncommitted rubric.
+- Inspect and preserve untracked/uncommitted work; ask before discarding it outside the approved replacement.
 
 ## Outputs
 

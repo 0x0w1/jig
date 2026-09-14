@@ -69,17 +69,20 @@ Before any `gh` command, resolve the host from `JIG_GITHUB_HOST`, local `jig.git
    - Skip this check when an instance has no installed version or is already latest.
 
 Checks 5–10 diagnose repository state, not global installation state. Run them only when the current directory is a Git worktree and at least one project-scoped jig instance belongs to that repository. A user/global-only inventory must not turn whichever directory happens to be current into the diagnostic target; report repository checks as not applicable instead.
-5. **Branch protection** (optional feature — absence is not automatically a defect): `gh api repos/<owner>/<repo>/branches/<branch>/protection` for `main` and `develop`. Expected when it is in place: no required pull request reviews, no required status checks, `allow_force_pushes.enabled == false`, `allow_deletions.enabled == false`.
+5. **Branch protection** (optional feature — absence is not automatically a defect): `gh api repos/<owner>/<repo>/branches/<branch>/protection` for `main` and `develop`. jig guarantees exactly two things, so those are the only two this check judges: `allow_force_pushes.enabled == false` and `allow_deletions.enabled == false`. Required pull-request reviews, required status checks, push restrictions, and admin enforcement are the repository's own; they are reported as present and **never as drift**. Classify the response with `scripts/classify-protection.sh` from the `github-sync` skill of the same installation rather than comparing fields by eye.
+
+   Preserve the HTTP result and body separately. Generic `404`, authentication/rate-limit errors, malformed responses, and incomplete flags are unreadable, not evidence that protection is absent.
 
    Read the answer before judging it:
 
    | Response | Meaning | Report as |
    |---|---|---|
-   | `200` with the expected policy | Protected | OK |
-   | `200` with a different policy | Drifted from the model | Finding → `github-sync` |
+   | `200`, classifier says `satisfied` | Protected, whether by jig's baseline or a stronger policy | OK; name any extra protections as the repository's own |
+   | `200`, classifier says `needs-tightening` | A jig guarantee is missing | Finding → `github-sync`, naming only the missing guarantee |
+   | `200`, classifier says `unreadable` | The response could not be judged | Report as skipped, not as a defect |
    | `403` | The plan does not include protection for this repository (a private repository on the free plan), or the profile has no admin permission | Not available — informational, **never a defect** |
-   | `404`, and `git config --local --get jig.branchProtection` is `skipped` | The user declined it on this checkout | Skipped by choice — informational |
-   | `404`, no recorded choice | Available but never set up | Finding → `github-sync` offers it |
+   | Verified `404` / `Branch not protected`, and `git config --local --get jig.branchProtection` is `skipped` | The user declined it on this checkout | Skipped by choice — informational |
+   | Verified `404` / `Branch not protected`, no recorded choice | Available but never set up | Finding → `github-sync` offers it |
 
    Distinguish `403` from `404`. Branch protection on a private repository requires a paid plan, so most personal projects answer `403`, and reporting that as "unprotected" turns a plan limit into a permanent red mark.
 
@@ -164,8 +167,9 @@ Write the report in the language the repository already uses for its own documen
 - <affected target/scopes>: auto N | manual N (items quoted in full) | none
 
 ### Branch protection (optional)
-- main: OK | mismatches, item by item | not available (plan or permission) | skipped by choice | protected by a ruleset
+- main: OK | missing guarantee, item by item | not available (plan or permission) | skipped by choice | protected by a ruleset | unreadable
 - develop: same
+- Repository's own protections beyond jig's two guarantees: none | <list, reported as present, never as drift>
 - When not protected: the local pre-push guard is the only barrier
 
 ### Branch state

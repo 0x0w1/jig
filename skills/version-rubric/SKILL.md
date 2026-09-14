@@ -178,14 +178,14 @@ When the project type is not obvious, run `rubric-scan` (or the installed `jig-r
 
 ## Actions
 
-Called without arguments. Determine the current state first, then confirm the user's intent.
+Determine the current state and the user's requested action. A review is read-only. Ask about intent only when it is unresolved; do not re-ask an explicit choice.
 
 | Action | When | Result |
 |---|---|---|
 | Review | file exists | Report the current rubric: path, source, kind, the three grades, commit state. Stop. |
-| Create | file missing | Show the default, ask the binary question, write the file. |
+| Create | file missing | Propose the default; write only on explicit approval. |
 | Adopt a type | the project has a clear type, or `rubric-scan` handed one over | Write that catalog draft as the rubric, dated and with the interface list and path globs adjusted. |
-| Re-set | file exists, user wants a different rubric | Show the current rubric, confirm, then replace it. |
+| Re-set | file exists, user wants a different rubric | Show the current rubric; apply the explicitly approved replacement. |
 | Edit one grade | file exists, one grade is wrong | Update that grade's question and definition only; preserve the rest. |
 | Reset to default | file exists, user wants the default back | Replace with the default rubric and update the `> Basis:` line. |
 | Convert titles | file exists with legacy Korean titles and the user asks | Rename only the section titles to the English spellings; leave every question, definition, and rule word for word. |
@@ -194,23 +194,24 @@ Called without arguments. Determine the current state first, then confirm the us
 ## Procedure
 
 1. Resolve the path and read the file if it exists. Report which of the three sources supplied the path, and note when it came from the environment variable that it is session-only.
-2. If the file exists, summarize it and confirm the intent: keep, re-set, edit one grade, or reset to default. Keep ends the run.
-3. For create or re-set, show the default rubric and ask one question: **use this rubric?**
+2. If the file exists, summarize it and follow the requested action: review/keep, re-set, edit one grade, or reset to default. Review/keep ends without writing. Ask only when the action or replacement policy has not already been explicitly chosen.
+3. For create or re-set, show the proposed rubric. If that choice is not already explicitly approved, ask one question: **use this rubric?**
    - Yes → write the default and record adoption in the `> Basis:` line.
    - No → offer the catalog before drafting from scratch. Read `rubrics/INDEX.md`, name the types that fit what this repository ships, and let the user pick one; when the type is unclear, run `rubric-scan` and use its recommendation. A chosen draft is written as-is except for the `> Basis:` line, the interface list, and the `## Interface Paths` globs, which are checked against the repository's actual layout.
    - No catalog type fits → ask, for each of the three grades, which changes in this project belong there. Put the user's own wording into `## Decision Order` and `## Grade Definitions`.
-4. If the user skips the question or does not answer, adopt the default and record it. Do not ask again.
+4. Silence is not an answer. If the user does not answer the question, write nothing, report the default as proposed, and stop; do not ask a second time either. Write the default without a fresh answer only when the current request already approved it — "set the rubric up with the jig default" is approval, "set up jig" on its own is not. **Never treat silence as approval to replace an existing rubric**: show the existing rubric and obtain an explicit replacement decision unless the user has already requested that specific replacement. A general setup/update request is not a replacement decision.
 5. Keep the user's vocabulary, including the language they answered in. Only normalize the sentence shape into `<question> → \`patch\`` form. Translating their words into jig terms such as "silent behavior change" makes the next release grade differently than they intended.
-6. Write the file, creating `.jig/` when missing. Then hand the commit to the repository's flow: if `develop-task-flow` (or the installed `jig-develop-task-flow`) exists, follow it with a `chore/<slug>` branch, a `chore:` squash commit, and a `develop` push. Otherwise propose a normal commit on the current branch.
+6. Write only the approved rubric change, creating `.jig/` when missing. For Git operations, pass the original request, current limits, and explicitly approved repository policy to `develop-task-flow` only if that repository adopted the flow. Local-only changes stay uncommitted; commit-only permission stops at a commit; an already authorized landing uses a `chore/<slug>` branch, a `chore:` squash commit, and a `develop` push without re-confirmation. Other repositories keep their own workflow. A skill's availability is not adoption or permission to commit.
 7. Report.
 
 ## Safety Rules
 
-- Never overwrite an existing rubric without showing its current content and getting explicit confirmation.
-- Do not create `.bak` copies. The file is tracked, so git history is the record. Warn before overwriting when the file is untracked or has uncommitted changes.
+- Show the existing rubric and replace it only under an explicit decision for that replacement; do not ask again when that decision is already in the current request or earlier approval. Requested edits to one grade preserve the rest.
+- Do not create `.bak` copies. Inspect tracking and the existing diff; Git history protects committed content only. Preserve untracked or uncommitted user work, and ask before discarding it outside the approved replacement.
 - Do not translate or retitle an existing rubric without being asked. The questions are the project's own words.
 - Do not grade a release or write release notes; `github-release` owns that.
-- Do not touch branches, branch protection, tags, releases, or GitHub settings.
+- Do not create, move, or delete branches, branch protection, tags, releases, or GitHub settings **yourself**. Delegating Git operations to an adopted `develop-task-flow` is allowed within the original request and standing approval: that skill owns the authorized Git stages and inherits this run's ceiling. Delegating never turns a review request into a push.
+- Decide reversible wording and formatting of the rubric file yourself. Ask only what the project alone can answer: which changes belong in which grade, and whether an existing rubric may be replaced.
 - Do not write anything outside the resolved rubric path and its parent `.jig/` directory.
 - Do not modify `rubrics/`. It is shipped payload that `jig-update` replaces; a project's decision belongs in the rubric file.
 - Do not force a commit. If the user declines, report the uncommitted state.

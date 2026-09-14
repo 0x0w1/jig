@@ -1,6 +1,6 @@
 # Repo Hygiene
 
-<!-- jig:skill-source-digest 0f13f5a3e02c019f88c231b174741215c66e9fc7 -->
+<!-- jig:skill-source-digest 3d10dfe3494b3728e563a577fae9e424368ff46b -->
 
 [한국어](../../ko/skills/repo-hygiene.md) · [Skill index](index.md)
 
@@ -23,27 +23,34 @@ Use it when a repository has been worked through jig for a while and the branch 
 
 `develop-task-flow` finishes with `git merge --squash`, so a task branch tip never becomes an ancestor of `develop`. `git branch --merged develop` therefore finds almost nothing while `--no-merged` lists work that shipped months ago.
 
-The skill classifies by content instead:
+A plain diff does not settle it either. `git diff develop...<branch>` compares the merge base with the branch, so it still shows the branch's own contribution after a squash merge; `git diff develop..<branch>` compares the two tips, so one later unrelated commit on `develop` makes a finished branch look unfinished.
 
-```bash
-git diff --quiet develop...<branch>
-```
+Run `sh scripts/classify-branches.sh [--base develop] [--history-limit 200] [<local-branch>...]` relative to the skill directory. Its TSV output is status, branch, detail. Only `incorporated` may be offered for explicitly approved deletion.
 
-An empty diff means everything on the branch is already reachable from `develop` regardless of SHAs, which is the safe signal. A non-empty diff means the branch still holds something, so it is reported as unfinished and never offered for deletion.
+- `incorporated`: every task-changed path matches the base's current content, type, and mode, or the task diff is empty. Unrelated base paths are ignored. This proves content equivalence, not merge history.
+- `unincorporated`: a differing path remains at the fork version or an earlier task version, and bounded post-fork history never held the latest task version. Details also count uncertain paths.
+- `undecidable`: historical equality followed by differing content (including extensions and full/partial reverts), independent edits, or incomplete history. Past equality never makes a differing path deletable.
+- `protected`: `main`, `develop`, the base, or current branch, including fully qualified local names.
+
+Mode/type changes are compared. Renames are deletion plus addition, so a copy alone does not count. Quoted filenames (control characters or non-ASCII), missing/multiple merge bases, and nonlocal branch arguments are undecidable. Differing paths with shallow or truncated history remain uncertain. Git errors never count as an empty diff. The default history bound is 200 commits per differing path; the script reads committed trees and never deletes.
 
 ## Workflow
 
 ```mermaid
 flowchart TD
-    Fetch[Fetch and prune] --> Classify[Diff each task branch against develop]
-    Classify --> Shipped{Diff empty?}
-    Shipped -- Yes --> Offer[Group as safe to delete]
-    Shipped -- No --> Keep[Report as unfinished, never offer]
+    Fetch[Fetch and prune] --> Classify[Run classify-branches.sh]
+    Classify --> Status{Status}
+    Status -- incorporated --> Offer[Group as safe to delete]
+    Status -- unincorporated --> Keep[Report as unfinished, never offer]
+    Status -- protected --> Keep
+    Status -- undecidable --> Unknown[Report with the reason, never offer]
     Offer --> Other[Retired flows, tags, rubric, leftovers]
     Keep --> Other
+    Unknown --> Other
     Other --> Present[Present findings with exact commands]
     Present --> Confirm{User names a group?}
-    Confirm -- Yes --> Delete[Delete that group only]
+    Confirm -- Yes --> Recheck[Recheck tips, classification, and worktrees]
+    Recheck --> Delete[Delete approved incorporated candidates]
     Confirm -- No --> Report[Report without deleting]
     Delete --> Report
 ```
@@ -56,15 +63,18 @@ It reads branches, refs, tags, GitHub releases, the rubric path, and the working
 
 - A list is not consent: nothing is deleted until the user names the group.
 - `main`, `develop`, and the current branch are never touched.
-- A branch with a non-empty diff against `develop` is never deleted or offered.
+- Only a branch the classifier reported `incorporated` is ever deleted or offered. `unincorporated`, `undecidable`, and `protected` branches are reported and left alone, and an undecidable branch is never described as probably safe.
 - Remote branches, tags, and GitHub releases are never deleted; mismatches are reported for a human.
 - `.jig/` is never touched, and no command that rewrites history is run.
+
+
+- Before deleting, reclassify the approved candidates and recheck tips and all worktrees. A changed tip needs a new decision; checked-out branches are excluded. Retired-flow membership alone is not deletion approval.
 
 ## Outputs
 
 One check outranks the rest: when `git merge-base --is-ancestor origin/main origin/develop` fails, a hotfix landed on `main` and never returned to `develop`, so `github-release` cannot promote until `git merge main` runs. That is reported first.
 
-The report groups branches by shipped, unfinished, and retired-flow, then names what was deleted, how many remote-tracking refs were pruned, tag/release mismatches, whether the rubric is committed, remaining leftovers, and any check that was skipped with the reason.
+The report groups branches by shipped, unfinished, undecidable with the reason, and retired-flow, then names what was deleted, how many remote-tracking refs were pruned, tag/release mismatches, whether the rubric is committed, remaining leftovers, and any check that was skipped with the reason.
 
 ## Related skills
 
@@ -76,3 +86,4 @@ The report groups branches by shipped, unfinished, and retired-flow, then names 
 ## Source
 
 - [`skills/repo-hygiene/SKILL.md`](../../../skills/repo-hygiene/SKILL.md)
+- [`classify-branches.sh`](../../../skills/repo-hygiene/scripts/classify-branches.sh), the branch verdict the skill reads
